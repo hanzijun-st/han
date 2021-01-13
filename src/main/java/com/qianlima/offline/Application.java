@@ -12,6 +12,7 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 		System.out.println(getShuchu());
 	}
+	
 
 	private static StringBuffer getShuchu(){
 		StringBuffer s = new StringBuffer();
