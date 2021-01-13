@@ -14,6 +14,8 @@ public class Application {
 	}
 
 
+
+	
 	private static StringBuffer getShuchu(){
 		StringBuffer s = new StringBuffer();
 		s.append("===================================================================");
