@@ -13,8 +13,6 @@ public class Application {
 		System.out.println(getShuchu());
 	}
 
-	
-
 
 	private static StringBuffer getShuchu(){
 		StringBuffer s = new StringBuffer();
