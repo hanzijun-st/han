@@ -26,9 +26,4 @@ public interface AoLinBaSiService {
      */
     void getJdgl(String time1,String time2,String type,String titleOrAllcontent);
 
-    /**
-     * 只取一个关键词
-     * @param params
-     */
-    void getJdglOne(Params params);
 }
