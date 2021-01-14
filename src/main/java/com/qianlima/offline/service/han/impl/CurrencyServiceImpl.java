@@ -5,6 +5,7 @@ import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.service.PocService;
+import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.ContentSolr;
 import com.qianlima.offline.util.LogUtils;
@@ -48,6 +49,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private NewZhongTaiService newZhongTaiService;
+
+    @Autowired
+    private ZhongTaiBiaoDiWuService bdwService;
 
     @Autowired
     @Qualifier("bdJdbcTemplate")
@@ -206,6 +210,16 @@ public class CurrencyServiceImpl implements CurrencyService {
                     executorService.shutdown();
                 }
             }
+            System.out.println("--------------------------------本次任务结束---------------------------------------");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getBdw() {
+        try {
+            bdwService.getSolrAllField2("hBdw");
         } catch (IOException e) {
             e.printStackTrace();
         }

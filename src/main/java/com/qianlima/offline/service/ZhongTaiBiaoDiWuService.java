@@ -84,8 +84,6 @@ public class ZhongTaiBiaoDiWuService {
 
         List<String> ids = LogUtils.readRule(fileName);
 
-//        List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT contentid FROM loiloi_biaodiwu GROUP BY contentid");
-
         for (String id : ids) {
             futureList.add(executorService.submit(() -> {
                 try {
@@ -106,7 +104,7 @@ public class ZhongTaiBiaoDiWuService {
             }
         }
         executorService.shutdown();
-        System.out.println("--------------标的物查询结束--------------");
+        System.out.println("--------------------------------标的物查询结束---------------------------------------");
     }
 
 

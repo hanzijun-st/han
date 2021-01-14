@@ -17,4 +17,9 @@ public interface CurrencyService {
      * @param params
      */
     void getOnePoc(Params params);
+
+    /**
+     * 标的物
+     */
+    void getBdw();
 }
