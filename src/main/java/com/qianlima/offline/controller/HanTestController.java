@@ -1,11 +1,12 @@
 package com.qianlima.offline.controller;
 
+import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.TestService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -60,5 +61,34 @@ public class HanTestController {
     @ApiOperation("将数据导出excel")
     public String downLoad(){
         return testService.downLoad();
+    }
+
+    /**
+     * 多个关键词
+     * @param params
+     * @return
+     */
+    @ApiOperation("佳电(上海)管理有限公司")
+    @PostMapping("/start/getJdgl")
+    public String getJdgl(@RequestBody Params params){
+        String time1 = params.getTime1();
+        String time2 = params.getTime2();
+        String type = params.getType();
+        String title = params.getTitle();
+        aoLinBaSiService.getJdgl(time1,time2,type,title);
+        return "---佳电(上海)管理有限公司---";
+    }
+
+    /**
+     * 一个关键词
+     * @param params
+     * @return
+     */
+    @ApiOperation("选择一个关键词")
+    @PostMapping("/start/getJdglOne")
+    public String getJdglOne(@RequestBody Params params){
+
+        aoLinBaSiService.getJdglOne(params);
+        return "---=========---";
     }
 }
