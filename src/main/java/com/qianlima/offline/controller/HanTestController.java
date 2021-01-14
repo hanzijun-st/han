@@ -2,6 +2,7 @@ package com.qianlima.offline.controller;
 
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.service.han.AoLinBaSiService;
+import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestService;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,8 @@ public class HanTestController {
     private AoLinBaSiService aoLinBaSiService;
     @Autowired
     private TestService testService;
+    @Autowired
+    private CurrencyService currencyService;
 
     @GetMapping("/start/getAolinbasiDatas")
     @ApiOperation("获取奥林巴斯的数据")
@@ -80,15 +83,14 @@ public class HanTestController {
     }
 
     /**
-     * 一个关键词
+     * 1个关键词
      * @param params
      * @return
      */
-    @ApiOperation("选择一个关键词")
-    @PostMapping("/start/getJdglOne")
-    public String getJdglOne(@RequestBody Params params){
-
-        aoLinBaSiService.getJdglOne(params);
-        return "---=========---";
+    @ApiOperation("一个关键词")
+    @PostMapping("/start/getOne")
+    public String getOne(@RequestBody Params params){
+        currencyService.getOnePoc(params);
+        return "---测试---";
     }
 }
