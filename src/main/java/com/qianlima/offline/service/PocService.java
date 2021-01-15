@@ -95,8 +95,7 @@ public class PocService {
         }
     }
 
-    String ids[] = {"182001854","182296542","191670686","181982147","191595470","192746693","183769738","191670418","191670593"};
-
+    //String ids[] = {"182001854","182296542","191670686","181982147","191595470","192746693","183769738","191670418","191670593"};
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
         boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
