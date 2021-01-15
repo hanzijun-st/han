@@ -41,9 +41,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     private ContentSolr contentSolr;
 
     @Autowired
-    private PocService pocService;
-
-    @Autowired
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;
 

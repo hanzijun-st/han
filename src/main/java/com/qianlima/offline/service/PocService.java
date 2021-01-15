@@ -10,6 +10,7 @@ import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.middleground.ZhongTaiService;
 import com.qianlima.offline.rule02.NewRuleUtils;
+import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +74,9 @@ public class PocService {
 
     @Autowired
     private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
+
+    @Autowired
+    private CusDataFieldService cusDataFieldService;
 
 
     HashMap<Integer, Area> areaMap = new HashMap<>();

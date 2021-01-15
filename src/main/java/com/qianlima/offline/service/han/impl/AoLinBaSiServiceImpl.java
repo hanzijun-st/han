@@ -3,6 +3,7 @@ package com.qianlima.offline.service.han.impl;
 import com.alibaba.druid.support.json.JSONUtils;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
+import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.PocService;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.CurrencyService;
@@ -36,6 +37,9 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
 
     @Autowired
     private CurrencyService currencyService;
+
+    @Autowired
+    private CusDataFieldService cusDataFieldService;
 
     @Override
     public void getAoLinBaSiAndSave() {
@@ -196,12 +200,42 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
             //读取配置文件中的黑词
             List<String> blacks = LogUtils.readRule("blockKeys");
             //关键词
-            String[] keyWords = {"电脑","笔记本","工作站"};
-            //String string = "yyyymmdd:[20200101 TO 20201231] AND (progid:[0 TO 2]) AND catid:[* TO 100] AND title:\"" + str + "\" ";
-            String string = "yyyymmdd:["+time1 + " TO "+time2 + "] AND (progid:"+progidStr+")"+" AND catid:[* TO 100] AND "+titleOrAllcontent;
+            String[] keyWords = {"租赁","出租","租用"};
+            String[] keyWords2 = {"班车","通勤车","公务车","商务车","SUV型","越野车","公务用车","新能源汽车"};
+
+            //String string = "yyyymmdd:["+time1 + " TO "+time2 + "] AND (progid:"+progidStr+")"+" AND catid:[* TO 100] AND "+titleOrAllcontent;
             for (String str : keyWords) {
+                for (String str2 : keyWords2) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200901 TO 20201231] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND title:\"" + str + "\"  AND allcontent:\"" + str2 + "\"", str+"&"+str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    if (flag){
+                                        listAll.add(data);
+                                        data.setKeyword(str+"&"+str2);
+                                        if (!dataMap.containsKey(data.getContentid().toString())) {
+                                            list.add(data);
+                                            dataMap.put(data.getContentid().toString(), "0");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+
+
+            //关键词c
+
+            String[] keyWords3 = {"车辆租赁","商务车租赁","公务车租赁","汽车租赁","班车租赁","通勤车租赁","新能源汽车租赁"};
+
+            for (String str : keyWords3) {
                 futureList1.add(executorService1.submit(() -> {
-                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian(string+":\""+str+"\"", str, 2);
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200901 TO 20201231] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND allcontent:\"" + str + "\" ", str, 2);
                     log.info(str.trim() + "————" + mqEntities.size());
                     if (!mqEntities.isEmpty()) {
                         for (NoticeMQ data : mqEntities) {
@@ -226,39 +260,6 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
                     }
                 }));
             }
-
-            //关键词B
-
-            String[] keyWords2 = {"台式一体机","台式电脑","笔记本电脑","台式计算机","办公电脑","便携式计算机"};
-
-           /* for (String str : keyWords2) {
-                futureList1.add(executorService1.submit(() -> {
-                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200101 TO 20201231] AND (progid:[0 TO 2]) AND catid:[* TO 100] AND allcontent:\"" + str + "\" ", str, 2);
-                    log.info(str.trim() + "————" + mqEntities.size());
-                    if (!mqEntities.isEmpty()) {
-                        for (NoticeMQ data : mqEntities) {
-                            if (data.getTitle() != null) {
-                                boolean flag = true;
-                                for (String black : blacks) {
-                                    if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
-                                        flag = false;
-                                        break;
-                                    }
-                                }
-                                if (flag){
-                                    listAll.add(data);
-                                    data.setKeyword(str);
-                                    if (!dataMap.containsKey(data.getContentid().toString())) {
-                                        list.add(data);
-                                        dataMap.put(data.getContentid().toString(), "0");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }));
-            }*/
-
 
             for (Future future1 : futureList1) {
                 try {
@@ -280,11 +281,13 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
 
             ArrayList<String> arrayList = new ArrayList<>();
             for (String key : keyWords) {
-                arrayList.add(key);
+                for (String str2 : keyWords2) {
+                    arrayList.add(key+"&"+str2);
+                }
             }
 
-            for (String key2 :keyWords2){
-                arrayList.add(key2);
+            for (String key3 :keyWords3){
+                arrayList.add(key3);
             }
 
             for (String str : arrayList) {
@@ -321,6 +324,7 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
                     }
                 }
                 executorService.shutdown();
+                System.out.println("==========================================此程序运行结束========================================");
             }*/
         } catch (IOException e) {
             e.printStackTrace();
