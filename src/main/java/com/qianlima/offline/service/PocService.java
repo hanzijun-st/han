@@ -76,7 +76,7 @@ public class PocService {
     private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
 
     @Autowired
-    private CusDataFieldService cusDataFieldService;
+    private CusDataFieldService cusDataFieldService;//调用中台数据新方法
 
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
@@ -99,12 +99,13 @@ public class PocService {
 
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
+        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
         if (result == false) {
             log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
             return;
         }
-        Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
+        //Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithHunHe(noticeMQ, true);
         if (resultMap != null) {
             String contentInfo = resultMap.get("content").toString();
             String content = processAboutContent(contentInfo);
