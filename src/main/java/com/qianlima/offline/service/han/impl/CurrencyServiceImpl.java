@@ -4,10 +4,12 @@ import com.qianlima.offline.bean.Area;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
+import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.PocService;
 import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.DBUtil;
 import com.qianlima.offline.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +57,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
 
+    @Autowired
+    private CusDataFieldService cusDataFieldService;
+
     HashMap<Integer, Area> areaMap = new HashMap<>();
 
     //mysql数据库中插入数据
@@ -62,6 +68,10 @@ public class CurrencyServiceImpl implements CurrencyService {
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
+    //测试批量插入
+    public String INSERT_HAN_ALL_TEST = "INSERT INTO han_tab_all_copy (id,json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
+            "brand,model,number,numberUnit,price,priceUnit,totalPrice,totalPriceUnit,configuration_key,configuration_value,appendix_suffix) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     //地区
     @PostConstruct
     public void init() {
@@ -222,14 +232,29 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
     }
 
+    /**
+     * 批量导入
+     */
+    @Override
+    public void saveList() {
+
+        List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT * FROM han_tab_all");
+
+        try {
+            DBUtil.insertAll(INSERT_HAN_ALL_TEST,maps);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
+        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
         if (result == false) {
             log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
             return;
         }
-        Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithHunHe(noticeMQ, true);
         if (resultMap != null) {
             String contentInfo = resultMap.get("content").toString();
             String content = processAboutContent(contentInfo);
