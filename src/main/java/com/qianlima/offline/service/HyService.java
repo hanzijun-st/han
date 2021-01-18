@@ -6,7 +6,7 @@ import com.qianlima.offline.middleground.BaiLianZhongTaiService;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NiZaiJianService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
-import com.qianlima.offline.rule02.NewRuleUtils;
+import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.util.ContentSolr;
 import com.qianlima.offline.util.IctContentSolr;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +17,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -55,6 +53,9 @@ public class HyService {
 
     @Autowired
     private ZhongTaiBiaoDiWuServiceForOne zhongTaiBiaoDiWuServiceForOne;
+
+    @Autowired
+    private MyRuleUtils myRuleUtils;
 
     @Autowired
     private NiZaiJianService niZaiJianService;
@@ -99,7 +100,7 @@ public class HyService {
         Map<String, Object> map = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
         if (map != null) {
             String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             if (zhaobiaosplit[1].contains("通信") || zhaobiaosplit[1].contains("互联网") || zhaobiaosplit[1].contains("运营商") || zhaobiaosplit[1].contains("系统集成")){
                 newZhongTaiService.saveIntoMysql(map);

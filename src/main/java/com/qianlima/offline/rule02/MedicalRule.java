@@ -7,7 +7,7 @@ public class MedicalRule {
 
     private static String[] a = { "血站", "献血", "血液中心", "血液管理"};
     private static String[] b = { "急救中心", "紧急医疗", "120急救", "急救医疗", "医疗急救"};
-    private static String[] c = { "疾控", "疾病预防", "防治院", "预防控制", "检疫站", "疾病控制", "病防治", "抗癌"};
+    private static String[] c = { "疾控", "疾病预防", "防治院", "预防控制", "检疫站", "疾病控制", "病防治", "抗癌", "病控制"};
     private static String[] d = { "卫生院", "社区卫生", "卫生服务", "卫计服务", "医疗中心", "公共卫生", "卫生保健", "精神卫生", "卫生中心"};
     private static String[] e = { "疗养院", "康复中心", "康复医院", "休养所", "疗养医院"};
     private static String[] f = { "幼保健院", "心血管病", "妇婴保健院", "妇幼保健院", "儿童医院", "病医院", "肿瘤医院", "科医院", "妇婴医院", "肛肠医院", "口腔医院", "妇幼保健医院", "精神病医院", "精神病院"};
@@ -56,6 +56,9 @@ public class MedicalRule {
                 result = StrArrayName[3]+ ConstantBean.RULE_SEPARATOR;
                 break;
             }
+        }
+        if (company.contains("环境") || company.contains("环卫") || company.contains("环保")){
+            result = "";
         }
         return result;
     }

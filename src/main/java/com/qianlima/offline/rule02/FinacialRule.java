@@ -12,7 +12,7 @@ public class FinacialRule {
     private static String[] e = { "经济合作社", "信用社", "信用合作联社", "经济联合社", "联社", "联合社", "供销合作社", "合作社", "经济社", "银联"};
     private static String[] f = { "资产", "支付", "结算", "清算", "理财", "资金", "信用卡", "资产管理", "资产运营", "资产经营", "投资", "融资", "财务", "信贷", "贷款", "资本", "资产发展", "金融", "资管"};
 
-    private static String[] StrArrayName = {"金融企业-银行", "金融企业-证券", "金融企业-保险", "金融企业-信托", "金融企业-合作社", "金融企业-资本运作" };
+    private static String[] StrArrayName = {"金融企业-银行", "金融企业-证券", "金融企业-保险", "金融企业-信托", "金融企业-合作社", "金融企业-平台公司" };
 
     private static String checkA(String company) {
         String result = "";

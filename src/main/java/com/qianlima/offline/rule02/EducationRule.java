@@ -17,7 +17,7 @@ public class EducationRule {
 
     private static String checkA(String company) {
 
-        String[] otherBlacks = { "附属", "医院", "科学院", "门诊"};
+        String[] otherBlacks = { "附属", "医院", "科学院", "门诊", "儿童", "中等", "少儿", "业余"};
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 return "";

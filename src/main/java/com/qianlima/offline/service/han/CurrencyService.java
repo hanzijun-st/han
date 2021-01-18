@@ -27,4 +27,9 @@ public interface CurrencyService {
      * 批量导入
      */
     void saveList();
+
+    /**
+     * 行业标签
+     */
+    void getBiaoQian();
 }

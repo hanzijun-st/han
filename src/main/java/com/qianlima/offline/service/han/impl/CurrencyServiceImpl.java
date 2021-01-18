@@ -4,8 +4,8 @@ import com.qianlima.offline.bean.Area;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
+import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.service.CusDataFieldService;
-import com.qianlima.offline.service.PocService;
 import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.ContentSolr;
@@ -59,6 +59,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private CusDataFieldService cusDataFieldService;
+
+    @Autowired
+    private MyRuleUtils myRuleUtils;
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
 
@@ -247,6 +250,73 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
     }
 
+    @Override
+    public void getBiaoQian() {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<NoticeMQ> list = new ArrayList<>();
+        List<NoticeMQ> list1 = new ArrayList<>();
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20201222 TO 20201231] AND (progid:3 OR progid:5) AND zhaoBiaoUnit:*", "", 1);
+        if (!mqEntities.isEmpty()) {
+            for (NoticeMQ data : mqEntities) {
+                if (data.getTitle() != null) {
+                    futureList1.add(executorService1.submit(() -> {
+                        boolean flag = true;
+                        if (flag) {
+                            String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
+                            if (StringUtils.isNotBlank(zhaobiaoindustry)){
+                                if ("商业公司-文化".equals(zhaobiaoindustry) || "商业公司-旅游".equals(zhaobiaoindustry) || "政府机构-文化和旅游".equals(zhaobiaoindustry)){
+                                    list1.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+        }
+
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+
+        log.info("全部数据量：" + list1.size());
+        log.info("去重之后的数据量：" + list.size());
+        log.info("==========================");
+
+        if (list != null && list.size() > 0) {
+            ExecutorService executorService = Executors.newFixedThreadPool(80);
+            List<Future> futureList = new ArrayList<>();
+            for (NoticeMQ content : list) {
+                futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
+        }
+    }
+
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
         boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
@@ -254,7 +324,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
             return;
         }
-        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithHunHe(noticeMQ, true);
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
             String contentInfo = resultMap.get("content").toString();
             String content = processAboutContent(contentInfo);
@@ -304,5 +374,30 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
         }
         return document.body().html();
+    }
+
+    //调取中台数据 并 匹配行业标签
+    public void getDataFromZhongTaiAndSave6(NoticeMQ noticeMQ) {
+        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
+        if (result == false) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        Map<String, Object> map = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+        if (map != null) {
+            String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
+            String task_id = map.get("task_id") != null ? map.get("task_id").toString() : "";
+            if (task_id.equals("2")){
+                String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
+                String[] zhaobiaosplit = zhaobiaoindustry.split("-");
+                if (StringUtils.isNotBlank(zhaobiaounit)){
+                    if ("商业公司-文化".equals(zhaobiaoindustry) || "商业公司-旅游".equals(zhaobiaoindustry) || "政府机构-文化和旅游".equals(zhaobiaoindustry)){
+                        newZhongTaiService.saveIntoMysql(map);
+                    }
+                }
+            }else {
+                newZhongTaiService.saveIntoMysql(map);
+            }
+        }
     }
 }

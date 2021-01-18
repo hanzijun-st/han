@@ -109,4 +109,13 @@ public class HanTestController {
         currencyService.saveList();
         return "123456789";
     }
+
+    @ApiOperation("行业标签")
+    @PostMapping("/start/getBiaoQian")
+    public String getBiaoQian(){
+        currencyService.getBiaoQian();
+        return "---123---";
+    }
+
+
 }

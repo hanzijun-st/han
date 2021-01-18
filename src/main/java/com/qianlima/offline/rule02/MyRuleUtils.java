@@ -3,9 +3,15 @@ package com.qianlima.offline.rule02;
 import com.qianlima.offline.bean.ConstantBean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-public class NewRuleUtils {
+@Component
+public class MyRuleUtils {
+
+    @Autowired
+    private BusinessRule businessRule;
 
     private static final String[] P0 = { "政府机构-教育", "教育单位-大学", "教育单位-中学", "教育单位-小学", "教育单位-幼儿园", "教育单位-培训"};
     private static final String[] P1 = { "教育单位-学校"};
@@ -18,20 +24,21 @@ public class NewRuleUtils {
     private static final String[] P8 = { "政府机构-地方政务"};
     private static final String[] P9 = { "政府机构-其他", "商业公司-石油化工"};
     private static final String[] P10 = { "商业公司-采矿", "商业公司-电力", "商业公司-电气", "商业公司-燃气热力", "商业公司-水利", "商业公司-管网", "商业公司-新能源", "商业公司-物流仓储", "商业公司-机场港口", "商业公司-轨道交通"};
-    private static final String[] P11 = { "商业公司-烟草", "商业公司-传媒"};
+    private static final String[] P11 = { "商业公司-烟草", "商业公司-广电", "商业公司-传媒"};
     private static final String[] P12 = { "商业公司-城市交通", "商业公司-制造", "商业公司-零售批发", "商业公司-汽车", "商业公司-消防安防", "商业公司-运营商", "商业公司-系统集成", "商业公司-环保", "商业公司-农业", "商业公司-林业", "商业公司-渔业", "商业公司-畜牧", "商业公司-体育", "商业公司-文化", "商业公司-旅游", "商业公司-教育服务", "商业公司-医疗服务"};
     private static final String[] P13 = { "商业公司-互联网", "商业公司-通信"};
     private static final String[] P14 = { "商业公司-工程建筑"};
     private static final String[] P15 = { "商业公司-装饰装修", "商业公司-房地产", "商业公司-生活服务"};
-    private static final String[] P16 = { "商业公司-智慧科技", "金融企业-资本运作", "商业公司-其他"};
+    private static final String[] P16 = { "商业公司-智慧科技", "金融企业-平台公司", "商业公司-其他"};
 
-    public static String getIndustry(String company) {
+
+    public String getIndustry(String company) {
 
         String government = GovernmentRule.ruleVerification(company);
         String medical = MedicalRule.ruleVerification(company);
         String education = EducationRule.ruleVerification(company);
         String finacial = FinacialRule.ruleVerification(company);
-        String business = BusinessRule.ruleVerification(company);
+        String business = businessRule.ruleVerification(company);
 
         String governmentBlacks = medical + education + finacial + business;
         String educationBlacks = business;
@@ -209,14 +216,10 @@ public class NewRuleUtils {
             industry = industry.substring(0, industry.length() - 1);
         }
 
-        if (StringUtils.isBlank(industry)){
-            industry = "";
-        } else {
-            if (industry.contains(ConstantBean.RULE_SEPARATOR)){
-                industry = industry.split(ConstantBean.RULE_SEPARATOR)[0];
-            }
+        if (StringUtils.isNotBlank(industry)){
+            String[] split = industry.split("&");
+            return split[0];
         }
-
-        return industry;
+        return "行业待分类";
     }
 }
