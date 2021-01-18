@@ -22,4 +22,14 @@ public interface CurrencyService {
      * 标的物
      */
     void getBdw();
+
+    /**
+     * 批量导入
+     */
+    void saveList();
+
+    /**
+     * 行业标签
+     */
+    void getBiaoQian();
 }

@@ -40,9 +40,9 @@ public class TestServiceImpl implements TestService{
     @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
 
-    private static final String INSERT_HAN_ALL = "INSERT INTO han_tab_all (json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
+    private static final String INSERT_HAN_ALL = "INSERT INTO han_tab_all (id,json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
             "brand,model,number,numberUnit,price,priceUnit,totalPrice,totalPriceUnit,configuration_key,configuration_value,appendix_suffix) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     @Override
     public void getBdw() {
         try {

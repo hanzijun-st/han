@@ -7,7 +7,7 @@ import com.qianlima.offline.middleground.BaiLianZhongTaiService;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.middleground.ZhongTaiService;
-import com.qianlima.offline.rule02.NewRuleUtils;
+import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +71,9 @@ public class PocTestService {
 
     @Autowired
     private ZhongTaiService zhongTaiService;
+
+    @Autowired
+    private MyRuleUtils myRuleUtils;
 
     @Autowired
     private BaiLianZhongTaiService baiLianZhongTaiService;
@@ -293,7 +296,7 @@ public class PocTestService {
         Map<String, Object> map = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
         if (map != null) {
             String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             if ("医疗单位".equals(zhaobiaosplit[0])){
                 newZhongTaiService.saveIntoMysql(map);
@@ -1609,7 +1612,7 @@ public class PocTestService {
                                 if (flag) {
                                     String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                                     if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                                        String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                                        String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                                         if (StringUtils.isNotBlank(industry)){
                                             String[] split = industry.split("-");
                                             if (split.length == 2){
@@ -1645,7 +1648,7 @@ public class PocTestService {
                                 if (flag) {
                                     String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                                     if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                                        String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                                        String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                                         if (StringUtils.isNotBlank(industry)){
                                             String[] split = industry.split("-");
                                             if (split.length == 2){
@@ -1680,7 +1683,7 @@ public class PocTestService {
                             if (flag) {
                                 String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                                 if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                                    String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                                    String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                                     if (StringUtils.isNotBlank(industry)){
                                         String[] split = industry.split("-");
                                         if (split.length == 2){
@@ -1714,7 +1717,7 @@ public class PocTestService {
                             if (flag) {
                                 String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                                 if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                                    String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                                    String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                                     if (StringUtils.isNotBlank(industry)){
                                         String[] split = industry.split("-");
                                         if (split.length == 2){
@@ -2110,7 +2113,7 @@ public class PocTestService {
                     if (data.getZhaoBiaoUnit() != null && data.getZhaoBiaoUnit() != "") {
                         String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                         if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                            String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                            String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                             if (StringUtils.isNotBlank(industry)){
                                 String[] split = industry.split("-");
                                 if (split.length == 2){

@@ -4,6 +4,7 @@ package com.qianlima.offline.middleground;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.Area;
+import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.util.*;
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import com.sun.org.apache.regexp.internal.RE;
@@ -36,7 +37,6 @@ import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.qianlima.offline.rule02.NewRuleUtils.getIndustry;
 import static com.qianlima.offline.util.HttpClientUtil.getHttpClient;
 
 @Service
@@ -49,6 +49,8 @@ public class ICTLingYuService {
 
     @Autowired
     private YiDongMapping yiDongMapping;
+    @Autowired
+    private MyRuleUtils myRuleUtils;
 
 
     HashMap<Integer, Area> areaMap = new HashMap<>();

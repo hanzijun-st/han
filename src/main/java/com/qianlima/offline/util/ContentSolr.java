@@ -35,6 +35,7 @@ public class ContentSolr {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(tiaojian);
             solrQuery.setRows(5000);
+            solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
             if (StringUtils.isEmpty(cursormark)) {
                 solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
             } else {

@@ -71,6 +71,16 @@ public class HanTestController {
      * @param params
      * @return
      */
+    @ApiOperation("天津众泰")
+    @PostMapping("/start/getTianjin")
+    public String getTianjin(@RequestBody Params params){
+        String time1 = params.getTime1();
+        String time2 = params.getTime2();
+        String type = params.getType();
+        String title = params.getTitle();
+        aoLinBaSiService.getTianjin(time1,time2,type,title);
+        return "---天津众泰---";
+    }
     @ApiOperation("佳电(上海)管理有限公司")
     @PostMapping("/start/getJdgl")
     public String getJdgl(@RequestBody Params params){
@@ -81,7 +91,6 @@ public class HanTestController {
         aoLinBaSiService.getJdgl(time1,time2,type,title);
         return "---佳电(上海)管理有限公司---";
     }
-
     /**
      * 1个关键词
      * @param params
@@ -93,4 +102,20 @@ public class HanTestController {
         currencyService.getOnePoc(params);
         return "---测试---";
     }
+
+    @ApiOperation("测试批量导入数据库")
+    @PostMapping("/start/save")
+    public String save(){
+        currencyService.saveList();
+        return "123456789";
+    }
+
+    @ApiOperation("行业标签")
+    @PostMapping("/start/getBiaoQian")
+    public String getBiaoQian(){
+        currencyService.getBiaoQian();
+        return "---123---";
+    }
+
+
 }

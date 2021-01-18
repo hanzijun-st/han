@@ -9,8 +9,7 @@ import com.qianlima.offline.middleground.BaiLianZhongTaiService;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.middleground.ZhongTaiService;
-import com.qianlima.offline.rule02.NewRuleUtils;
-import com.qianlima.offline.service.han.CurrencyService;
+import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +73,9 @@ public class PocService {
 
     @Autowired
     private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
+
+    @Autowired
+    private MyRuleUtils myRuleUtils;
 
     @Autowired
     private CusDataFieldService cusDataFieldService;//调用中台数据新方法
@@ -217,7 +219,7 @@ public class PocService {
             }
 
             String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             String[] hhy = {"医疗","血站","急救中心","疾控中心","卫生院","疗养院","专科医院","中医院","综合医院","医疗服务"};
             for (String hy : hhy) {
@@ -326,7 +328,7 @@ public class PocService {
             String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
             String task_id = map.get("task_id") != null ? map.get("task_id").toString() : "";
             if (task_id.equals("2")){
-                String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+                String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
                 String[] zhaobiaosplit = zhaobiaoindustry.split("-");
                 if (StringUtils.isNotBlank(zhaobiaounit)){
                     if ("医疗单位".equals(zhaobiaosplit[0]) || "政府机构-医疗".equals(zhaobiaoindustry) || "商业公司-医疗服务".equals(zhaobiaoindustry) || zhaobiaounit.contains("监狱")){
@@ -350,7 +352,7 @@ public class PocService {
         if (resultMap != null) {
             String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
             String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             if (zhaobiaosplit[1].contains("金融") || zhaobiaosplit[0].contains("金融企业")){
                 // 匹配行业标签
@@ -2835,7 +2837,7 @@ public class PocService {
                             if (flag) {
                                 String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                                 if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                                    String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                                    String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                                     if (StringUtils.isNotBlank(industry)){
                                         String[] split = industry.split("-");
                                         if (split.length == 2){
@@ -2880,7 +2882,7 @@ public class PocService {
                             if (flag) {
                                 String zhaoBiaoUnit = data.getZhaoBiaoUnit();
                                 if (StringUtils.isNotBlank(zhaoBiaoUnit)){
-                                    String industry = NewRuleUtils.getIndustry(zhaoBiaoUnit);
+                                    String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
                                     if (StringUtils.isNotBlank(industry)){
                                         String[] split = industry.split("-");
                                         if (split.length == 2){

@@ -8,23 +8,13 @@ import com.qianlima.offline.middleground.BaiLianZhongTaiService;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.middleground.ZhongTaiService;
-import com.qianlima.offline.rule02.NewRuleUtils;
+import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.util.ContentSolr;
 import com.qianlima.offline.util.IctContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import com.qianlima.offline.util.MathUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -75,6 +65,9 @@ public class PocService2 {
 
     @Autowired
     private BaiLianZhongTaiService baiLianZhongTaiService;
+
+    @Autowired
+    private MyRuleUtils myRuleUtils;
 
     @Autowired
     private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
@@ -218,7 +211,7 @@ public class PocService2 {
             }
 
             String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             String[] hhy = {"医疗","血站","急救中心","疾控中心","卫生院","疗养院","专科医院","中医院","综合医院","医疗服务"};
             for (String hy : hhy) {
@@ -323,7 +316,7 @@ public class PocService2 {
         Map<String, Object> map = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
         if (map != null) {
             String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             if ("医疗单位".equals(zhaobiaosplit[0])){
                 newZhongTaiService.saveIntoMysql(map);
@@ -342,7 +335,7 @@ public class PocService2 {
         if (resultMap != null) {
             String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
             String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] zhaobiaosplit = zhaobiaoindustry.split("-");
             if (zhaobiaosplit[1].contains("金融") || zhaobiaosplit[0].contains("金融企业")){
                 // 匹配行业标签
@@ -518,7 +511,7 @@ public class PocService2 {
             String title = resultMap.get("title") != null ? resultMap.get("title").toString() : "";
             String content = resultMap.get("content") != null ? resultMap.get("content").toString() : "";
             String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String industry = NewRuleUtils.getIndustry(zhaobiaounit);
+            String industry = myRuleUtils.getIndustry(zhaobiaounit);
             String[] split = industry.split("-");
 
             title = title.toUpperCase();

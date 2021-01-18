@@ -26,4 +26,5 @@ public interface AoLinBaSiService {
      */
     void getJdgl(String time1,String time2,String type,String titleOrAllcontent);
 
+    void getTianjin(String time1, String time2, String type, String title);
 }

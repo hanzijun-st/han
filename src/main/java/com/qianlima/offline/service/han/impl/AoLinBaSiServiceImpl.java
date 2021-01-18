@@ -200,42 +200,40 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
             //读取配置文件中的黑词
             List<String> blacks = LogUtils.readRule("blockKeys");
             //关键词
-            String[] keyWords = {"租赁","出租","租用"};
-            String[] keyWords2 = {"班车","通勤车","公务车","商务车","SUV型","越野车","公务用车","新能源汽车"};
+            String[] keyWords = {"电脑","笔记本","工作站"};
+            String[] keyWords2 = {"台式一体机","台式电脑","笔记本电脑","台式计算机","办公电脑","便携式计算机"};
 
             //String string = "yyyymmdd:["+time1 + " TO "+time2 + "] AND (progid:"+progidStr+")"+" AND catid:[* TO 100] AND "+titleOrAllcontent;
             for (String str : keyWords) {
-                for (String str2 : keyWords2) {
-                    futureList1.add(executorService1.submit(() -> {
-                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200901 TO 20201231] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND title:\"" + str + "\"  AND allcontent:\"" + str2 + "\"", str+"&"+str2, 2);
-                        log.info(str.trim() + "————" + mqEntities.size());
-                        if (!mqEntities.isEmpty()) {
-                            for (NoticeMQ data : mqEntities) {
-                                if (data.getTitle() != null) {
-                                    boolean flag = true;
-                                    if (flag){
-                                        listAll.add(data);
-                                        data.setKeyword(str+"&"+str2);
-                                        if (!dataMap.containsKey(data.getContentid().toString())) {
-                                            list.add(data);
-                                            dataMap.put(data.getContentid().toString(), "0");
-                                        }
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200101 TO 20201231] AND (progid:3 OR progid:5) AND catid:[* TO 100] AND title:\"" + str + "\" ", str, 2);
+                    log.info(str.trim() + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                for (String black : blacks) {
+                                    if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
                                     }
                                 }
                             }
                         }
-                    }));
-                }
+                    }
+                }));
             }
-
-
-            //关键词c
-
-            String[] keyWords3 = {"车辆租赁","商务车租赁","公务车租赁","汽车租赁","班车租赁","通勤车租赁","新能源汽车租赁"};
-
-            for (String str : keyWords3) {
+            for (String str : keyWords2) {
                 futureList1.add(executorService1.submit(() -> {
-                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200901 TO 20201231] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND allcontent:\"" + str + "\" ", str, 2);
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20200101 TO 20201231] AND (progid:3 OR progid:5) AND catid:[* TO 100] AND allcontent:\"" + str + "\" ", str, 2);
                     log.info(str.trim() + "————" + mqEntities.size());
                     if (!mqEntities.isEmpty()) {
                         for (NoticeMQ data : mqEntities) {
@@ -281,13 +279,10 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
 
             ArrayList<String> arrayList = new ArrayList<>();
             for (String key : keyWords) {
-                for (String str2 : keyWords2) {
-                    arrayList.add(key+"&"+str2);
-                }
+                arrayList.add(key);
             }
-
-            for (String key3 :keyWords3){
-                arrayList.add(key3);
+            for (String key2 : keyWords2) {
+                arrayList.add(key2);
             }
 
             for (String str : arrayList) {
@@ -331,4 +326,149 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
         }
     }
 
+    @Override
+    public void getTianjin(String time1, String time2, String type, String title) {
+
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        String progidStr = currencyService.getProgidStr(type);
+
+        try {
+            //读取配置文件中的黑词
+            List<String> blacks = LogUtils.readRule("blockKeys");
+            //关键词
+            String[] keyWords = {"租赁", "出租", "租用"};
+            String[] keyWords2 = {"班车", "通勤车", "公务车", "商务车", "SUV型", "越野车", "公务用车", "新能源汽车"};
+
+            //String string = "yyyymmdd:["+time1 + " TO "+time2 + "] AND (progid:"+progidStr+")"+" AND catid:[* TO 100] AND "+titleOrAllcontent;
+            for (String str : keyWords) {
+                for (String str2 : keyWords2) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20180101 TO 20201231] AND (progid:[0 TO 2]) AND catid:[* TO 100] AND title:\"" + str + "\"  AND allcontent:\"" + str2 + "\"", str + "&" + str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    if (flag) {
+                                        listAll.add(data);
+                                        data.setKeyword(str + "&" + str2);
+                                        if (!dataMap.containsKey(data.getContentid().toString())) {
+                                            list.add(data);
+                                            dataMap.put(data.getContentid().toString(), "0");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+
+
+            //关键词c
+
+            String[] keyWords3 = {"车辆租赁", "商务车租赁", "公务车租赁", "汽车租赁", "班车租赁", "通勤车租赁", "新能源汽车租赁"};
+
+            for (String str : keyWords3) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20180101 TO 20201231] AND (progid:[0 TO 2]) AND catid:[* TO 100] AND allcontent:\"" + str + "\" ", str, 2);
+                    log.info(str.trim() + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                for (String black : blacks) {
+                                    if (StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)) {
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                                if (flag) {
+                                    listAll.add(data);
+                                    data.setKeyword(str);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重之后的数据量：" + list.size());
+            log.info("==========================");
+
+
+            ArrayList<String> arrayList = new ArrayList<>();
+            for (String key : keyWords) {
+                for (String str2 : keyWords2) {
+                    arrayList.add(key + "&" + str2);
+                }
+            }
+
+            for (String key3 : keyWords3) {
+                arrayList.add(key3);
+            }
+
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : list) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (keyword.equals(str)) {
+                        total++;
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                System.out.println(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+
+
+
+                /*if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> pocService.getDataFromZhongTaiAndSave(content)));
+                    }
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+                    System.out.println("==========================================此程序运行结束========================================");
+                }*/
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

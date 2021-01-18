@@ -1,9 +1,19 @@
 package com.qianlima.offline.rule02;
 
 import com.qianlima.offline.bean.ConstantBean;
+import com.qianlima.offline.bean.TencentIndustryCompany;
+import com.qianlima.offline.dao.TencentIndustryCompanyRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class BusinessRule {
+
+    @Autowired
+    private TencentIndustryCompanyRepository tencentIndustryCompanyRepository;
 
     private static String[] a = {  "郑煤", "晋煤", "矿业" ,"煤矿" ,"煤业" ,"煤炭" ,"精煤" ,"焦煤" ,"矿产" ,"矿物" ,"铁矿" ,"铜矿" ,"矿务" ,"选矿" ,"矿山" ,"地质" ,"采砂" ,"兖矿"};
     private static String[] b = { "北京国电", "国电南瑞", "粤电", "电务公司", "电力" ,"电场" ,"电厂" ,"电网" ,"发电" ,"国电集团" ,"供电" ,"煤电" ,"水电" ,"核电" ,"电能" ,"风电" ,"电站" ,"热电" ,"电建" ,"华电集团" ,"大唐集团" };
@@ -35,14 +45,15 @@ public class BusinessRule {
     private static String[] b1 = { "体育" ,"运动" ,"足球" ,"篮球" ,"羽毛球"};
     private static String[] c1 = { "文化产业", "文化传播" ,"图书馆" ,"出版" ,"书店" ,"图书" ,"文艺" ,"日报" ,"报业" ,"报社", "会展", "展览", "博览"};
     private static String[] d1 = { "旅游" ,"旅行" ,"度假" ,"饭店" ,"酒店" ,"客轮" ,"游轮" ,"游客" ,"景区" ,"文旅" ,"宾馆" ,"商旅"};
-    private static String[] e1 = { "娱乐" ,"视频" ,"影视" ,"电视" ,"广播" ,"电影" ,"制片" ,"演艺" ,"演出", "传媒", "媒体", "广电", "广告", "人民网"};
+    private static String[] e1 = { "广播电视", "广播电影", "广播电台", "有线电视", "广电", "中广"};
     private static String[] f1 = { "教育" ,"辅导" ,"课程" ,"学习" ,"培训" ,"家教", "职教"};
     private static String[] g1 = { "生命", "健康", "国药", "生物科学", "基因", "医生", "生物工程", "细胞", "器官", "医疗" ,"药业" ,"医药" ,"医学" ,"体检" ,"医用" ,"生物技术" ,"制药" ,"药剂"};
     private static String[] h1 = { "建筑" ,"建设" ,"建工" ,"工程" ,"城建" ,"造价咨询", "中建"};
     private static String[] i1 = { "饰品", "窗帘", "水泥", "混凝土", "建材", "装饰" ,"装修", "灯饰", "装潢", "安装"};
     private static String[] j1 = { "招标采购", "招标代理", "物业管理" ,"保洁服务" ,"洗涤" ,"物业服务" ,"物业顾问" ,"清洁服务" ,"物业公司" ,"家政服务", "社区服务", "园区服务", "物业有限"};
     private static String[] k1 = { "地产" ,"房产" ,"房屋" ,"商品房" ,"置业" ,"二手房" ,"土地发展" ,"长租房", "不动产", "租房"};
-    private static String[] l1 = { "公司" ,"股份" ,"集团"};
+    private static String[] l1 = { "娱乐", "视频", "影视", "电视", "广播", "电影", "制片", "演艺", "演出", "传媒", "媒体", "广告", "人民网", "新浪网"};
+    private static String[] m1 = { "公司" ,"股份" ,"集团"};
     private static String[] a11 = { "煤矿"};
     private static String[] b11 = { "电场" ,"电厂"};
     private static String[] e11 = { "油田", "油厂", "加油站", "采气厂"};
@@ -54,18 +65,17 @@ public class BusinessRule {
     private static String[] x11 = { "农场" ,"茶场"};
     private static String[] bb11 = { "体育馆"};
     private static String[] ce11 = { "艺术馆" ,"美术馆" ,"图书馆" ,"书院", "展览馆", "出版社", "报社", "会展中心", "传播中心", "场馆"};
-    private static String[] ee11 = { "电影院", "媒体中心"};
     private static String[] w11 = { "处理厂", "填埋场" };
     private static String[] p11 = { "卷烟厂" };
     private static String[] d11 = { "宾馆", "酒店", "饭店", "招待所" };
 
-    private static String[] StrArrayName = { "商业公司-采矿", "商业公司-电力", "商业公司-电气", "商业公司-燃气热力", "商业公司-石油化工", "商业公司-水利", "商业公司-管网", "商业公司-新能源", "商业公司-物流仓储", "商业公司-机场港口", "商业公司-轨道交通", "商业公司-城市交通", "商业公司-制造", "商业公司-零售批发", "商业公司-智慧科技", "商业公司-烟草", "商业公司-汽车", "商业公司-消防安防", "商业公司-通信", "商业公司-互联网", "商业公司-运营商", "商业公司-系统集成", "商业公司-环保", "商业公司-农业", "商业公司-林业", "商业公司-渔业", "商业公司-畜牧", "商业公司-体育", "商业公司-文化", "商业公司-旅游", "商业公司-传媒", "商业公司-教育服务", "商业公司-医疗服务", "商业公司-工程建筑", "商业公司-装饰装修", "商业公司-生活服务","商业公司-房地产", "商业公司-其他" };
+    private static String[] StrArrayName = { "商业公司-采矿", "商业公司-电力", "商业公司-电气", "商业公司-燃气热力", "商业公司-石油化工", "商业公司-水利", "商业公司-管网", "商业公司-新能源", "商业公司-物流仓储", "商业公司-机场港口", "商业公司-轨道交通", "商业公司-城市交通", "商业公司-制造", "商业公司-零售批发", "商业公司-智慧科技", "商业公司-烟草", "商业公司-汽车", "商业公司-消防安防", "商业公司-通信", "商业公司-互联网", "商业公司-运营商", "商业公司-系统集成", "商业公司-环保", "商业公司-农业", "商业公司-林业", "商业公司-渔业", "商业公司-畜牧", "商业公司-体育", "商业公司-文化", "商业公司-旅游", "商业公司-广电",  "商业公司-教育服务", "商业公司-医疗服务", "商业公司-工程建筑", "商业公司-装饰装修", "商业公司-生活服务","商业公司-房地产", "商业公司-传媒", "商业公司-其他" };
 
-    private static String checkA(String company) {
+    private String checkA(String company) {
         String result = "";
         boolean flag = false;
 
-        String[] commonBlacks = { "公司", "股份", "集团" };
+        String[] commonBlacks = { "公司", "股份", "集团"};
         for (String commonBlack : commonBlacks) {
             if (company.contains(commonBlack)){
                 flag = true;
@@ -92,7 +102,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkB(String company) {
+    private String checkB(String company) {
 
         String[] commonBlacks = { "广电网络"};
         for (String commonBlack : commonBlacks) {
@@ -104,7 +114,7 @@ public class BusinessRule {
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅" };
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
@@ -131,11 +141,11 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkC(String company) {
+    private String checkC(String company) {
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅" };
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
@@ -154,16 +164,21 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkD(String company) {
+    private String checkD(String company) {
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅" };
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
                 break;
             }
+        }
+
+        if (company.endsWith("热力厂")){
+            result = StrArrayName[3]+ ConstantBean.RULE_SEPARATOR;
+            flag = false;
         }
 
         if (flag){
@@ -178,12 +193,12 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkE(String company) {
+    private String checkE(String company) {
 
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅" };
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
@@ -211,11 +226,11 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkF(String company) {
+    private String checkF(String company) {
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅"};
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
@@ -243,11 +258,11 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkG(String company) {
+    private String checkG(String company) {
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅"};
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
@@ -267,7 +282,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkH(String company) {
+    private String checkH(String company) {
 
         String[] commonBlacks = { "发电", "供电"};
         for (String commonBlack : commonBlacks) {
@@ -298,7 +313,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkI(String company) {
+    private String checkI(String company) {
         String result = "";
         boolean flag = false;
 
@@ -321,7 +336,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkJ(String company) {
+    private String checkJ(String company) {
         String result = "";
         boolean flag = false;
 
@@ -345,7 +360,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkK(String company) {
+    private String checkK(String company) {
         String result = "";
         boolean flag = false;
 
@@ -369,7 +384,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkL(String company) {
+    private String checkL(String company) {
         String result = "";
         boolean flag = false;
 
@@ -393,7 +408,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkM(String company) {
+    private String checkM(String company) {
         String result = "";
         boolean flag = false;
 
@@ -425,7 +440,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkN(String company) {
+    private String checkN(String company) {
         String result = "";
         boolean flag = false;
 
@@ -457,7 +472,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkO(String company) {
+    private String checkO(String company) {
         String result = "";
         boolean flag = false;
 
@@ -489,7 +504,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkP(String company) {
+    private String checkP(String company) {
         String result = "";
         boolean flag = false;
 
@@ -523,7 +538,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkQ(String company) {
+    private String checkQ(String company) {
         String result = "";
         boolean flag = false;
 
@@ -547,7 +562,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkR(String company) {
+    private String checkR(String company) {
 
         String result = "";
         boolean flag = false;
@@ -572,7 +587,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkS(String company) {
+    private String checkS(String company) {
 
         String[] commonBlacks = { "移动通信", "联通通信", "联合网络通信", "联合通信", "电信通信", "铁通通信" };
         for (String commonBlack : commonBlacks) {
@@ -602,7 +617,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkT(String company) {
+    private String checkT(String company) {
         String result = "";
         boolean flag = false;
 
@@ -626,29 +641,42 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkU(String company) {
+    private String checkU(String company) {
 
-        String[] commonBlacks = { "广电信息" };
+        boolean flag = false;
+        String result = "";
+
+        // 以“电信、移动、联通”结尾  排除：广电信息
+        if ( ! company.contains("广电信息")){
+            for (String s1 : u11) {
+                if (company.endsWith(s1)){
+                    return StrArrayName[20]+ ConstantBean.RULE_SEPARATOR;
+                }
+            }
+        }
+        // 查询名录表
+        if (StringUtils.isNotBlank(company)){
+            TencentIndustryCompany tencentIndustryCompany = tencentIndustryCompanyRepository.findByName(company);
+            if (tencentIndustryCompany != null){
+                String thirdIndustry = tencentIndustryCompany.getThirdIndustry();
+                if ("中国电信子公司分公司".equals(thirdIndustry) || "中国移动子公司分公司".equals(thirdIndustry) ||
+                                "中国联通子公司分公司".equals(thirdIndustry) || "中国铁塔子公司分公司".equals(thirdIndustry)){
+                    return StrArrayName[20]+ ConstantBean.RULE_SEPARATOR;
+                }
+            }
+        }
+        // 查询其他逻辑
+        String[] commonBlacks = { "广电信息", "中广", "机电信息", "共联通信", "因联通信" };
         for (String commonBlack : commonBlacks) {
             if (company.contains(commonBlack)){
                 return "";
             }
         }
 
-        boolean flag = false;
-        String result = "";
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅", "研究院"};
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
-                break;
-            }
-        }
-
-        for (String s1 : u11) {
-            if (company.endsWith(s1)){
-                result = StrArrayName[20]+ ConstantBean.RULE_SEPARATOR;
-                flag = false;
                 break;
             }
         }
@@ -662,11 +690,11 @@ public class BusinessRule {
             }
         }
 
-
         return result;
     }
 
-    private static String checkV(String company) {
+
+    private String checkV(String company) {
         String result = "";
         boolean flag = false;
 
@@ -687,10 +715,16 @@ public class BusinessRule {
             }
         }
 
+        if (flag && StringUtils.isNotBlank(result)){
+            if (company.contains("电子商务")){
+                result = "";
+            }
+        }
+
         return result;
     }
 
-    private static String checkW(String company) {
+    private String checkW(String company) {
         String result = "";
         boolean flag = false;
 
@@ -722,7 +756,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkX(String company) {
+    private String checkX(String company) {
         String result = "";
         boolean flag = false;
 
@@ -754,7 +788,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkY(String company) {
+    private String checkY(String company) {
         String result = "";
         boolean flag = false;
 
@@ -778,7 +812,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkZ(String company) {
+    private String checkZ(String company) {
         String result = "";
         boolean flag = false;
 
@@ -802,7 +836,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkA1(String company) {
+    private String checkA1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -826,7 +860,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkB1(String company) {
+    private String checkB1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -838,12 +872,10 @@ public class BusinessRule {
             }
         }
 
-        if (flag){
-            for (String str : bb11) {
-                if (company.endsWith(str)){
-                    result = StrArrayName[27]+ ConstantBean.RULE_SEPARATOR;
-                    break;
-                }
+        for (String str : bb11) {
+            if (company.endsWith(str)){
+                result = StrArrayName[27]+ ConstantBean.RULE_SEPARATOR;
+                break;
             }
         }
 
@@ -859,7 +891,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkC1(String company) {
+    private String checkC1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -891,7 +923,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkD1(String company) {
+    private String checkD1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -923,24 +955,30 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkE1(String company) {
+    private String checkE1(String company) {
         String result = "";
         boolean flag = false;
 
-        String[] otherBlacks = { "公司", "股份", "集团"};
+        // 查询名录表
+        if (StringUtils.isNotBlank(company)){
+            TencentIndustryCompany tencentIndustryCompany = tencentIndustryCompanyRepository.findByName(company);
+            if (tencentIndustryCompany != null){
+                String thirdIndustry = tencentIndustryCompany.getThirdIndustry();
+                if ("中国广电子公司分公司".equals(thirdIndustry)){
+                    return StrArrayName[30]+ ConstantBean.RULE_SEPARATOR;
+                }
+            }
+        }
+        
+        String[] otherBlacks = { "公司", "股份", "集团", "营业厅"};
         for (String otherBlack : otherBlacks) {
             if (company.contains(otherBlack)){
                 flag = true;
                 break;
             }
         }
-
-        for (String s1 : ee11) {
-            if (company.endsWith(s1)){
-                result = StrArrayName[30]+ ConstantBean.RULE_SEPARATOR;
-                flag = false;
-                break;
-            }
+        if (company.contains("电子")){
+            flag = false;
         }
 
         if (flag){
@@ -955,7 +993,15 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkF1(String company) {
+
+
+
+
+
+
+
+
+    private String checkF1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -979,7 +1025,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkG1(String company) {
+    private String checkG1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -1003,7 +1049,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkH1(String company) {
+    private String checkH1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -1027,7 +1073,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkI1(String company) {
+    private String checkI1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -1051,7 +1097,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkJ1(String company) {
+    private String checkJ1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -1075,7 +1121,7 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkK1(String company) {
+    private String checkK1(String company) {
         String result = "";
         boolean flag = false;
 
@@ -1099,11 +1145,40 @@ public class BusinessRule {
         return result;
     }
 
-    private static String checkL1(String company) {
+    private String checkL1(String company) {
         String result = "";
-        for (String str : l1){
+        boolean flag = false;
+
+        if (company.contains("电影院")){
+            return  StrArrayName[37]+ ConstantBean.RULE_SEPARATOR;
+        }
+
+        String[] otherBlacks = { "公司", "股份", "集团"};
+        for (String otherBlack : otherBlacks) {
+            if (company.contains(otherBlack)){
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag){
+            for (String str : l1){
+                if (company.contains(str)){
+                    result = StrArrayName[37]+ ConstantBean.RULE_SEPARATOR;
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+    private String checkM1(String company) {
+        String result = "";
+        for (String str : m1){
             if (company.endsWith(str)){
-                result = StrArrayName[37]+ ConstantBean.RULE_SEPARATOR;
+                result = StrArrayName[38]+ ConstantBean.RULE_SEPARATOR;
                 break;
             }
         }
@@ -1113,16 +1188,16 @@ public class BusinessRule {
     /**
      * 执行事业机关规则
      */
-    public static String ruleVerification(String company) {
+    public String ruleVerification(String company) {
 
         String resultTag = checkA(company) + checkB(company)+ checkC(company)+ checkD(company) + checkE(company) + checkF(company) + checkG(company) + checkH(company) +
                 checkI(company) + checkJ(company) + checkK(company) +  checkL(company) + checkM(company) + checkN(company) + checkO(company) + checkP(company) +
                 checkQ(company) + checkR(company) + checkS(company) + checkT(company) + checkU(company) + checkV(company) + checkW(company) + checkX(company) +
                 checkY(company) + checkZ(company) + checkA1(company) + checkB1(company) + checkC1(company) + checkD1(company) + checkE1(company) + checkF1(company) +
-                checkG1(company) + checkH1(company)  + checkI1(company) + checkJ1(company) + checkK1(company);
+                checkG1(company) + checkH1(company)  + checkI1(company) + checkJ1(company) + checkK1(company) + checkL1(company);
 
         if (StringUtils.isBlank(resultTag)){
-            resultTag = checkL1(company);
+            resultTag = checkM1(company);
         }
 
         if (StringUtils.isNotBlank(resultTag)){
