@@ -1,5 +1,6 @@
 package com.qianlima.offline.util;
 
+import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.rule02.MyRuleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -147,11 +148,11 @@ public class CleanUtils {
         }
         String newZhongBiaoUnit = "";
         zhongBiaoUnit = cleanAll(zhongBiaoUnit);
-        String[] split = zhongBiaoUnit.split(",");
+        String[] split = zhongBiaoUnit.split("、");
         for (String s : split) {
             String industry = myRuleUtils.getIndustry(s);
             if (! "行业待分类".equals(industry)){
-                newZhongBiaoUnit += s;
+                newZhongBiaoUnit += s + ConstantBean.RULE_SEPARATOR_NAME;
             }
         }
         newZhongBiaoUnit = StringUtils.isNotBlank(newZhongBiaoUnit) ?

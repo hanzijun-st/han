@@ -8,9 +8,7 @@ import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
 import com.qianlima.offline.service.han.CurrencyService;
-import com.qianlima.offline.util.ContentSolr;
-import com.qianlima.offline.util.DBUtil;
-import com.qianlima.offline.util.LogUtils;
+import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -61,6 +59,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     private CusDataFieldService cusDataFieldService;
 
     @Autowired
+    private CleanUtils cleanUtils;
+
+    @Autowired
     private MyRuleUtils myRuleUtils;
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
@@ -70,6 +71,15 @@ public class CurrencyServiceImpl implements CurrencyService {
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    public String INSERT_ZT_RESULT_HXR2 = "INSERT INTO zt_data_result_poc_table_2 (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    public String INSERT_ZT_RESULT_HXR3 = "INSERT INTO zt_data_result_poc_table_2_copy (id,task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     //测试批量插入
     public String INSERT_HAN_ALL_TEST = "INSERT INTO han_tab_all_copy (id,json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
@@ -315,6 +325,254 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
             executorService.shutdown();
         }
+    }
+
+    @Override
+    public void getPpei() {
+        try {
+            List<String> listIds = new ArrayList<>();//所有的id
+            List<String> listIds2 = new ArrayList<>();//已经存在的数据
+            List<String> resultList = new ArrayList<>();
+            List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT * FROM ali_item_info");
+            List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT * FROM zt_data_result_poc_table");
+            if(maps !=null){
+                for (Map<String, Object> map : maps) {
+                    listIds.add(map.get("infoId").toString());
+                }
+            }
+            for (Map<String, Object> map : mapList) {
+                listIds2.add(map.get("content_id").toString());
+            }
+            ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+            List<Future> futureList1 = new ArrayList<>();
+
+            List<String> keys = LogUtils.readRule("ppei");
+            if (keys !=null && keys.size() >0){
+                for (String key : keys) {
+                    futureList1.add(executorService1.submit(() -> {
+                        NoticeMQ noticeMQ = new NoticeMQ();
+                        noticeMQ.setContentid(Long.valueOf(key));
+                        //中台获取数据
+                        Map<String, Object> allFieldsWithOther = cusDataFieldService.getAllFieldsWithOther(noticeMQ, false);
+                        if (allFieldsWithOther != null && allFieldsWithOther.size() >0) {
+                                String contentInfo = allFieldsWithOther.get("content").toString();
+                                String content = processAboutContent(contentInfo);
+                                if (StringUtils.isNotBlank(content)) {
+                                    allFieldsWithOther.put("content", content);
+                                }
+                                String contentid = allFieldsWithOther.get("content_id").toString();
+                                String task_id = "";
+                                if (listIds.contains(contentid)) {
+                                    task_id = "1";
+                                } else {
+                                    task_id = "2";
+                                }
+                                allFieldsWithOther.put("task_id", task_id);
+
+                                /*if (listIds2.contains(contentid)){
+                                    //resultList.add(contentid);
+                                }else{
+                                    //cusDataFieldService.saveIntoMysql(allFieldsWithOther);
+                                    resultList.add(contentid);
+                                }*/
+                            cusDataFieldService.saveIntoMysql(allFieldsWithOther);
+                        }
+                    }));
+                    log.info("-----------------------执行的contentid:{}",key);
+                }
+            }
+            for (Future future : futureList1) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+            System.out.println("==============("+resultList.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getPpeiJy() {
+        //读取到mysql数据
+        List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT * FROM zt_data_result_poc_table");
+        // task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+        //"xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way," +
+        //  " agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone
+
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<Future> futureList1 = new ArrayList<>();
+
+        for (Map<String, Object> map : maps) {
+            futureList1.add(executorService1.submit(() -> {
+                if (map.get("title") !=null){
+                    map.put("title",cleanUtils.cleanTitle(map.get("title").toString()));//标题
+                }
+                if (map.get("agent_unit") !=null){
+                    map.put("agent_unit",cleanUtils.cleanAgentUnit(map.get("agent_unit").toString()));//代理机构
+                }
+                if (map.get("zhao_biao_unit") !=null){
+                    map.put("zhao_biao_unit",cleanUtils.cleanZhaoBiaoUnit(map.get("zhao_biao_unit").toString()));//招标单位
+                }
+                if (map.get("zhong_biao_unit") !=null){
+                    map.put("zhong_biao_unit",cleanUtils.cleanZhongBiaoUnit(map.get("zhong_biao_unit").toString()));//中标单位
+                }
+                if (map.get("xmNumber") !=null){
+                    map.put("xmNumber",cleanUtils.cleanXmNumber(map.get("xmNumber").toString()));//项目编号
+                }
+                if (map.get("province") !=null){
+                    map.put("province",cleanUtils.cleanProvince(map.get("province").toString()));//处理省市县
+                }
+                if (map.get("amount_unit") !=null){
+                    map.put("amount_unit",cleanUtils.cleanAmount(map.get("amount_unit").toString()));//中标金额
+                }
+                if (map.get("baiLian_amount_unit") !=null){
+                    map.put("baiLian_amount_unit",cleanUtils.cleanAmount(map.get("baiLian_amount_unit").toString()));//中标金额（百炼）
+                }
+                if (map.get("budget") !=null){
+                    map.put("budget",cleanUtils.cleanAmount(map.get("budget").toString()));//招标预算
+                }
+                if (map.get("baiLian_budget") !=null){
+                    map.put("baiLian_budget",cleanUtils.cleanAmount(map.get("baiLian_budget").toString()));//招标预算（百炼）
+                }
+                if (map.get("relation_name") !=null){
+                    map.put("relation_name",cleanUtils.cleanLinkMan(map.get("relation_name").toString()));//招标单位联系人
+                }
+                if (map.get("link_man") !=null){
+                    map.put("link_man",cleanUtils.cleanLinkMan(map.get("link_man").toString()));//招标单位联系人
+                }
+                if (map.get("relation_way") !=null){
+                    map.put("relation_way",cleanUtils.cleanLinkWay(map.get("relation_way").toString()));//招标单位联系人电话
+                }
+                if (map.get("link_phone") !=null){
+                    map.put("link_phone",cleanUtils.cleanLinkWay(map.get("link_phone").toString()));//中标单位联系人电话
+                }
+
+                if (map.get("agent_relation_ame") !=null){
+                    map.put("agent_relation_ame",cleanUtils.cleanLinkMan(map.get("agent_relation_ame").toString()));//代理单位联系人
+                }
+                if (map.get("agent_relation_way") !=null){
+                    map.put("agent_relation_way",cleanUtils.cleanLinkWay(map.get("agent_relation_way").toString()));//代理单位联系人电话
+                }
+                if (map.get("registration_begin_time") !=null){
+                    map.put("registration_begin_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("registration_begin_time").toString())));//时间处理
+                }
+                if (map.get("registration_end_time") !=null){
+                    map.put("registration_end_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("registration_end_time").toString())));//时间处理
+                }
+                if (map.get("biding_acquire_time") !=null){
+                    map.put("biding_acquire_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("biding_acquire_time").toString())));//时间处理
+                }
+                if (map.get("biding_end_time") !=null){
+                    map.put("biding_end_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("biding_end_time").toString())));//时间处理
+                }
+                if (map.get("tender_begin_time") !=null){
+                    map.put("tender_begin_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("tender_begin_time").toString())));//时间处理
+                }
+                if (map.get("tender_end_time") !=null){
+                    map.put("tender_end_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("tender_end_time").toString())));//时间处理
+                }
+                if (map.get("update_time") !=null){
+                    map.put("update_time",DateUtils.parseDateFromDateStr(cleanUtils.cleanDateTime(map.get("update_time").toString())));//时间处理
+                }
+            }));
+
+        }
+        for (Future future : futureList1) {
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+        if (maps !=null && maps.size() >0){
+            ExecutorService executorService = Executors.newFixedThreadPool(80);
+            List<Future> futureList = new ArrayList<>();
+            for (Map<String, Object> map : maps) {
+                futureList.add(executorService.submit(() ->  saveIntoMysql2(map)));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
+        }
+        /*try {
+            List<Map<String,Object>> mList = new ArrayList<>();
+            for (Map<String, Object> map : maps) {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id",map.get("id"));
+                m.put("task_id",map.get("task_id"));
+                m.put("keyword",map.get("keyword"));
+                m.put("content_id",map.get("content_id"));
+                m.put("title",map.get("title"));
+                m.put("content",map.get("content"));
+                m.put("province",map.get("province"));
+                m.put("city",map.get("city"));
+                m.put("country",map.get("country"));
+                m.put("url",map.get("url"));
+                m.put("baiLian_budget",map.get("baiLian_budget"));
+                m.put("baiLian_amount_unit",map.get("baiLian_amount_unit"));
+                m.put("xmNumber",map.get("xmNumber"));
+                m.put("bidding_type",map.get("bidding_type"));
+                m.put("progid",map.get("progid"));
+                m.put("zhao_biao_unit",map.get("zhao_biao_unit"));
+                m.put("relation_name",map.get("relation_name"));
+                m.put("relation_way",map.get("relation_way"));
+                m.put("agent_unit",map.get("agent_unit"));
+                m.put("agent_relation_ame",map.get("agent_relation_ame"));
+                m.put("agent_relation_way",map.get("agent_relation_way"));
+                m.put("zhong_biao_unit",map.get("zhong_biao_unit"));
+                m.put("link_man",map.get("link_man"));
+                m.put("link_phone",map.get("link_phone"));
+                m.put("registration_begin_time",map.get("registration_begin_time"));
+                m.put("registration_end_time",map.get("registration_end_time"));
+                m.put("biding_acquire_time",map.get("biding_acquire_time"));
+                m.put("biding_end_time",map.get("biding_end_time"));
+                m.put("tender_begin_time",map.get("tender_begin_time"));
+                m.put("tender_end_time",map.get("tender_end_time"));
+                m.put("update_time",map.get("update_time"));
+                m.put("type",map.get("type"));
+                m.put("bidder",map.get("bidder"));
+                m.put("notice_types",map.get("notice_types"));
+                m.put("open_biding_time",map.get("open_biding_time"));
+                m.put("is_electronic",map.get("is_electronic"));
+                m.put("code",map.get("code"));
+                m.put("isfile",map.get("isfile"));
+                m.put("keyword_term",map.get("keyword_term"));
+                mList.add(m);
+            }
+            DBUtil.insertAll(INSERT_ZT_RESULT_HXR3,mList);
+            log.info("批量插入成功-------");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }*/
+
+    }
+    public void saveIntoMysql2(Map<String, Object> map){
+        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR2,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                map.get("code"), map.get("isfile"), map.get("keyword_term"));
     }
 
     //调取中台数据

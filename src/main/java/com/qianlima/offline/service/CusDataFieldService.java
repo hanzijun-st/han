@@ -77,6 +77,17 @@ public class CusDataFieldService {
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
                 map.get("code"), map.get("isfile"), map.get("keyword_term"));
     }
+    public void saveIntoMysql2(Map<String, Object> map){
+        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                map.get("code"), map.get("isfile"), map.get("keyword_term"));
+    }
 
     /**
      * 获取数据接口（全部自提字段）, flag 是否需要"正文"字段 ture：需要  false：不需要
@@ -99,6 +110,36 @@ public class CusDataFieldService {
         }
         return hashMap;
     }
+
+
+    /**
+     *  招标（自提）
+     *  中标（百炼）
+     *  代理机构（自提）
+     * @param noticeMQ
+     * @param flag
+     * @return
+     */
+    public Map<String, Object> getAllFieldsWithOther(NoticeMQ noticeMQ, boolean flag){
+        Map<String, Object> hashMap = new HashMap<>();
+        JSONArray jsonArray = getJSONArrayWithFields(noticeMQ.getContentid().toString(), flag);
+        if (jsonArray != null && jsonArray.size() > 0){
+            // 转换基础字段、时间字段信息、获取自提定制数据
+            hashMap = getResultMapWithGenPart(jsonArray, hashMap, noticeMQ.getContentid().toString());
+            hashMap = getResultMapWithTimePart(jsonArray, hashMap);
+            hashMap = getResultMapWithOther(jsonArray, hashMap);
+            if (hashMap == null || hashMap.isEmpty()){
+                return null;
+            }
+            hashMap.put("task_id", noticeMQ.getTaskId());
+            hashMap.put("keyword", noticeMQ.getKeyword());
+            hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
+            hashMap.put("code", noticeMQ.getF()); //F词
+        }
+        return hashMap;
+    }
+
+
 
     /**
      * 获取数据接口（全部百炼字段）, flag 是否需要"正文"字段 ture：需要  false：不需要
@@ -272,6 +313,118 @@ public class CusDataFieldService {
         return resultMap;
 
     }
+
+
+
+    // 获取百炼单位、金额
+    private Map<String, Object> getResultMapWithOther(JSONArray jsonArray, Map<String, Object> resultMap){
+        String blBudget = null; //获取百自提预算金额
+        String blZhongbiaoAmount = null; //获取自提中标金额
+        StringBuilder blZhaoBiaoUnit = new StringBuilder(); //获取百炼招标单位
+        StringBuilder blZhongBiaoUnit = new StringBuilder(); //获取百炼中标单位
+        StringBuilder blBidder = new StringBuilder(); //获取候选人
+        StringBuilder blAgents = new StringBuilder(); //百炼代理机构
+        for (int d = 0; d < jsonArray.size(); d++) {
+            JSONObject object = jsonArray.getJSONObject(d);
+            if (null != object.getJSONObject("expandField")) {
+                JSONObject expandField = object.getJSONObject("expandField");
+                if (expandField != null) {
+                    //获取百炼预算金额
+                    if (expandField.get("budgetDetail") != null) {
+                        JSONObject budgetDetail = (JSONObject) expandField.get("budgetDetail");
+                        if (budgetDetail.get("totalBudget") != null) {
+                            JSONObject totalBudget = (JSONObject) budgetDetail.get("totalBudget");
+                            if (totalBudget.get("budget") != null) {
+                                blBudget = totalBudget.get("budget") != null ? totalBudget.get("budget").toString() : null;
+                            }
+                        }
+                    }
+                    //获取百炼中标单位
+                    int winnersSize = 0;
+                    if (expandField.get("winners") != null) {
+                        List<JSONObject> winners = (List<JSONObject>) expandField.get("winners");
+                        for (JSONObject winner : winners) {
+                            winnersSize++;
+                            if (winner.get("bidderDetails") != null) {
+                                List<JSONObject> bidderDetails = (List<JSONObject>) winner.get("bidderDetails");
+                                for (int i = 0; i < bidderDetails.size(); i++) {
+                                    if (bidderDetails.get(i).get("bidder") != null) {
+                                        if (i + 1 != bidderDetails.size() || winnersSize != winners.size()) {
+                                            blZhongBiaoUnit.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                            blZhongBiaoUnit.append("、");
+                                        } else {
+                                            blZhongBiaoUnit.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //获取候选人
+                        int biddersSize = 0;
+                        if (expandField.get("bidders") != null) {
+                            List<JSONObject> bidders = (List<JSONObject>) expandField.get("bidders");
+                            for (JSONObject bidder : bidders) {
+                                biddersSize++;
+                                if (bidder.get("bidderDetails") != null) {
+                                    List<JSONObject> bidderDetails = (List<JSONObject>) bidder.get("bidderDetails");
+                                    for (int i = 0; i < bidderDetails.size(); i++) {
+                                        if (bidderDetails.get(i).get("bidder") != null) {
+                                            if (i + 1 != bidderDetails.size() || biddersSize != winners.size()) {
+                                                blBidder.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                                blBidder.append("、");
+                                            } else {
+                                                blBidder.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //获取百炼中标金额
+                        if (winners.get(0).get("bidderDetails") != null) {
+                            JSONArray bidderDetails = (JSONArray) winners.get(0).get("bidderDetails");
+                            JSONObject jsonObject = (JSONObject) bidderDetails.get(0);
+                            if (jsonObject.get("amount") != null) {
+                                blZhongbiaoAmount = jsonObject.get("amount") != null ? jsonObject.get("amount").toString() : null;
+                            }
+                        }
+                    }
+                    // 判断百炼数据是否为空
+                    if (StringUtils.isBlank(blBudget) && null != object.get("extract_budget")){
+                        blBudget = object.getString("extract_budget");
+                    }
+                    if (StringUtils.isBlank(blZhongbiaoAmount) && null != object.get("extract_amountUnit")){
+                        blZhongbiaoAmount = object.getString("extract_amountUnit");
+                    }
+                    if (StringUtils.isBlank(blZhaoBiaoUnit) && null != object.get("extract_zhaoBiaoUnit")){
+                        blZhaoBiaoUnit.append(object.getString("extract_zhaoBiaoUnit"));
+                    }
+                    if (StringUtils.isBlank(blZhongBiaoUnit) && null != object.get("extract_zhongBiaoUnit")){
+                        blZhongBiaoUnit.append(object.getString("extract_zhongBiaoUnit"));
+                    }
+                    if (StringUtils.isBlank(blAgents) && null != object.get("extract_agentUnit")){
+                        blAgents.append(object.getString("extract_agentUnit"));
+                    }
+
+                }
+            }
+        }
+        resultMap.put("baiLian_budget", blBudget); //获取预算金额
+        resultMap.put("baiLian_amount_unit", blZhongbiaoAmount);//获取中标金额
+        resultMap.put("zhong_biao_unit", blZhongBiaoUnit); //获取中标单位
+        resultMap.put("zhao_biao_unit", blZhaoBiaoUnit);//获取招标单位
+        resultMap.put("bidder", blBidder);  //候选人
+        resultMap.put("agent_unit", blAgents);  //百炼代理机构
+        return resultMap;
+
+    }
+
+
+
+
+
+
+
 
     // 获取百炼单位、金额
     private Map<String, Object> getResultMapWithZiTi(JSONArray jsonArray, Map<String, Object> resultMap){

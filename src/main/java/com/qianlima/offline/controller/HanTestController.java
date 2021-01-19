@@ -117,5 +117,17 @@ public class HanTestController {
         return "---123---";
     }
 
+    @ApiOperation("匹配数据")
+    @PostMapping("/start/getPpei")
+    public String getPpei(){
+        currencyService.getPpei();
+        return "---123---";
+    }
 
+    @ApiOperation("校验-匹配数据")
+    @PostMapping("/start/getPpeiJy")
+    public String getPpeiJy(){
+        currencyService.getPpeiJy();
+        return "---123---";
+    }
 }

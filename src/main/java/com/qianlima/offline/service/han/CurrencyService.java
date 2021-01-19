@@ -32,4 +32,8 @@ public interface CurrencyService {
      * 行业标签
      */
     void getBiaoQian();
+
+    void getPpei();
+
+    void getPpeiJy();
 }
