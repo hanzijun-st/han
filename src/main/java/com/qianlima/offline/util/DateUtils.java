@@ -1,7 +1,10 @@
 package com.qianlima.offline.util;
 
 
+import org.apache.commons.lang3.time.DateFormatUtils;
+
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -77,8 +80,8 @@ public class DateUtils {
         if (date == null) {
             return "";
         }
-        SimpleDateFormat SDF = new SimpleDateFormat(dateFormat);
-        return SDF.format(date);
+        //SimpleDateFormat SDF = new SimpleDateFormat(dateFormat);
+        return DateFormatUtils.format(date,dateFormat);
     }
 
 
@@ -90,7 +93,8 @@ public class DateUtils {
      */
     public static String getFormatEpochStr(int num) {
         long time = num * 1000L;
-        return SDF.format(new Date(time));
+        String format = DateFormatUtils.format(new Date(time),"yyyy-MM-dd");
+        return format;
     }
 
     /**
@@ -103,7 +107,8 @@ public class DateUtils {
     public static Date parseDateFromDateStr(String formatStr) {
         Date date;
         try {
-            date = SDF.parse(formatStr);
+            //date = SDF.parse(formatStr);
+            date = org.apache.commons.lang3.time.DateUtils.parseDate(formatStr, "yyyy-MM-dd HH:mm:ss");
         } catch (Exception exp) {
             date = new Date();
         }

@@ -130,4 +130,10 @@ public class HanTestController {
         currencyService.getPpeiJy();
         return "---123---";
     }
+    @ApiOperation("测试-临时调用中台数据")
+    @PostMapping("/start/getLishiGetZhongTai")
+    public String getLishiGetZhongTai(){
+        //currencyService.getLishiGetZhongTai();
+        return "---getLinshiZhongtai---";
+    }
 }

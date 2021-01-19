@@ -11,6 +11,17 @@ import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -563,6 +574,30 @@ public class CurrencyServiceImpl implements CurrencyService {
         }*/
 
     }
+
+    @Override
+    public String getLishiGetZhongTai(String contentId) {
+        try {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
+                    .setSocketTimeout(60000).setConnectTimeout(60000).build();
+            HttpGet get = new HttpGet("http://cusdata.qianlima.com/zt/api/"+contentId);
+            //url格式编码
+            get.setHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+            //设置超时时间为60秒
+            get.setConfig(requestConfig);
+            //执行请求
+            CloseableHttpResponse httpResponse = httpClient.execute(get);
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String entity = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+                return entity;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void saveIntoMysql2(Map<String, Object> map){
         bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR2,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
                 map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
@@ -584,11 +619,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
-            String contentInfo = resultMap.get("content").toString();
+          /*  String contentInfo = resultMap.get("content").toString();
             String content = processAboutContent(contentInfo);
             if (StringUtils.isNotBlank(content)) {
                 resultMap.put("content", content);
-            }
+            }*/
             saveIntoMysql(resultMap);
         }
     }

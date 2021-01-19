@@ -36,4 +36,6 @@ public interface CurrencyService {
     void getPpei();
 
     void getPpeiJy();
+
+    String getLishiGetZhongTai(String contentId);
 }
