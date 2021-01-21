@@ -1,4 +1,4 @@
-.idea/
-target/classes/source/ppei.txt
-target/classes/source/ppeisy.txt
-target/
+.idea
+target
+*.class
+*.iml
