@@ -105,6 +105,7 @@ qlm:
     endtimeFile: /usr/local/ka/producer/endtime.txt
     #allsolr: http://172.18.30.12:8984/solr/search_normal_shard3_replica1
     allsolr: http://172.18.30.12:8984/solr/new_all_shard3_replica1
+    newSolr: http://172.18.30.12:8984/solr/new_all_shard3_replica1
     #    http://172.18.30.12:8984/solr/qianlima_all_in_shard1_replica1
     #    http://172.18.30.12:8984/solr/search_normal_shard3_replica1
     ictsolr: http://172.18.30.12:8984/solr/qianlima_ict_shard2_replica1

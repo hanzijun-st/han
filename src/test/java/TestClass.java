@@ -1,3 +1,5 @@
+package java;
+
 import com.qianlima.offline.util.JsonUtil;
 import com.qianlima.offline.util.MapUtil;
 import lombok.Data;
