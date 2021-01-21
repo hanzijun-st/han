@@ -1,11 +1,6 @@
 package com.qianlima.offline.util;
 
-import net.sourceforge.pinyin4j.PinyinHelper;
-import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
-import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
+
 
 /**
  * Created by Administrator on 2021/1/19.
@@ -28,11 +23,11 @@ public class StrUtil {
         return stringBuffer.toString();
     }
 
-    /**
+  /*  *//**
      * 字符串判空
      * @param value
      * @return
-     */
+     *//*
     public static final boolean isEmpty(String value) {
         return (value == null || value.trim().length() == 0);
     }
@@ -80,6 +75,6 @@ public class StrUtil {
                 str.substring(1, str.length()));
 
         return newstr.toString();
-    }
+    }*/
 
 }
