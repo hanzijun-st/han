@@ -449,7 +449,7 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
 
 
 
-                /*if (list != null && list.size() > 0) {
+                if (list != null && list.size() > 0) {
                     ExecutorService executorService = Executors.newFixedThreadPool(80);
                     List<Future> futureList = new ArrayList<>();
                     for (NoticeMQ content : list) {
@@ -466,7 +466,7 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
                     }
                     executorService.shutdown();
                     System.out.println("==========================================此程序运行结束========================================");
-                }*/
+                }
         } catch (IOException e) {
             e.printStackTrace();
         }

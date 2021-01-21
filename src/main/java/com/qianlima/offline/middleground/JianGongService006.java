@@ -10,7 +10,6 @@ import com.qianlima.offline.bean.Area;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.ItemInfo;
 import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.util.ContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;

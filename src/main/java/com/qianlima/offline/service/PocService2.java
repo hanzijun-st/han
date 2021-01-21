@@ -4,7 +4,7 @@ package com.qianlima.offline.service;
 import com.qianlima.offline.bean.Area;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.middleground.BaiLianZhongTaiService;
+import com.qianlima.offline.middleground.ICTRule;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.middleground.ZhongTaiService;
@@ -27,7 +27,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,16 +64,16 @@ public class PocService2 {
     private NewZhongTaiService newZhongTaiService;
 
     @Autowired
-    private ZhongTaiService zhongTaiService;
-
-    @Autowired
-    private BaiLianZhongTaiService baiLianZhongTaiService;
-
-    @Autowired
     private MyRuleUtils myRuleUtils;
 
     @Autowired
-    private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
+    private ZhongTaiService zhongTaiService;
+
+    @Autowired
+    private ICTRule ictRule;
+
+    @Autowired
+    private CusDataFieldService cusDataFieldService;
 
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
@@ -157,231 +160,23 @@ public class PocService2 {
         }
     }
 
-    //调取中台数据 多个关键词后追加(包含黑词) && 匹配行业标签 && 二次进行对比数据(招标单位包含关键词)
-    public void getDataFromZhongTaiAndSave3(NoticeMQ noticeMQ) throws IOException {
-
-        String[] aaa = {"医","护理","护士","整形","健康","诊治","急救","治疗"};
-        String[] bbb = {"内镜","会诊","诊断","胶片","超声","医共体","医联体","医疗云","云医院","云医疗","医院云","PACS","公共卫生","集成平台","智慧医院","远程医疗","远程会诊","远程诊疗","电子病历","区域医疗","医学影像","预约系统","影像系统","叫号系统","预约平台","叫号平台","人工智能","医疗上云","超声系统","挂号平台","挂号系统","在线挂号","数字医疗","诊断系统","医联预约","医疗信息化","医院信息化","数字化医疗","医院智能化","智能化医疗","健康医疗云","医疗云服务","医疗云平台","信息化咨询","信息化项目","信息化建设","信息化系统","信息化平台","大超声系统","挂号app","医疗数字化","智慧云医院","智能云系统","信息安全测评","医疗人工智能","人工智能医疗","大数据云医疗","远程医疗协作","远程服务系统","超声诊断系统","彩银超声系统","远程超声系统","远程会诊系统","微信预约挂号","预约门诊挂号","预约挂号系统","预约挂号平台","微信挂号平台","网上挂号平台","挂号预约平台","微医预约挂号","挂号网上预约","医疗挂号软件","网上挂号预约","网上预约挂号","网络预约挂号","医疗叫号系统","排队叫号系统","叫号排队系统","人工智能应用","人工智能平台","人工智能产品","内镜治疗系统","内镜清洗系统","预约分诊系统","医联预约平台","预约管理系统","集中预约系统","网上预约医生","网上预约专家","预约转诊接口","医疗信息化改造","医疗信息化建设","数字化放射成像","医院智能化建设","医疗影像云存储","智医助理信息化","信息化管理平台","信息化应用系统","超声微探头系统","人工智能与医疗","智慧云医院服务","智慧云平台建设","影像云平台服务","智能化系统研发","智能化系统项目","智能化系统建设","智能化系统集成","智能化系统工程","智能化升级建设","智能化升级改造","智能化建设项目","智能化建设系统","智能化建设采购","智能化管理系统","智能化工程建设","智能化改造项目","智能化安装项目","影像传输与归纳","超声骨科手术系统","容积成像超声系统","远程会诊咨询系统","药房取药叫号系统","叫号系统在线询价","人工智能导诊系统","人工智能网络安全","医院信息管理系统","智能诊断系统硬件","中医综合诊断系统","耳鼻喉科内镜系统","预约诊疗服务系统","医技集中预约系统","预约管理信息系统","服务预约管理系统","“智医助理”信息化","信息化管理服务平台","超声切割止血刀系统","多普勒超声诊断系统","教学诊断与改进平台","诊断与改进信息化平台","医学影像管理诊断软件","超声光散射乳腺诊断系统","多重PCR分子诊断系统","影像诊断结构化报告系统","便携式彩超多普勒超声系统","人工智能AI辅助诊查系统","全自动快速分子诊断检测系统","结核分枝杆菌复合群快速诊断系统"};
-        String[] ccc = {"远程","信息化","云平台","智能"};
-        String[] cc1 = {"数字化"};
-        String[] cc2 = {"医疗"};
-        List<String> blacks = LogUtils.readRule("smf");
-
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
-        if (result == false){
-            log.info("contentid:{} 对应的数据状态不是99, 丢弃" , noticeMQ.getContentid().toString());
-            return;
-        }
-        Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
-        if (resultMap != null) {
-            String title = resultMap.get("title") != null ? resultMap.get("title").toString() : "";
-            String content = resultMap.get("content") != null ? resultMap.get("content").toString() : "";
-            content = title + "&" + content;
-            content = content.toUpperCase();
-            String keyword = "";
-            boolean flag = true;
-            for (String black : blacks) {
-                if(StringUtils.isNotBlank(title) && title.contains(black)){
-                    flag = false;
-                    break;
-                }
-            }
-            if (flag){
-                for (String bb : bbb) {
-                    if (content.contains(bb)) {
-                        keyword += (bb + "、");
-                    }
-                }
-                for (String cc : ccc) {
-                    if (title.contains(cc)) {
-                        keyword += (cc + "、");
-                    }
-                }
-                for (String c1 : cc1) {
-                    for (String c2 : cc2) {
-                        if (title.contains(c1) && title.contains(c2)) {
-                            keyword += (c1 + "&" + c2 + "、");
-                        }
-                    }
-                }
-            }
-            if (StringUtils.isNotBlank(keyword)) {
-                keyword = keyword.substring(0, keyword.length() - 1);
-                resultMap.put("keyword", keyword);
-            }
-
-            String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
-            String[] zhaobiaosplit = zhaobiaoindustry.split("-");
-            String[] hhy = {"医疗","血站","急救中心","疾控中心","卫生院","疗养院","专科医院","中医院","综合医院","医疗服务"};
-            for (String hy : hhy) {
-                if (zhaobiaosplit[1].contains(hy)){
-                    newZhongTaiService.saveIntoMysql(resultMap);
-                }
-            }
-            for (String aa : aaa) {
-                if (zhaobiaounit.contains(aa) && (zhaobiaosplit[1].contains("大学") || zhaobiaosplit[1].contains("培训") || zhaobiaosplit[1].contains("学校"))){
-                    newZhongTaiService.saveIntoMysql(resultMap);
-                }
-            }
-        }
-
-    }
-
-    //调取中台数据———— //预算金额 OR 中标金额字段值≥1000万
-    public void getDataFromZhongTaiAndSave4(NoticeMQ noticeMQ){
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
-        if (result == false){
-            log.info("contentid:{} 对应的数据状态不是99, 丢弃" , noticeMQ.getContentid().toString());
-            return;
-        }
-        //预算金额 OR 中标金额字段值≥1000万
-        if (checkAmount(noticeMQ.getBudget()) || checkAmount(noticeMQ.getNewAmountUnit())) {
-            Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
-            if (resultMap != null) {
-                newZhongTaiService.saveIntoMysql(resultMap);
-            }
-        }
-    }
-
-    //调取中台数据并 获取标的物
-    public void getDataFromZhongTaiAndSave5(NoticeMQ noticeMQ) {
-
-        String[] aaa = {"电脑","平板","音频","PC机","计算机","可穿戴","IOT","物联网"};
-        String[] bbb = {"智能音频","智能物联","智能平板","智能路由","智能电视","智能穿戴","智能白板","智慧音频","智慧物联","智慧平板","智慧电视","智慧白板","掌上计算机","掌上电脑","游戏本","一体台式机","一体机电脑","液晶平板电视","液晶电视","台式计算机","台式机","台式电脑","手提电脑","商务本","全面屏电视","苹果计算机","苹果电脑","苹果笔记本","苹果ipad","平板电脑","平板笔记本","品牌电脑","路由器","联想台式机","联想计算机","联想电脑","联想笔记本","可穿戴设备","计算机购置","计算机采购","机房电脑","惠普台式机","惠普平板","惠普计算机","惠普电脑","惠普笔记本","华为计算机","华为电脑","华为笔记本","华硕台式机","华硕平板","华硕计算机","华硕电脑","华硕笔记本","购置电脑","高性能移动计算机","高性能笔记本","高清电视","电子白板","电视一体机","电视设备","电视机","电视购置","电视采购","电脑主机","电脑整机","电脑一体机","电脑设备","电脑购置","电脑采购","电脑笔记本","戴尔台式机","戴尔平板","戴尔计算机","戴尔电脑","戴尔笔记本","打印设备","打印机","彩色电视","采购计算机","采购电视","采购电脑","便携式计算机","便携式电脑","便携计算机","便携电脑","笔记本电脑","办公计算机","办公电脑","macbookpro电脑","MacBook","Lenovo台式机","Lenovo计算机","Lenovo电脑","Lenovo笔记本","HP台式机","HP平板","HP计算机","HP电脑","HP笔记本","DELL台式机","DELL平板","DELL计算机","DELL电脑","DELL笔记本","ASUS台式机","ASUS平板","ASUS计算机","ASUS电脑","ASUS笔记本"};
-        String[] blacks = {"平板拖把", "LED平板灯", "平板集装箱", "平板探测器"};
-
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
+    //调取中台数据 并 反相匹配地区
+    public void getDataFromZhongTaiAndSave3(NoticeMQ noticeMQ) {
+        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
         if (result == false) {
             log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
             return;
         }
-        Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
-        if (resultMap != null) {
-            String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
-            String content = resultMap.get("content") != null ? resultMap.get("content").toString() : "";
-            String title = resultMap.get("title") != null ? resultMap.get("title").toString() : "";
-            String task_id = resultMap.get("task_id") != null ? resultMap.get("task_id").toString() : "";
-            content = title + "&" + content;
-            content = content.toUpperCase();
-            String keyword = "";
-            String code = "";
-            boolean flag = true;
-            for (String black : blacks) {
-                if(StringUtils.isNotBlank(title) && title.contains(black)){
-                    flag = false;
-                    break;
-                }
-            }
-            if (flag){
-                if (task_id.equals("1")){
-                    for (String aa : aaa) {
-                        if (title.contains(aa)){
-                            keyword += (aa + "、") ;
-                        }
-                    }
-                }
-                if (task_id.equals("2")){
-                    for (String bb : bbb) {
-                        if (content.contains(bb)){
-                            code += (bb + "、") ;
-                        }
-                    }
-                }
-            }
-            if (StringUtils.isNotBlank(keyword)) {
-                keyword = keyword.substring(0, keyword.length() - 1);
-                resultMap.put("keyword", keyword);
-            }
-            if (StringUtils.isNotBlank(code)) {
-                code = code.substring(0, code.length() - 1);
-                resultMap.put("keyword_term", code);
-            }
-            newZhongTaiService.saveIntoMysql(resultMap);
-            try {
-                zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    //调取中台数据 并 匹配行业标签
-    public void getDataFromZhongTaiAndSave6(NoticeMQ noticeMQ) {
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
-        if (result == false) {
-            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
-            return;
-        }
-        Map<String, Object> map = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
+        Map<String, Object> map = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (map != null) {
-            String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
-            String[] zhaobiaosplit = zhaobiaoindustry.split("-");
-            if ("医疗单位".equals(zhaobiaosplit[0])){
-                newZhongTaiService.saveIntoMysql(map);
+//            String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
+            String province = map.get("province") != null ? map.get("province").toString() : "";
+//            String industry = NewRuleUtils.getIndustry(zhaobiaounit);
+//            String[] split = industry.split("-");
+            if ("广西壮族自治区".equals(province)){
+                cusDataFieldService.saveIntoMysql(map);
             }
         }
-    }
-
-    //调取中台数据 并 获取标的物解析表 并 匹配行业标签
-    public void getDataFromZhongTaiAndSave7(NoticeMQ noticeMQ) {
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
-        if (result == false) {
-            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
-            return;
-        }
-        Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
-        if (resultMap != null) {
-            String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
-            String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
-            String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
-            String[] zhaobiaosplit = zhaobiaoindustry.split("-");
-            if (zhaobiaosplit[1].contains("金融") || zhaobiaosplit[0].contains("金融企业")){
-                // 匹配行业标签
-                newZhongTaiService.saveIntoMysql(resultMap);
-                try {
-                    //获取标的物清单表
-                    zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    //调取中台数据 并 匹配关键词
-    public void getDataFromZhongTaiAndSave8(NoticeMQ noticeMQ) throws IOException {
-
-        String[] aaa = {"服务机器人","语音机器人","智能机器人","接待机器人","讲解机器人","移动机器人","养老机器人","酒店机器人","政务机器人","迎宾机器人","聊天机器人"};
-
-        boolean result = newZhongTaiService.checkStatus(noticeMQ.getContentid().toString());
-        if (result == false){
-            log.info("contentid:{} 对应的数据状态不是99, 丢弃" , noticeMQ.getContentid().toString());
-            return;
-        }
-        Map<String, Object> resultMap = newZhongTaiService.handleZhongTaiGetResultMap(noticeMQ, areaMap);
-        if (resultMap != null) {
-
-            String title = resultMap.get("title") != null ? resultMap.get("title").toString() : "";
-            String content = resultMap.get("content") != null ? resultMap.get("content").toString() : "";
-            content = title + "&" + content;
-            content = content.toUpperCase();
-            String keyword = "";
-            for (String aa : aaa) {
-                if (content.contains(aa)) {
-                    String key = aa;
-                    keyword += (key + "、");
-                }
-            }
-            if (StringUtils.isNotBlank(keyword)) {
-                keyword = keyword.substring(0, keyword.length() - 1);
-                resultMap.put("keyword", keyword);
-            }
-            newZhongTaiService.saveIntoMysql(resultMap);
-//            zhongTaiBiaoDiWuServiceForOne.getAllZhongTaiBiaoDIWu(contentId);
-        }
-
     }
 
     /**
@@ -566,6 +361,274 @@ public class PocService2 {
 //                        zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(String.valueOf(noticeMQ.getContentid()));
                 }
             }
+        }
+    }
+
+    //腾讯云
+    public void getTengXunYunSolrAllField(String date) throws IOException {
+
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<NoticeMQ> list = new ArrayList<>();
+        List<NoticeMQ> list1 = new ArrayList<>();
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        futureList1.add(executorService1.submit(() -> {
+            List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20210111 TO 20210111] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] ", "", null);
+            if (!mqEntities.isEmpty()) {
+                for (NoticeMQ data : mqEntities) {
+                    if (data.getTitle() != null) {
+                        boolean flag = true;
+//                            for (String black : blacks) {
+//                                if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+//                                    flag = false;
+//                                    break;
+//                                }
+//                            }
+                        if (flag) {
+                            list1.add(data);
+                            if (!dataMap.containsKey(data.getContentid().toString())) {
+                                list.add(data);
+                                dataMap.put(data.getContentid().toString(), "0");
+                            }
+                        }
+                    }
+                }
+            }
+        }));
+
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+
+        log.info("全部数据量：" + list1.size());
+        log.info("去重之后的数据量：" + list.size());
+        log.info("==========================");
+
+        if (list != null && list.size() > 0) {
+            ExecutorService executorService = Executors.newFixedThreadPool(80);
+            List<Future> futureList = new ArrayList<>();
+            for (NoticeMQ content : list) {
+                futureList.add(executorService.submit(() -> {
+                    try {
+                        getTengXunYunDataFromZhongTaiAndSave(content);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
+        }
+    }
+
+    //调取中台数据 多个关键词后追加 (有黑词)
+    public void getTengXunYunDataFromZhongTaiAndSave(NoticeMQ noticeMQ) throws Exception {
+
+        String[] ccp1 = {"在线监测","智造","在线表格","物联感知","数仓","数据","数字","多云","数仓","数据","数字","云捕","云端","云防","云呼","云计算","云盘","云网","云效","云眼","云政","云资源","智慧","智库","云安全","智脑","识别","人脸","声纹","虹膜","城市大脑","城市超脑","交通超脑","交通大脑","政府超脑","无线城市","城市安全","容器云","政务云","云备份","云存储","云防护","云监管","云监控","云联网","云容灾","云通信","云网络","云巡检","云灾备","云主机","云图","云勘","云镜","云鉴","微云","冀云","紫光云","桌面云","专有云","智酷云","智慧云","智汇云","云桌面","云专线","云直播","云阅卷","云游戏","云硬盘","云应用","云一网","云研判","云研发","云数图","云数据","云手机","云视讯","云视频","云市场","云实训","云设备","云平台","云门寺","云门禁","云媒资","云录音","云扩容","云客服","云开发","云解析","云价签","云行情","云服务","云仿真","云端体","云端化","云电脑","云点播","云代维","云磁盘","云测","云部署","云拨测","云办公","云AP","医疗云","医渡云","星云网","翔安云","文旅云","微云保","腾讯云","泰康云","思杰云","私有云","曙光云","视云融","视频云","融媒云","平台云","目云镜","警务云","金山云","教育云","监控云","华为云","公有云","公安云","工业云","电子云","电商云","党建云","餐饮云","安全云","安防云","阿里云","安全大脑","产业大脑","动态验证","工业大脑","号码安全","交通小脑","媒体大脑","平安城市","平安大脑","平安县城","平安乡村","数据安全","数据大脑","数字大脑","数字法庭","数字政法","数字政府","溯源应用","态势感知","未来城市","互联网+","中心大脑","综治大脑","IOT","存储","机房","基站","集群","可视化","区块链","视联网","天网","天眼","物联网","智能","非现场","校园卫士","不停车","一张图","一张网","科技法庭","新基建","IT服务","安防视频","安全网关","安全网络","安全众测","车路协同","弹性计算","登录保护","等保测评","等级保护","对象存储","法院视频","分析平台","负载均衡","加速服务","监狱视频","交通治理","警务中台","联网应用","内容安全","平台扩容","容器平台","入侵防御","入侵检测","渗透测试","视频安防","视频采集","视频传输","视频存储","视频会议","视频集成","视频监控","视频侦察","天眼工程","调度平台","万物互联","雪亮工程","服务器","共享平台","平台软件","监管平台","平台建设","网络设备","系统平台","信息服务","信息平台","信息设备","信息系统","信息化安全","信息化采购","信息化服务","信息化改造","信息化工程","信息化集成","信息化技术","信息化建设","信息化平台","信息化设备","信息化升级","信息化系统","信息化项目","信息化应用","一体化建设","一体化平台","公司平台建设","信息共享平台","信息技术服务","信息监管平台","综合服务平台","综合信息平台","公共服务系统","软件","电子政务","可穿戴","安全监测服务","边界安全产品","产业链信息化","城建管理平台","城市空间治理","城市支撑平台","电子政务平台","管理指挥平台","监测巡护体系","监管服务平台","监控联网平台","交通管理平台","交通指挥调度","内容分发网络","平台升级改造","情报指挥平台","软件开发服务","视频资源整合","溯源管理平台","溯源体系建设","网络安全产品","网络产品安全","信息资源共享","移动警务平台","移动开发平台","营运车辆管理","应急处置平台","执法办公平台","指挥调度平台","治安防控体系","追溯监管平台","CDN网络覆盖","城镇化综合建设","分布式应用服务","工业互联网平台","公务用车信息化","农产品追溯平台","网格化管理平台","物联网管理平台","物联网追溯平台","信息化发展规划","信息化能力提升","信息化追溯体系","信息化综合管理","综治信息化平台","城市管理信息服务","城市运行管理中心","城市运营管理中心","情报信息综合应用","政务信息资源整合","安全隔离与信息交换","信息和发展规划服务","安全系统","定位系统","法院系统","分析系统","共享系统","管控系统","监测系统","监督系统","监管系统","监控系统","接入设备","警务系统","考试系统","联控系统","路由设备","物联设备","系统扩容","指挥系统","检察院系统","可穿戴设备","ADSL设备","安全防范系统","安全防护系统","安全监管系统","安全预警系统","核心业务系统","监测预警系统","监控系统工程","交通管理系统","数字防控系统","溯源管理系统","网络连接设备","信息采集设备","政务信息系统","治安防控系统","自动取证系统","不停车检测系统","报警平台","管控平台","家用路由","监测平台","监控平台","交换平台","软件平台","网络安全","网络布线","网络模块","网络终端","无线路由","无线网卡","物联平台","协同平台","信息合成","一窗受理","一口受理","一网通办","移动警务","应用安全","硬件建设","预警平台","政务灾备","执法平台","执勤平台","指挥平台","中控平台","终端安全","主机防护","注册保护","综合平台","CDN采购","CDN服务","CDN加速","CDN项目","ICT项目","IDC配套","IDC项目","IDC专线","IOT平台","不见面审批","档案信息化","服务信息化","公司信息化","好差评平台","互联网加固","互联网监管","互联网平台","互联网项目","互联网政务","集约化平台","监管信息化","可穿戴装备","企业级路由","企业信息化","数字化监控","数字驾驶舱","网络接口卡","无线接入点","物联网建设","物联网应用","政府信息化","最多跑一次","IDC自动化"};
+        List<String> ccp2 = LogUtils.readRule("moneyFile");
+        List<String> blacks = LogUtils.readRule("smf");
+        String[] pbc =  {"智能科技有限公司","数据资源管理局","数据管理局","数据资源中心","物联网公司","智能检测股份有限公司","智慧岛投资有限公司"};
+
+        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
+        if (result == false){
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃" , noticeMQ.getContentid().toString());
+            return;
+        }
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+        if (resultMap != null) {
+
+            String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
+            String title = resultMap.get("title") != null ? resultMap.get("title").toString() : "";
+            String zhaobiaounit = resultMap.get("zhao_biao_unit") != null ? resultMap.get("zhao_biao_unit").toString() : "";
+
+            String pingbititle = "";
+
+            for (String pb : pbc) {
+                if (title.contains(pb)){
+                    pingbititle = title.replaceAll(pb,"");
+                    break;
+                }else {
+                    pingbititle = title;
+                    break;
+                }
+            }
+
+            List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
+            if (contentList == null && contentList.size() == 0){
+                return;
+            }
+            String content = contentList.get(0).get("content").toString();
+
+            content = pingbititle + "&" + content;
+            content = content.toUpperCase();
+            String titlekeyword = "";
+            String contentkeyword = "";
+            boolean flag = true;
+            for (String black : blacks) {
+                if(StringUtils.isNotBlank(pingbititle) && pingbititle.contains(black)){
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag){
+                for (String cp1 : ccp1) {
+                    if (pingbititle.toUpperCase().contains(cp1.toUpperCase())){
+                        titlekeyword += (cp1 + "、");
+                    }
+                }
+                for (String cp2 : ccp2) {
+                    if (content.contains(cp2.toUpperCase())){
+                        contentkeyword += (cp2 + "、");
+                    }
+                }
+            }
+            if (StringUtils.isNotBlank(titlekeyword) ) {
+                titlekeyword = titlekeyword.substring(0, titlekeyword.length() - 1);
+                resultMap.put("keyword", titlekeyword);
+            }
+            if (StringUtils.isNotBlank(contentkeyword) ) {
+                contentkeyword = contentkeyword.substring(0, contentkeyword.length() - 1);
+                resultMap.put("code", contentkeyword);
+            }
+            String industry = myRuleUtils.getIndustry(zhaobiaounit);
+            String[] split = industry.split("-");
+            if ("医疗单位".equals(split[0]) || "政府机构-医疗".equals(industry) || "政府机构-应急管理".equals(industry) || "商业公司-医疗服务".equals(industry)){
+                resultMap.put("keyword_term", industry);
+            }
+            String ictInfo = ictRule.checkICT(contentId, title, content);
+            if (StringUtils.isNotBlank(ictInfo) ) {
+                resultMap.put("task_id", ictInfo);
+            }
+
+            cusDataFieldService.saveIntoMysql(resultMap);
+//            zhongTaiBiaoDiWuServiceForOne.getAllZhongTaiBiaoDIWu(contentId);
+        }
+
+    }
+
+    public void biaozhuKeyWordsAllData() {
+        List<Map<String, Object>> maps = this.bdJdbcTemplate.queryForList("SELECT content_id,keyword,code FROM loiloi_data WHERE keyword is not null or code is not null");
+
+        for (Map<String, Object> map : maps) {
+            String contentid = map.get("content_id") != null ? map.get("content_id").toString() : "";
+            String keyword = map.get("keyword") != null ? map.get("keyword").toString() : "";
+            String code = map.get("code") != null ? map.get("code").toString() : "";
+            String keywords = "";
+            keywords = keyword + "、" + code;
+            String[] splitKeyword = keywords.split("、");
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("SELECT one,two, pid FROM loiloi_code_data where code in ( ");
+            int num = 0;
+
+            for(int i = 0; i < splitKeyword.length; ++i) {
+                ++num;
+                stringBuilder.append("'").append(splitKeyword[i]).append("'");
+                if (num != splitKeyword.length) {
+                    stringBuilder.append(",");
+                }
+            }
+
+            stringBuilder.append(") order by num asc limit 1");
+            List<Map<String, Object>> codeMaps = this.bdJdbcTemplate.queryForList(stringBuilder.toString());
+
+            for (Map<String, Object> codeMap : codeMaps) {
+                String pid = codeMap.get("pid") != null ? codeMap.get("pid").toString() : "";
+//                String two = codeMap.get("two") != null ? codeMap.get("two").toString() : "";
+                this.bdJdbcTemplate.update("UPDATE loiloi_data SET yldw = ? WHERE content_id = ? ", pid, contentid);
+                log.info("contentId:{} 关键词类型 标注处理成功！==== 关键词所属类型级别:{} ", contentid, pid);
+            }
+        }
+
+    }
+
+    public void getICTdataSolrAllField(String date) {
+
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<NoticeMQ> list = new ArrayList<>();
+        List<NoticeMQ> list1 = new ArrayList<>();
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        futureList1.add(executorService1.submit(() -> {
+            List<NoticeMQ> mqEntities = ictContentSolr.companyResultsBaoXian("yyyymmdd:[20200101 TO 20201230] AND (progid:[31 TO 37]  OR progid:[13 TO 15] ) AND zhaoBiaoUnit:*", "", null);
+            if (!mqEntities.isEmpty()) {
+                for (NoticeMQ data : mqEntities) {
+                    if (data.getTitle() != null) {
+                        boolean flag = true;
+                        if (flag) {
+                            String zhaoBiaoUnit = data.getZhaoBiaoUnit();
+                            if (StringUtils.isNotBlank(zhaoBiaoUnit)){
+                                String industry = myRuleUtils.getIndustry(zhaoBiaoUnit);
+                                if (StringUtils.isNotBlank(industry)){
+                                    String[] split = industry.split("-");
+                                    if (split.length == 2){
+                                        if ("政府机构-公安".equals(industry) || "政府机构-教育".equals(industry) || "政府机构-医疗".equals(industry) || "教育单位".equals(split[0]) || "医疗单位".equals(split[0]) || "商业公司-教育服务".equals(industry) || "商业公司-医疗服务".equals(industry)){
+                                            list1.add(data);
+                                            if (!dataMap.containsKey(data.getContentid().toString())) {
+                                                list.add(data);
+                                                dataMap.put(data.getContentid().toString(), "0");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }));
+
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+
+        log.info("全部数据量：" + list1.size());
+        log.info("去重之后的数据量：" + list.size());
+        log.info("==========================");
+
+        if (list != null && list.size() > 0) {
+            ExecutorService executorService = Executors.newFixedThreadPool(80);
+            List<Future> futureList = new ArrayList<>();
+            for (NoticeMQ content : list) {
+                futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave3(content)));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
         }
     }
 }

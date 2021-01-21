@@ -1,12 +1,19 @@
 package com.qianlima.offline.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.util.QianlimaZTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
@@ -16,10 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -33,6 +37,8 @@ public class CusDataFieldService {
     @Autowired
     @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
+
+    static String apiUrl = "http://inner-datafetcher.intra.qianlima.com/dc/bidding/fields";
 
     private AtomicInteger atomicInteger=new AtomicInteger(0);
 
@@ -99,6 +105,31 @@ public class CusDataFieldService {
         }
         return hashMap;
     }
+
+
+    public Map<String, Object> getAllFieldsWithOther(NoticeMQ noticeMQ, boolean flag){
+        Map<String, Object> hashMap = new HashMap<>();
+        JSONArray jsonArray = getJSONArrayWithFields(noticeMQ.getContentid().toString(), flag);
+        if (jsonArray != null && jsonArray.size() > 0){
+            // 转换基础字段、时间字段信息、获取自提定制数据
+            hashMap = getResultMapWithGenPart(jsonArray, hashMap, noticeMQ.getContentid().toString());
+            hashMap = getResultMapWithTimePart(jsonArray, hashMap);
+            hashMap = getResultMapWithOther(jsonArray, hashMap);
+            if (hashMap == null || hashMap.isEmpty()){
+                return null;
+            }
+            hashMap.put("task_id", noticeMQ.getTaskId());
+            hashMap.put("keyword", noticeMQ.getKeyword());
+            hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
+            hashMap.put("code", noticeMQ.getF()); //F词
+        }
+        if (hashMap.get("title") == null){
+            return null;
+        }
+        return hashMap;
+    }
+
+
 
     /**
      * 获取数据接口（全部百炼字段）, flag 是否需要"正文"字段 ture：需要  false：不需要
@@ -243,24 +274,24 @@ public class CusDataFieldService {
                             }
                         }
                     }
-                    // 判断百炼数据是否为空
-                    if (StringUtils.isBlank(blBudget) && null != object.get("extract_budget")){
-                        blBudget = object.getString("extract_budget");
-                    }
-                    if (StringUtils.isBlank(blZhongbiaoAmount) && null != object.get("extract_amountUnit")){
-                        blZhongbiaoAmount = object.getString("extract_amountUnit");
-                    }
-                    if (StringUtils.isBlank(blZhaoBiaoUnit) && null != object.get("extract_zhaoBiaoUnit")){
-                        blZhaoBiaoUnit.append(object.getString("extract_zhaoBiaoUnit"));
-                    }
-                    if (StringUtils.isBlank(blZhongBiaoUnit) && null != object.get("extract_zhongBiaoUnit")){
-                        blZhongBiaoUnit.append(object.getString("extract_zhongBiaoUnit"));
-                    }
-                    if (StringUtils.isBlank(blAgents) && null != object.get("extract_agentUnit")){
-                        blAgents.append(object.getString("extract_agentUnit"));
-                    }
-
                 }
+                // 判断百炼数据是否为空
+                if (StringUtils.isBlank(blBudget) && null != object.get("extract_budget")){
+                    blBudget = object.getString("extract_budget");
+                }
+                if (StringUtils.isBlank(blZhongbiaoAmount) && null != object.get("extract_amountUnit")){
+                    blZhongbiaoAmount = object.getString("extract_amountUnit");
+                }
+                if (StringUtils.isBlank(blZhaoBiaoUnit) && null != object.get("extract_zhaoBiaoUnit")){
+                    blZhaoBiaoUnit.append(object.getString("extract_zhaoBiaoUnit"));
+                }
+                if (StringUtils.isBlank(blZhongBiaoUnit) && null != object.get("extract_zhongBiaoUnit")){
+                    blZhongBiaoUnit.append(object.getString("extract_zhongBiaoUnit"));
+                }
+                if (StringUtils.isBlank(blAgents) && null != object.get("extract_agentUnit")){
+                    blAgents.append(object.getString("extract_agentUnit"));
+                }
+
             }
         }
         resultMap.put("baiLian_budget", blBudget); //获取预算金额
@@ -269,6 +300,117 @@ public class CusDataFieldService {
         resultMap.put("zhao_biao_unit", blZhaoBiaoUnit);//获取招标单位
         resultMap.put("bidder", blBidder);  //候选人
         resultMap.put("agent_unit", blAgents);  //百炼代理机构
+        return resultMap;
+
+    }
+
+
+
+    // 获取百炼单位、金额
+    private Map<String, Object> getResultMapWithOther(JSONArray jsonArray, Map<String, Object> resultMap){
+        String blBudget = null; //获取百自提预算金额
+        String blZhongbiaoAmount = null; //获取自提中标金额
+        StringBuilder blZhaoBiaoUnit = new StringBuilder(); //获取百炼招标单位
+        StringBuilder blZhongBiaoUnit = new StringBuilder(); //获取百炼中标单位
+        StringBuilder blBidder = new StringBuilder(); //获取候选人
+        String blAgents = null; //百炼代理机构
+        for (int d = 0; d < jsonArray.size(); d++) {
+            JSONObject object = jsonArray.getJSONObject(d);
+            if (null != object.getJSONObject("expandField")) {
+                JSONObject expandField = object.getJSONObject("expandField");
+                if (expandField != null) {
+                    //获取百炼预算金额
+                    if (expandField.get("budgetDetail") != null) {
+                        JSONObject budgetDetail = (JSONObject) expandField.get("budgetDetail");
+                        if (budgetDetail.get("totalBudget") != null) {
+                            JSONObject totalBudget = (JSONObject) budgetDetail.get("totalBudget");
+                            if (totalBudget.get("budget") != null) {
+                                blBudget = totalBudget.get("budget") != null ? totalBudget.get("budget").toString() : null;
+                            }
+                        }
+                    }
+                    //获取百炼中标单位
+                    int winnersSize = 0;
+                    if (expandField.get("winners") != null) {
+                        List<JSONObject> winners = (List<JSONObject>) expandField.get("winners");
+                        for (JSONObject winner : winners) {
+                            winnersSize++;
+                            if (winner.get("bidderDetails") != null) {
+                                List<JSONObject> bidderDetails = (List<JSONObject>) winner.get("bidderDetails");
+                                for (int i = 0; i < bidderDetails.size(); i++) {
+                                    if (bidderDetails.get(i).get("bidder") != null) {
+                                        if (i + 1 != bidderDetails.size() || winnersSize != winners.size()) {
+                                            blZhongBiaoUnit.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                            blZhongBiaoUnit.append("、");
+                                        } else {
+                                            blZhongBiaoUnit.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //获取候选人
+                        int biddersSize = 0;
+                        if (expandField.get("bidders") != null) {
+                            List<JSONObject> bidders = (List<JSONObject>) expandField.get("bidders");
+                            for (JSONObject bidder : bidders) {
+                                biddersSize++;
+                                if (bidder.get("bidderDetails") != null) {
+                                    List<JSONObject> bidderDetails = (List<JSONObject>) bidder.get("bidderDetails");
+                                    for (int i = 0; i < bidderDetails.size(); i++) {
+                                        if (bidderDetails.get(i).get("bidder") != null) {
+                                            if (i + 1 != bidderDetails.size() || biddersSize != winners.size()) {
+                                                blBidder.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                                blBidder.append("、");
+                                            } else {
+                                                blBidder.append(bidderDetails.get(i).get("bidder") != null ? bidderDetails.get(i).get("bidder").toString() : null);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //获取百炼中标金额
+                        if (winners.get(0).get("bidderDetails") != null) {
+                            JSONArray bidderDetails = (JSONArray) winners.get(0).get("bidderDetails");
+                            JSONObject jsonObject = (JSONObject) bidderDetails.get(0);
+                            if (jsonObject.get("amount") != null) {
+                                blZhongbiaoAmount = jsonObject.get("amount") != null ? jsonObject.get("amount").toString() : null;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 判断百炼数据是否为空
+            if (StringUtils.isBlank(blBudget)){
+                if ( null != object.get("extract_budget")){
+                    blBudget = object.getString("extract_budget");
+                }
+            }
+            if (StringUtils.isBlank(blZhongbiaoAmount)){
+                if ( null != object.get("extract_amountUnit")){
+                    blZhongbiaoAmount = object.getString("extract_amountUnit");
+                }
+            }
+            if (null != object.get("extract_zhaoBiaoUnit")){
+                blZhaoBiaoUnit.append(object.getString("extract_zhaoBiaoUnit"));
+            }
+            if (StringUtils.isBlank(blZhongBiaoUnit)){
+                if (null != object.get("extract_zhongBiaoUnit")){
+                    blZhongBiaoUnit.append(object.getString("extract_zhongBiaoUnit"));
+                }
+            }
+            if (null != object.get("extract_agentUnit")){
+                blAgents = object.getString("extract_agentUnit");
+            }
+        }
+        resultMap.put("baiLian_budget", StringUtils.isBlank(blBudget) ? "" : blBudget); //获取预算金额
+        resultMap.put("baiLian_amount_unit", StringUtils.isBlank(blZhongbiaoAmount) ? "" : blZhongbiaoAmount);//获取中标金额
+        resultMap.put("zhong_biao_unit", StringUtils.isBlank(blZhongBiaoUnit) ? "" : blZhongBiaoUnit); //获取中标单位
+        resultMap.put("zhao_biao_unit", StringUtils.isBlank(blZhaoBiaoUnit) ? "" : blZhaoBiaoUnit);//获取招标单位
+        resultMap.put("bidder", StringUtils.isBlank(blBidder) ? "" : blBidder);  //候选人
+        resultMap.put("agent_unit", StringUtils.isBlank(blAgents) ? "" : blAgents);  //百炼代理机构
         return resultMap;
 
     }
@@ -587,38 +729,100 @@ public class CusDataFieldService {
         return resultMap;
     }
 
-    // 获取中台接口通用字段
+
+    /**
+     * 新解析方法，get方式单个调用中台数据
+     */
     private JSONArray getJSONArrayWithFields(String infoId, boolean flag){
         JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = null;
         try {
-            String fileName = "id,title,url,progid,area_areaid,content,updatetime,xmNumber,extract_budget,extract_zhaoBiaoUnit,extract_zhongBiaoUnit,extract_amountUnit,extract_agentUnit," +
-                    "extractDateDetail,biddingTypeDetail,expandField,zhaoBiaoDetail,agentDetail,zhongbiaoDetail" ;
-            if (flag){
-                fileName += ",content";
-            }
-            Map<String, Object> map = QianlimaZTUtil.getFields(infoId, fileName, "");
-            log.info("处理到:{}",atomicInteger.incrementAndGet());
-            if (map == null) {
-                log.error("获取中台接口失败", infoId);
-                throw new RuntimeException("调取中台失败");
-            }
-            String returnCode = (String) map.get("returnCode");
-            if ("500".equals(returnCode) || "1".equals(returnCode)) {
-                log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
-                throw new RuntimeException("数据调取中台失败");
-            } else if ("0".equals(returnCode)) {
-                JSONObject data = (JSONObject) map.get("data");
-                if (data == null) {
-                    log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
-                    throw new RuntimeException("数据调取中台失败");
+            CloseableHttpClient client = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
+                    .setSocketTimeout(60000).setConnectTimeout(60000).build();
+            //创建HttpGet请求
+            HttpGet httpGet = new HttpGet("http://cusdata.qianlima.com/zt/api/"+infoId);
+            httpGet.setConfig(requestConfig);
+            CloseableHttpResponse response = client.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                log.info("=====调用分支机构接口===="+infoId);
+                String result = EntityUtils.toString(response.getEntity(), "UTF-8");
+                if (StringUtils.isNotBlank(result)){
+                    jsonObject = JSON.parseObject(result);
                 }
-                jsonArray = data.getJSONArray("fields");
+            } else {
+                log.info("infoId:{} 调用数据详情接口异常, 返回状态不是 200 ", infoId);
+                throw new RuntimeException("调用数据详情接口异常，请联系管理员， 返回状态不是 200 ");
             }
         } catch (Exception e){
-            log.error("数据调取中台字段失败, infoId:{} 原因:{}", infoId, e);
+            log.error("调用数据详情接口异常:{}, 获取不到详情数据", e);
+        }
+        if (jsonObject == null){
+            log.error("调用数据详情接口异常", infoId);
+            throw new RuntimeException("调用数据详情接口异常， 获取到的数据为 空 ");
+        }
+        String code = jsonObject.getString("code");
+        if ("-1".equals(code) || "1".equals(code) || "2".equals(code)) {
+            log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
+            throw new RuntimeException("调用数据详情接口异常");
+        }
+        JSONObject data = jsonObject.getJSONObject("data");
+        if (jsonObject == null){
+            log.error("调用数据详情接口异常", infoId);
+            throw new RuntimeException("调用数据详情接口异常， 获取到的数据内容 为 空 ");
+        }
+        Map<String,Object> map = JSONObject.parseObject(data.toString(), Map.class);
+        Set<Map.Entry<String, Object>> entries = map.entrySet();
+        for (Map.Entry<String, Object> entry : entries) {
+            JSONObject result = new JSONObject();
+            result.put(entry.getKey(), entry.getValue());
+            jsonArray.add(result);
         }
         return jsonArray;
     }
+
+
+    public static void main(String[] args) {
+        CusDataFieldService cusDataFieldService = new CusDataFieldService();
+        JSONArray jsonArrayWithFields = cusDataFieldService.getJSONArrayWithFields("208790280", false);
+        System.out.println(1);
+    }
+
+
+
+
+    // 获取中台接口通用字段
+//    private JSONArray getJSONArrayWithFields(String infoId, boolean flag){
+//        JSONArray jsonArray = new JSONArray();
+//        try {
+//            String fileName = "id,title,url,progid,area_areaid,updatetime,xmNumber,extract_budget,extract_zhaoBiaoUnit,extract_zhongBiaoUnit,extract_amountUnit,extract_agentUnit," +
+//                    "extractDateDetail,biddingTypeDetail,expandField,zhaoBiaoDetail,agentDetail,zhongbiaoDetail" ;
+//            if (flag){
+//                fileName += ",content";
+//            }
+//            Map<String, Object> map = QianlimaZTUtil.getFields(apiUrl, infoId, fileName, "");
+//            log.info("处理到:{}",atomicInteger.incrementAndGet());
+//            if (map == null) {
+//                log.error("获取中台接口失败", infoId);
+//                throw new RuntimeException("调取中台失败");
+//            }
+//            String returnCode = (String) map.get("returnCode");
+//            if ("500".equals(returnCode) || "1".equals(returnCode)) {
+//                log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
+//                throw new RuntimeException("数据调取中台失败");
+//            } else if ("0".equals(returnCode)) {
+//                JSONObject data = (JSONObject) map.get("data");
+//                if (data == null) {
+//                    log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
+//                    throw new RuntimeException("数据调取中台失败");
+//                }
+//                jsonArray = data.getJSONArray("fields");
+//            }
+//        } catch (Exception e){
+//            log.error("数据调取中台字段失败, infoId:{} 原因:{}", infoId, e);
+//        }
+//        return jsonArray;
+//    }
 
     /// 招标单位联系人、联系电话。中标单位联系人、联系电话 多个的用的英文逗号分隔。
     private static String format(String field) {

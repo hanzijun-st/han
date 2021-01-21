@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Created by Administrator on 2021/1/12.
+ * hanzijun 接口
  */
 @RestController
 @RequestMapping("/aolinbasi")
@@ -117,5 +117,30 @@ public class HanTestController {
         return "---123---";
     }
 
+    @ApiOperation("匹配数据")
+    @PostMapping("/start/getPpei")
+    public String getPpei(){
+        currencyService.getPpei();
+        return "---123---";
+    }
 
+    @ApiOperation("校验-匹配数据")
+    @PostMapping("/start/getPpeiJy")
+    public String getPpeiJy(){
+        currencyService.getPpeiJy();
+        return "---123---";
+    }
+    @ApiOperation("上海联影医疗")
+    @PostMapping("/start/getShangHaiLy")
+    public String getShangHaiLy(){
+        testService.getShangHaiLy();
+        return "---getShangHaiLy---";
+    }
+
+    @ApiOperation("重庆地区2019至今每月的")
+    @PostMapping("/start/getChongqi")
+    public String getChongqi(){
+        testService.getChongqi();
+        return "---getChongqi---";
+    }
 }
