@@ -8,9 +8,6 @@
     <artifactId>han</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>cusdata_offline</name>
-    <url>http://www.qianlima.com</url>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMdd_HHmmss</maven.build.timestamp.format>
@@ -201,11 +198,6 @@
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
             <version>0.9.5.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.belerweb/pinyin4j -->
-        <dependency>
-            <groupId>net.sourceforge.pinyin4j</groupId>
-            <artifactId>pinyin4j</artifactId>
         </dependency>
     </dependencies>
 
