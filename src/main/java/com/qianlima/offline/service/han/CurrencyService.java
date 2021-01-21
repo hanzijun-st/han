@@ -2,6 +2,8 @@ package com.qianlima.offline.service.han;
 
 import com.qianlima.offline.bean.Params;
 
+import java.util.Map;
+
 /**
  * 通用接口
  * Created by Administrator on 2021/1/14.
@@ -37,5 +39,23 @@ public interface CurrencyService {
 
     void getPpeiJy();
 
-    String getLishiGetZhongTai(String contentId);
+    /**
+     * HttpGet 方法
+     * @param contentId
+     * @return
+     */
+    String getHttpGet(String contentId);
+
+    /**
+     * 通用方法 ---获取标的物
+     */
+    void getTongYongBdw(String contentId) throws Exception;
+
+    /**
+     * 通用插入中台数据库的操作
+     * @param map
+     * @param sql 对应的sql
+     */
+    void saveTyInto(Map<String,Object> map, String sql);
+
 }

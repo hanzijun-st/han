@@ -1,6 +1,11 @@
 package com.qianlima.offline.service.han.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.qianlima.extract.target.TargetExtractService;
 import com.qianlima.offline.bean.Area;
+import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
@@ -87,15 +92,13 @@ public class CurrencyServiceImpl implements CurrencyService {
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    public String INSERT_ZT_RESULT_HXR3 = "INSERT INTO zt_data_result_poc_table_2_copy (id,task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
-            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     //测试批量插入
     public String INSERT_HAN_ALL_TEST = "INSERT INTO han_tab_all_copy (id,json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
             "brand,model,number,numberUnit,price,priceUnit,totalPrice,totalPriceUnit,configuration_key,configuration_value,appendix_suffix) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    //标的物sql
+    private static final String UPDATA_BDW_SQL = "INSERT INTO h_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     //地区
     @PostConstruct
     public void init() {
@@ -509,7 +512,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             ExecutorService executorService = Executors.newFixedThreadPool(80);
             List<Future> futureList = new ArrayList<>();
             for (Map<String, Object> map : maps) {
-                futureList.add(executorService.submit(() ->  saveIntoMysql2(map)));
+                futureList.add(executorService.submit(() ->  saveIntoMysql(map,INSERT_ZT_RESULT_HXR)));
             }
             for (Future future : futureList) {
                 try {
@@ -522,61 +525,10 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
             executorService.shutdown();
         }
-        /*try {
-            List<Map<String,Object>> mList = new ArrayList<>();
-            for (Map<String, Object> map : maps) {
-                Map<String, Object> m = new HashMap<>();
-                m.put("id",map.get("id"));
-                m.put("task_id",map.get("task_id"));
-                m.put("keyword",map.get("keyword"));
-                m.put("content_id",map.get("content_id"));
-                m.put("title",map.get("title"));
-                m.put("content",map.get("content"));
-                m.put("province",map.get("province"));
-                m.put("city",map.get("city"));
-                m.put("country",map.get("country"));
-                m.put("url",map.get("url"));
-                m.put("baiLian_budget",map.get("baiLian_budget"));
-                m.put("baiLian_amount_unit",map.get("baiLian_amount_unit"));
-                m.put("xmNumber",map.get("xmNumber"));
-                m.put("bidding_type",map.get("bidding_type"));
-                m.put("progid",map.get("progid"));
-                m.put("zhao_biao_unit",map.get("zhao_biao_unit"));
-                m.put("relation_name",map.get("relation_name"));
-                m.put("relation_way",map.get("relation_way"));
-                m.put("agent_unit",map.get("agent_unit"));
-                m.put("agent_relation_ame",map.get("agent_relation_ame"));
-                m.put("agent_relation_way",map.get("agent_relation_way"));
-                m.put("zhong_biao_unit",map.get("zhong_biao_unit"));
-                m.put("link_man",map.get("link_man"));
-                m.put("link_phone",map.get("link_phone"));
-                m.put("registration_begin_time",map.get("registration_begin_time"));
-                m.put("registration_end_time",map.get("registration_end_time"));
-                m.put("biding_acquire_time",map.get("biding_acquire_time"));
-                m.put("biding_end_time",map.get("biding_end_time"));
-                m.put("tender_begin_time",map.get("tender_begin_time"));
-                m.put("tender_end_time",map.get("tender_end_time"));
-                m.put("update_time",map.get("update_time"));
-                m.put("type",map.get("type"));
-                m.put("bidder",map.get("bidder"));
-                m.put("notice_types",map.get("notice_types"));
-                m.put("open_biding_time",map.get("open_biding_time"));
-                m.put("is_electronic",map.get("is_electronic"));
-                m.put("code",map.get("code"));
-                m.put("isfile",map.get("isfile"));
-                m.put("keyword_term",map.get("keyword_term"));
-                mList.add(m);
-            }
-            DBUtil.insertAll(INSERT_ZT_RESULT_HXR3,mList);
-            log.info("批量插入成功-------");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }*/
-
     }
 
     @Override
-    public String getLishiGetZhongTai(String contentId) {
+    public String getHttpGet(String contentId) {
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
@@ -598,8 +550,85 @@ public class CurrencyServiceImpl implements CurrencyService {
         return null;
     }
 
-    public void saveIntoMysql2(Map<String, Object> map){
-        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR2,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+    /**
+     * 获取标的物通用方法
+     * @param contentId
+     * @throws Exception
+     */
+    @Override
+    public void getTongYongBdw(String contentId) throws Exception{
+        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
+        if (contentList == null && contentList.size() == 0){
+            return;
+        }
+        String content = contentList.get(0).get("content").toString();
+        String target = "";
+        if (StringUtils.isNotBlank(content)){
+            try{
+                target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
+            } catch (Exception e){
+                log.error("contentId:{}==========", contentId);
+            }
+
+            if (StringUtils.isNotBlank(target)){
+                JSONObject targetObject = JSONObject.parseObject(target);
+                if (targetObject.containsKey("targetDetails")){
+                    JSONArray targetDetails = (JSONArray) targetObject.get("targetDetails");
+                    for (Object targetDetail : targetDetails) {
+                        String detail = targetDetail.toString();
+                        Map detailMap = JSON.parseObject(detail, Map.class);
+                        String serialNumber = ""; //标的物序号
+                        String name = ""; //名称
+                        String brand = ""; //品牌
+                        String model = ""; //型号
+                        String number = ""; //数量
+                        String numberUnit = ""; //数量单位
+                        String price = ""; //单价
+                        String priceUnit = "";  //单价单位
+                        String totalPrice = ""; //总价
+                        String totalPriceUnit = ""; //总价单位
+                        if (detailMap.containsKey("serialNumber")){
+                            serialNumber = (String) detailMap.get("serialNumber");
+                        }
+                        if (detailMap.containsKey("name")){
+                            name = (String) detailMap.get("name");
+                        }
+                        if (detailMap.containsKey("brand")){
+                            brand = (String) detailMap.get("brand");
+                        }
+                        if (detailMap.containsKey("model")){
+                            model = (String) detailMap.get("model");
+                        }
+                        if (detailMap.containsKey("number")){
+                            number = (String) detailMap.get("number");
+                        }
+                        if (detailMap.containsKey("numberUnit")){
+                            numberUnit = (String) detailMap.get("numberUnit");
+                        }
+                        if (detailMap.containsKey("price")){
+                            price = (String) detailMap.get("price");
+                        }
+                        if (detailMap.containsKey("priceUnit")){
+                            priceUnit = (String) detailMap.get("priceUnit");
+                        }
+
+                        if (detailMap.containsKey("totalPrice")){
+                            totalPrice = (String) detailMap.get("totalPrice");
+                        }
+                        if (detailMap.containsKey("totalPriceUnit")){
+                            totalPriceUnit = (String) detailMap.get("totalPriceUnit");
+                        }
+                        bdJdbcTemplate.update(UPDATA_BDW_SQL, contentId, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit);
+                        log.info("contentId:{} =========== 标的物解析表数据处理成功！！！ ",contentId);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void saveTyInto(Map<String, Object> map, String sql) {
+        bdJdbcTemplate.update(sql,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
                 map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
                 map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
                 map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
@@ -609,6 +638,7 @@ public class CurrencyServiceImpl implements CurrencyService {
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
                 map.get("code"), map.get("isfile"), map.get("keyword_term"));
     }
+
 
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
@@ -624,7 +654,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             if (StringUtils.isNotBlank(content)) {
                 resultMap.put("content", content);
             }*/
-            saveIntoMysql(resultMap);
+            saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
         }
     }
 
@@ -633,8 +663,8 @@ public class CurrencyServiceImpl implements CurrencyService {
      * jdbc存表接口
      * @param map
      */
-    public void saveIntoMysql(Map<String, Object> map){
-        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+    public void saveIntoMysql(Map<String, Object> map ,String table){
+        bdJdbcTemplate.update(table,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
                 map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
                 map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
                 map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
@@ -667,30 +697,5 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
         }
         return document.body().html();
-    }
-
-    //调取中台数据 并 匹配行业标签
-    public void getDataFromZhongTaiAndSave6(NoticeMQ noticeMQ) {
-        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
-        if (result == false) {
-            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
-            return;
-        }
-        Map<String, Object> map = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
-        if (map != null) {
-            String zhaobiaounit = map.get("zhao_biao_unit") != null ? map.get("zhao_biao_unit").toString() : "";
-            String task_id = map.get("task_id") != null ? map.get("task_id").toString() : "";
-            if (task_id.equals("2")){
-                String zhaobiaoindustry = myRuleUtils.getIndustry(zhaobiaounit);
-                String[] zhaobiaosplit = zhaobiaoindustry.split("-");
-                if (StringUtils.isNotBlank(zhaobiaounit)){
-                    if ("商业公司-文化".equals(zhaobiaoindustry) || "商业公司-旅游".equals(zhaobiaoindustry) || "政府机构-文化和旅游".equals(zhaobiaoindustry)){
-                        newZhongTaiService.saveIntoMysql(map);
-                    }
-                }
-            }else {
-                newZhongTaiService.saveIntoMysql(map);
-            }
-        }
     }
 }

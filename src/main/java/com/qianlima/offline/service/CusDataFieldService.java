@@ -730,7 +730,9 @@ public class CusDataFieldService {
     }
 
 
-
+    /**
+     * 新解析方法，get方式单个调用中台数据
+     */
     private JSONArray getJSONArrayWithFields(String infoId, boolean flag){
         JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject = null;
@@ -738,7 +740,7 @@ public class CusDataFieldService {
             CloseableHttpClient client = HttpClients.createDefault();
             RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
                     .setSocketTimeout(60000).setConnectTimeout(60000).build();
-            //4、创建HttpGet请求
+            //创建HttpGet请求
             HttpGet httpGet = new HttpGet("http://cusdata.qianlima.com/zt/api/"+infoId);
             httpGet.setConfig(requestConfig);
             CloseableHttpResponse response = client.execute(httpGet);

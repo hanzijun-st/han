@@ -9,9 +9,17 @@ public interface TestService {
      */
     void getBdw();
 
-    void getDatasToUpdateKeyword();
-
     void updateKeyword();
 
     String downLoad();
+
+    /**
+     * 上海联影医疗
+     */
+    void getShangHaiLy();
+
+    /**
+     * 重庆地区
+     */
+    void getChongqi();
 }

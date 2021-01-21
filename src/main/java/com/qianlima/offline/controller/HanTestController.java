@@ -130,10 +130,17 @@ public class HanTestController {
         currencyService.getPpeiJy();
         return "---123---";
     }
-    @ApiOperation("测试-临时调用中台数据")
-    @PostMapping("/start/getLishiGetZhongTai")
-    public String getLishiGetZhongTai(){
-        //currencyService.getLishiGetZhongTai();
-        return "---getLinshiZhongtai---";
+    @ApiOperation("上海联影医疗")
+    @PostMapping("/start/getShangHaiLy")
+    public String getShangHaiLy(){
+        testService.getShangHaiLy();
+        return "---getShangHaiLy---";
+    }
+
+    @ApiOperation("重庆地区2019至今每月的")
+    @PostMapping("/start/getChongqi")
+    public String getChongqi(){
+        testService.getChongqi();
+        return "---getChongqi---";
     }
 }
