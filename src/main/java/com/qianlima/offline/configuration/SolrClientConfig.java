@@ -22,6 +22,10 @@ public class SolrClientConfig {
     public SolrClient newContentSolr() {
         return new HttpSolrClient(environment.getRequiredProperty("qlm.data.newSolr"));
     }
+    @Bean(name = "updateSolr")
+    public SolrClient updateContentSolr() {
+        return new HttpSolrClient(environment.getRequiredProperty("qlm.data.updateSolr"));
+    }
 
     @Bean(name = "ictSolr")
     public SolrClient ictContentSolr() {

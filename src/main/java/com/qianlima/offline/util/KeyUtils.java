@@ -68,5 +68,25 @@ public class KeyUtils {
         return simpleAreaMap;
     }
 
+    public static synchronized HashMap<String, String> getSimpleMap() {
+        if (simpleAreaMap.isEmpty()) {
+            try {
+                ClassPathResource classPathResource = new ClassPathResource("source/tencent.txt");
+                InputStream inputStream = classPathResource.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                String line = bufferedReader.readLine();
+                while (StringUtils.isNotBlank(line)) {//BufferedReader有readLine()，可以实现按行读取
+                    line = line.trim();
+                    String[] arr = line.split(":");
+                    simpleAreaMap.put(arr[0], arr[1]);
+                    line = bufferedReader.readLine();
+                }
+            } catch (Exception e) {
+                log.error("读取ka_simple_area 失败, 请查证原因");
+            }
+        }
+        return simpleAreaMap;
+    }
+
 
 }

@@ -58,6 +58,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     private ContentSolr contentSolr;
 
     @Autowired
+    private UpdateContentSolr updateSolr;
+
+    @Autowired
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;
 
@@ -157,7 +160,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             String string = "yyyymmdd:["+time1 + " TO "+time2 + "] AND (progid:"+progidStr+")"+" AND catid:[* TO 100] AND "+titleOrAllcontent;
             for (String str : keyWords) {
                 futureList1.add(executorService1.submit(() -> {
-                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian(string+":\""+str+"\"", str, 2);
+                    List<NoticeMQ> mqEntities = updateSolr.companyResultsBaoXian(string+":\""+str+"\"", str, 2);
                     log.info(str.trim() + "————" + mqEntities.size());
                     if (!mqEntities.isEmpty()) {
                         for (NoticeMQ data : mqEntities) {

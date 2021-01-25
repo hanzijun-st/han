@@ -23,6 +23,29 @@ public class StrUtil {
         return stringBuffer.toString();
     }
 
+    /**
+     * 接口调用完提示返回
+     * @return
+     */
+    public static String getPutStr(){
+        StringBuffer s = new StringBuffer();
+        s.append("===============================本次任务结束=============================");
+        s.append("===================================================================");
+        return s.toString();
+    }
+
+    /**
+     * 保存完数据库后返回提示
+     * @return
+     */
+    public static String getSaveDataStr(){
+        StringBuffer s = new StringBuffer();
+        s.append("===============================数据保存完成=============================");
+        s.append("===================================================================");
+        return s.toString();
+    }
+
+
   /*  *//**
      * 字符串判空
      * @param value
