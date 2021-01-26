@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.qianlima.extract.target.TargetExtractService;
 
 import com.qianlima.offline.bean.ConstantBean;
+import com.qianlima.offline.util.CollectionUtils;
 import com.qianlima.offline.util.ContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,13 +76,18 @@ public class ZhongTaiBiaoDiWuService {
 
 
     }
-    public void getSolrAllField2(String fileName) throws IOException {
+    public void getSolrAllField2(){
 
         ExecutorService executorService = Executors.newFixedThreadPool(80);
         List<Future> futureList = new ArrayList<>();
 
-        List<String> ids = LogUtils.readRule(fileName);
-
+        Set<String> ids = new HashSet<>();
+        List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT contentid FROM han_contentid");
+        if (!CollectionUtils.isEmpty(maps)){
+            for (Map<String, Object> map : maps) {
+                ids.add(map.get("contentid").toString());
+            }
+        }
         for (String id : ids) {
             futureList.add(executorService.submit(() -> {
                 try {
@@ -176,6 +180,8 @@ public class ZhongTaiBiaoDiWuService {
                         log.info("contentId:{} =========== 标的物解析表数据处理成功！！！ ",contentId);
                     }
                 }
+            } else {
+                log.info("contentId:{} ===========不存在该标的物的数据 ",contentId);
             }
         }
     }

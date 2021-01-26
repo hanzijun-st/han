@@ -133,6 +133,9 @@ public class CurrencyServiceImpl implements CurrencyService {
         }else if ("3".equals(str)){
             //中标
             str = "3 OR progid:5";
+        }else if ("4".equals(str)){
+            //其他
+            str = "[0 TO 3]";
         }
         return str;
     }
@@ -247,6 +250,25 @@ public class CurrencyServiceImpl implements CurrencyService {
                     executorService.shutdown();
                 }
             }
+            if (params.getIsSaveContentId().intValue() == 1){
+                if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> saveContentId(content.getContentid().toString())));
+                    }
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+                }
+            }
             System.out.println("--------------------------------本次任务结束---------------------------------------");
         } catch (IOException e) {
             e.printStackTrace();
@@ -256,8 +278,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public void getBdw() {
         try {
-            bdwService.getSolrAllField2("hBdw");
-        } catch (IOException e) {
+            bdwService.getSolrAllField2();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -642,6 +664,14 @@ public class CurrencyServiceImpl implements CurrencyService {
                 map.get("code"), map.get("isfile"), map.get("keyword_term"));
     }
 
+    @Override
+    public void saveContentId(String contentid) {
+        //mysql数据库中插入数据
+        String sql = "INSERT INTO han_contentid (contentid) VALUES (?)";
+        bdJdbcTemplate.update(sql, contentid);
+        log.info("contentid--->:{}",contentid,"存入成功");
+    }
+
 
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
@@ -700,5 +730,81 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
         }
         return document.body().html();
+    }
+
+
+    public void getAllZhongTaiBiaoDIWu(String contentId){
+
+        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
+        if (contentList == null && contentList.size() == 0){
+            return;
+        }
+        String content = contentList.get(0).get("content").toString();
+        String target = "";
+        if (StringUtils.isNotBlank(content)){
+            try{
+                target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
+            } catch (Exception e){
+                log.error("contentId:{}==========", contentId);
+            }
+
+            if (StringUtils.isNotBlank(target)){
+                JSONObject targetObject = JSONObject.parseObject(target);
+                if (targetObject.containsKey("targetDetails")){
+                    JSONArray targetDetails = (JSONArray) targetObject.get("targetDetails");
+                    for (Object targetDetail : targetDetails) {
+                        String detail = targetDetail.toString();
+                        Map detailMap = JSON.parseObject(detail, Map.class);
+                        String serialNumber = ""; //标的物序号
+                        String name = ""; //名称
+                        String brand = ""; //品牌
+                        String model = ""; //型号
+                        String number = ""; //数量
+                        String numberUnit = ""; //数量单位
+                        String price = ""; //单价
+                        String priceUnit = "";  //单价单位
+                        String totalPrice = ""; //总价
+                        String totalPriceUnit = ""; //总价单位
+                        if (detailMap.containsKey("serialNumber")){
+                            serialNumber = (String) detailMap.get("serialNumber");
+                        }
+                        if (detailMap.containsKey("name")){
+                            name = (String) detailMap.get("name");
+                        }
+                        if (detailMap.containsKey("brand")){
+                            brand = (String) detailMap.get("brand");
+                        }
+                        if (detailMap.containsKey("model")){
+                            model = (String) detailMap.get("model");
+                        }
+                        if (detailMap.containsKey("number")){
+                            number = (String) detailMap.get("number");
+                        }
+                        if (detailMap.containsKey("numberUnit")){
+                            numberUnit = (String) detailMap.get("numberUnit");
+                        }
+                        if (detailMap.containsKey("price")){
+                            price = (String) detailMap.get("price");
+                        }
+                        if (detailMap.containsKey("priceUnit")){
+                            priceUnit = (String) detailMap.get("priceUnit");
+                        }
+
+                        if (detailMap.containsKey("totalPrice")){
+                            totalPrice = (String) detailMap.get("totalPrice");
+                        }
+                        if (detailMap.containsKey("totalPriceUnit")){
+                            totalPriceUnit = (String) detailMap.get("totalPriceUnit");
+                        }
+                        bdJdbcTemplate.update(UPDATA_BDW_SQL, contentId, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit);
+//                        bdJdbcTemplate.update("UPDATE loiloi_biaodiwu SET code = ? WHERE content_id = ? ", 1, contentId);
+                        log.info("contentId:{} =========== 标的物解析表数据处理成功！！！ ",contentId);
+                    }
+                }
+            }else {
+                log.info("contentId:{} =========== 不存在标的物的数据 ",contentId);
+                return;
+            }
+        }
     }
 }

@@ -72,7 +72,7 @@ public class HanPocServiceImpl implements HanPocService {
             //关键字
             List<String> keyWords = LogUtils.readRule("keyWords");
             for (String keyWord : keyWords) {
-                List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+ date + "] AND (progid:[0 TO 3] OR progid:5) AND allcontent:\"" + keyWord + "\"",keyWord, 1);
+                List<NoticeMQ> mqEntities = updateSolr.companyResultsBaoXian("yyyymmdd:["+ date + "] AND (progid:[0 TO 3] OR progid:5) AND allcontent:\"" + keyWord + "\"",keyWord, 1);
                 log.info( "————" + mqEntities.size());
                 if (!mqEntities.isEmpty()) {
                     for (NoticeMQ data : mqEntities) {
@@ -251,6 +251,7 @@ public class HanPocServiceImpl implements HanPocService {
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
             saveIntoMysql(resultMap,INSERT_ZT_RESULT_HAN);
+            log.info("数据存库content_id--->{}",resultMap.get("content_id").toString());
         }
     }
 

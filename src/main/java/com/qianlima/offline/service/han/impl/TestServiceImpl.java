@@ -63,8 +63,8 @@ public class TestServiceImpl implements TestService{
     @Override
     public void getBdw() {
         try {
-            bdwService.getSolrAllField2("hBdw");
-        } catch (IOException e) {
+            bdwService.getSolrAllField2();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -77,6 +77,7 @@ public class TestServiceImpl implements TestService{
 
         //String[] keywords ={"交换机","锐捷"};
         try {
+            //如果多个关键词，标的物中追加关键词要合并在一块，多关键词合成一个文件
             List<String> keywords = LogUtils.readRule("keyWords");
             List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT id,contentid,name,brand,model FROM h_biaodiwu");
             if (mapList !=null && mapList.size() >0){

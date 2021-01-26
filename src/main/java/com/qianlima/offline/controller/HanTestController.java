@@ -47,6 +47,19 @@ public class HanTestController {
         return "请求成功---成功获取标的物";
     }
 
+    /**
+     * 1个关键词
+     * @param params
+     * @return
+     */
+    @ApiOperation("一个关键词")
+    @PostMapping("/start/getOne")
+    public String getOne(@RequestBody Params params){
+        currencyService.getOnePoc(params);
+        return "---测试---";
+    }
+
+
     @GetMapping("/start/updateKeyword")
     @ApiOperation("修改关键词")
     public String updateKeyword(){
@@ -90,17 +103,6 @@ public class HanTestController {
         String title = params.getTitle();
         aoLinBaSiService.getJdgl(time1,time2,type,title);
         return "---佳电(上海)管理有限公司---";
-    }
-    /**
-     * 1个关键词
-     * @param params
-     * @return
-     */
-    @ApiOperation("一个关键词")
-    @PostMapping("/start/getOne")
-    public String getOne(@RequestBody Params params){
-        currencyService.getOnePoc(params);
-        return "---测试---";
     }
 
     @ApiOperation("测试批量导入数据库")

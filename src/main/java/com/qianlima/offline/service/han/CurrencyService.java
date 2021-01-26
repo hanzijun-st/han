@@ -58,4 +58,9 @@ public interface CurrencyService {
      */
     void saveTyInto(Map<String,Object> map, String sql);
 
+    /**
+     * 添加contentId 用来导出标的物
+     */
+    void saveContentId(String contentid);
+
 }
