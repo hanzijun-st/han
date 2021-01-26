@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.han.TestTencentService;
+import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -726,7 +727,11 @@ public class CusDataFieldService {
             }
         }
         resultMap.put("registration_begin_time", registrationBeginTime);  //报名开始时间
-        resultMap.put("registration_end_time", registrationEndTime); //报名截止时间
+        if (StrUtil.isNotEmpty(registrationEndTime)){
+            resultMap.put("registration_end_time", com.qianlima.offline.util.DateUtils.parseDateFromDateStr(registrationEndTime)); //报名截止时间
+        }else {
+            resultMap.put("registration_end_time", null); //报名截止时间
+        }
         resultMap.put("biding_acquire_time", bidingAcquireTime);  //标书获取时间
         resultMap.put("open_biding_time", openBidingTime);  //开标时间
         resultMap.put("tender_begin_time", tenderBeginTime);  //投标开始时间

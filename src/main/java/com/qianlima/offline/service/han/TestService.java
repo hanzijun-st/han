@@ -5,9 +5,14 @@ package com.qianlima.offline.service.han;
  */
 public interface TestService {
     /**
-     * solr 中获取条件（用来查询中台数据）
+     * 之前的方式获取标的物
      */
     void getBdw();
+
+    /**
+     * 新方式获取标的物
+     */
+    void getNewBdw();
 
     void updateKeyword();
 
@@ -22,4 +27,6 @@ public interface TestService {
      * 重庆地区
      */
     void getChongqi();
+
+
 }

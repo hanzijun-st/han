@@ -8,6 +8,30 @@ package com.qianlima.offline.util;
 public class StrUtil {
 
     /**
+     * 字符串是否为空
+     * null 或 者长度为0
+     *
+     * @author 静心事成
+     * @param str 字符串
+     * @return boolean
+     * */
+    public static boolean isEmpty(CharSequence str) {
+        return str == null || str.length() == 0 || str.equals("") || trim(str).length()==0;
+    }
+
+    /**
+     * 字符串是否不为空
+     * 不为null 并且 长度不为0
+     *
+     * @author 静心事成
+     * @param str 字符串
+     * @return boolean
+     * */
+    public static boolean isNotEmpty(CharSequence str) {
+        return false == isEmpty(str);
+    }
+
+    /**
      * 删除某个字符
      * @param str
      * @param delChar
@@ -45,59 +69,31 @@ public class StrUtil {
         return s.toString();
     }
 
-
-  /*  *//**
-     * 字符串判空
-     * @param value
+    /**
+     * 去除两端空格
+     * @param cs
      * @return
-     *//*
-    public static final boolean isEmpty(String value) {
-        return (value == null || value.trim().length() == 0);
-    }
+     */
+    public static CharSequence trim(CharSequence cs) {
+        int len = cs.length();
+        int st = 0;
 
-    //将中文转换为英文
-    public static String getEname(String name) {
-        HanyuPinyinOutputFormat pyFormat = new HanyuPinyinOutputFormat();
-        pyFormat.setCaseType(HanyuPinyinCaseType. LOWERCASE);
-        pyFormat.setToneType(HanyuPinyinToneType. WITHOUT_TONE);
-        pyFormat.setVCharType(HanyuPinyinVCharType. WITH_V);
-
-        try {
-            return PinyinHelper. toHanyuPinyinString(name, pyFormat, "");
-        } catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
+        while ((st < len) && (cs.charAt(st) <= ' ')) {
+            st++;
         }
-        return null;
-    }
-
-    //姓、名的第一个字母需要为大写
-    public static String getUpEname(String name) {
-        char[] strs = name.toCharArray();
-        String newname = null;
-
-        //名字的长度
-        if (strs.length == 2) {
-            newname = toUpCase(getEname ("" + strs[0])) + " "
-                    + toUpCase(getEname ("" + strs[1]));
-        } else if (strs. length == 3) {
-            newname = toUpCase(getEname ("" + strs[0])) + " "
-                    + toUpCase(getEname ("" + strs[1] + strs[2]));
-        } else if (strs. length == 4) {
-            newname = toUpCase(getEname ("" + strs[0] + strs[1])) + " "
-                    + toUpCase(getEname ("" + strs[2] + strs[3]));
-        } else {
-            newname = toUpCase(getEname (name));
+        while ((st < len) && (cs.charAt(len - 1) <= ' ')) {
+            len--;
         }
-
-        return newname;
+        return ((st > 0) || (len < cs.length())) ? cs.subSequence(st, len) : cs;
     }
 
-    //首字母大写
-    private static String toUpCase(String str) {
-        StringBuffer newstr = new StringBuffer();
-        newstr.append((str.substring(0, 1)).toUpperCase()).append(
-                str.substring(1, str.length()));
-
-        return newstr.toString();
-    }*/
-
+    /**
+     *  \\s* 可以匹配空格、制表符、换页符等空白字符的其中任意一个。
+     * @param str
+     * @return
+     */
+    public static String delAllPlace(String str){
+        //可以替换大部分空白字符， 不限于空格 ；
+       return str.replaceAll("\\s*", "");
+    }
 }

@@ -199,6 +199,11 @@
             <artifactId>c3p0</artifactId>
             <version>0.9.5.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.qianlima.extractor</groupId>
+            <artifactId>target-extractor</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

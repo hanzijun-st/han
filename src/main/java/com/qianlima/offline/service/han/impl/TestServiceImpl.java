@@ -1,9 +1,12 @@
 package com.qianlima.offline.service.han.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.*;
 import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.service.CusDataFieldService;
+import com.qianlima.offline.service.NewBiaoDiWuService;
 import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestService;
@@ -42,7 +45,7 @@ public class TestServiceImpl implements TestService{
     private CusDataFieldService cusDataFieldService;
 
     @Autowired
-    private CurrencyService currencyService;
+    private NewBiaoDiWuService newBiaoDiWuService;
 
     @Autowired
     private MyRuleUtils myRuleUtils;
@@ -67,6 +70,35 @@ public class TestServiceImpl implements TestService{
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void getNewBdw() {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<Future> futureList = new ArrayList<>();
+        //contentid
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT contentid FROM han_contentid");
+        Integer num = mapList.size();
+        for (Map<String, Object> mapData : mapList) {
+            num --;
+            String syNum = num.toString();//剩余数据量
+            futureList.add(executorService1.submit(() -> {
+                newBiaoDiWuService.handleForData(Long.valueOf(mapData.get("contentid").toString()));
+                log.info("新标的物方法--->:{}",mapData.get("contentid").toString()+"---剩余数量：{}",syNum);
+            }));
+        }
+        for (Future future1 : futureList) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+        log.info("---------------===============================新标的物方法运行结束==================================");
     }
 
 
@@ -447,5 +479,7 @@ public class TestServiceImpl implements TestService{
                 map.get("price"),map.get("priceUnit"),map.get("totalPrice"),map.get("totalPriceUnit"),
                 map.get("configuration_key"),map.get("configuration_value"),map.get("appendix_suffix"));
     }
+
+
 
 }

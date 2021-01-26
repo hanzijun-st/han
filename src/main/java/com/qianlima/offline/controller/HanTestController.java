@@ -46,6 +46,12 @@ public class HanTestController {
         testService.getBdw();
         return "请求成功---成功获取标的物";
     }
+    @GetMapping("/getNewBdw")
+    @ApiOperation("最新方式-获取标的物的数据")
+    public String getNewBdw(){
+        testService.getNewBdw();
+        return "请求成功---最新方式-获取标的物的数据";
+    }
 
     /**
      * 1个关键词
