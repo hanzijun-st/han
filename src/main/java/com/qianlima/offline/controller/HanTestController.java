@@ -48,8 +48,8 @@ public class HanTestController {
     }
     @GetMapping("/getNewBdw")
     @ApiOperation("最新方式-获取标的物的数据")
-    public String getNewBdw(){
-        testService.getNewBdw();
+    public String getNewBdw(Integer type){
+        testService.getNewBdw(type);
         return "请求成功---最新方式-获取标的物的数据";
     }
 
@@ -150,5 +150,12 @@ public class HanTestController {
     public String getChongqi(){
         testService.getChongqi();
         return "---getChongqi---";
+    }
+
+    @ApiOperation("纵横大鹏无人机-规则三")
+    @PostMapping("/getZongHengDaPeng3")
+    public String getZongHengDaPeng3(Integer type,String date) throws Exception{
+        testService.getZongHengDaPeng3(type,date);
+        return "---getZongHengDaPeng3---";
     }
 }

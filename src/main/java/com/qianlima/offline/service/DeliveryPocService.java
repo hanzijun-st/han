@@ -212,7 +212,7 @@ public class DeliveryPocService {
             String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
             String content = resultMap.get("content") != null ? resultMap.get("content").toString() : "";
             try {
-                zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId);
+                zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId,1);
             } catch (Exception e) {
                 e.printStackTrace();
             }

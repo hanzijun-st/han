@@ -101,7 +101,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             "brand,model,number,numberUnit,price,priceUnit,totalPrice,totalPriceUnit,configuration_key,configuration_value,appendix_suffix) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     //标的物sql
-    private static final String UPDATA_BDW_SQL = "INSERT INTO h_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATA_BDW_SQL = "INSERT INTO han_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     //地区
     @PostConstruct
     public void init() {
@@ -670,6 +670,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         String sql = "INSERT INTO han_contentid (contentid) VALUES (?)";
         bdJdbcTemplate.update(sql, contentid);
         log.info("contentid--->:{}",contentid,"存入成功");
+    }
+
+    @Override
+    public List<Map<String, Object>> getListMap(String sql) {
+        return bdJdbcTemplate.queryForList(sql);
     }
 
 

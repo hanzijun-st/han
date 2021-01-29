@@ -6,9 +6,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.qianlima.extract.target.TargetExtractService;
 
 import com.qianlima.offline.bean.ConstantBean;
+import com.qianlima.offline.rule02.BiaoDiWuRule;
 import com.qianlima.offline.util.CollectionUtils;
 import com.qianlima.offline.util.ContentSolr;
 import com.qianlima.offline.util.LogUtils;
+import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,7 @@ import java.util.concurrent.Future;
 public class ZhongTaiBiaoDiWuService {
 
 
-    private static final String UPDATA_SQL_01 = "INSERT INTO h_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATA_SQL_01 = "INSERT INTO han_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String CHECK_SQL = "select status from phpcms_content where contentid = ?";
 
@@ -56,7 +58,7 @@ public class ZhongTaiBiaoDiWuService {
         for (String id : ids) {
             futureList.add(executorService.submit(() -> {
                 try {
-                    getAllZhongTaiBiaoDIWu(id);
+                    getAllZhongTaiBiaoDIWu(id,1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -91,7 +93,7 @@ public class ZhongTaiBiaoDiWuService {
         for (String id : ids) {
             futureList.add(executorService.submit(() -> {
                 try {
-                    getAllZhongTaiBiaoDIWu(id);
+                    getAllZhongTaiBiaoDIWu(id,1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -112,7 +114,7 @@ public class ZhongTaiBiaoDiWuService {
     }
 
 
-    public void getAllZhongTaiBiaoDIWu(String contentId) throws Exception{
+    public void getAllZhongTaiBiaoDIWu(String contentId,Integer type) throws Exception{
 
         List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
         if (contentList == null && contentList.size() == 0){
@@ -122,7 +124,17 @@ public class ZhongTaiBiaoDiWuService {
         String target = "";
         if (StringUtils.isNotBlank(content)){
             try{
-                target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
+                String url ="";
+                for (BiaoDiWuRule biaoDiWuRule : BiaoDiWuRule.values()) {
+                    if (biaoDiWuRule.getValue().intValue() == type.intValue()){
+                        url = biaoDiWuRule.getName();
+                    }
+                }
+                if (StrUtil.isEmpty(url)){
+                    log.info("-----没有获取到url，检查代码-----");
+                    return;
+                }
+                target = TargetExtractService.getTargetResult(url, content);
             } catch (Exception e){
                 log.error("contentId:{}==========", contentId);
             }

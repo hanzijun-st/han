@@ -2,6 +2,7 @@ package com.qianlima.offline.service.han;
 
 import com.qianlima.offline.bean.Params;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,5 +63,7 @@ public interface CurrencyService {
      * 添加contentId 用来导出标的物
      */
     void saveContentId(String contentid);
+
+    List<Map<String,Object>> getListMap(String sql);
 
 }

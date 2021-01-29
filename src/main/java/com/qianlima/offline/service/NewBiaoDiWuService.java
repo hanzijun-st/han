@@ -3,6 +3,7 @@ package com.qianlima.offline.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.extract.TargetService;
+import com.qianlima.offline.rule02.BiaoDiWuRule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,15 @@ public class NewBiaoDiWuService {
     private String SQL = "insert into han_new_bdw(infoId, sum, sum_unit, keyword, serial_number, name, brand, model, " +
             "number, number_unit, price, price_unit, total_price, total_price_unit, configuration) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    public void handleForData(Long contentId){
-        String result = TargetService.extract(contentId,"http://172.18.30.243:2023/inspect");
+    public void handleForData(Long contentId,Integer type){
+
+        String url = "";
+        for (BiaoDiWuRule value : BiaoDiWuRule.values()) {
+            if (value.getValue().intValue() == type){
+                url = value.getName();
+            }
+        }
+        String result = TargetService.extract(contentId,url);
         if (StringUtils.isNotBlank(result)){
             JSONObject jsonObject = JSONObject.parseObject(result);
             if (jsonObject != null && jsonObject.containsKey("content_target")){

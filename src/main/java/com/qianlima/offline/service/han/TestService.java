@@ -12,7 +12,7 @@ public interface TestService {
     /**
      * 新方式获取标的物
      */
-    void getNewBdw();
+    void getNewBdw(Integer type);
 
     void updateKeyword();
 
@@ -28,5 +28,11 @@ public interface TestService {
      */
     void getChongqi();
 
+    /**
+     * 无人机规则三
+     * @param type
+     * @param date
+     */
+    void getZongHengDaPeng3(Integer type, String date);
 
 }

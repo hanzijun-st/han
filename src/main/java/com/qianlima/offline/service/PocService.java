@@ -307,7 +307,7 @@ public class PocService {
             }
             newZhongTaiService.saveIntoMysql(resultMap);
             try {
-                zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId);
+                zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId,1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -359,7 +359,7 @@ public class PocService {
                 newZhongTaiService.saveIntoMysql(resultMap);
                 try {
                     //获取标的物清单表
-                    zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId);
+                    zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId,1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

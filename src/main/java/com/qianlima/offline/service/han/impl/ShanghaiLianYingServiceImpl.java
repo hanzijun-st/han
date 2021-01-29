@@ -53,7 +53,7 @@ public class ShanghaiLianYingServiceImpl implements ShanghaiLianYingService{
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;//官网
 
-    private static final String UPDATA_BDW_SQL = "INSERT INTO h_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATA_BDW_SQL = "INSERT INTO han_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     //mysql数据库中插入数据
     public String INSERT_ZT_RESULT_HXR = "INSERT INTO han_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +

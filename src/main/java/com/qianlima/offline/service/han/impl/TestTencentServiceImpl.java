@@ -54,6 +54,7 @@ public class TestTencentServiceImpl implements TestTencentService {
 
     //mysql数据库中插入数据
     public static final String INSERT_ZT_RESULT_TYPE = "INSERT INTO han_tencent (type,contentid,title) VALUES (?,?,?)";
+    public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE han_tencent SET type =? WHERE contentid =?";
     @Override
     public void saveTencent() {
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
@@ -62,7 +63,7 @@ public class TestTencentServiceImpl implements TestTencentService {
 
         /*HashMap<String, String> simpleAreaMap = KeyUtils.getSimpleMap();
         Set<Map.Entry<String, String>> entries = simpleAreaMap.entrySet();//将map的key和value 进行映射成 集合*/
-        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT * FROM han_tencent_copy2");
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT * FROM han_tencent");
 
         String url ="http://cusdata.qianlima.com/api/infoType";
         if (mapList !=null && mapList.size() >0){
@@ -90,7 +91,7 @@ public class TestTencentServiceImpl implements TestTencentService {
                     //if (allFieldsWithOther != null && allFieldsWithOther.size() >0) {
                     //    saveIntoMysql(allFieldsWithOther,INSERT_ZT_RESULT_HAN);
                     //}
-                    saveIntoMysql(m,INSERT_ZT_RESULT_TYPE);
+                    saveIntoMysql(m,UPDATE_ZT_RESULT_TYPE);
 
                 }));
                 log.info("-----------------------执行的contentid:{}",contentid);
@@ -159,7 +160,7 @@ public class TestTencentServiceImpl implements TestTencentService {
 
     //存储数据库
     public void saveIntoMysql(Map<String, Object> map ,String table){
-        bdJdbcTemplate.update(table, map.get("type"),map.get("contentid"),map.get("title"));
+        bdJdbcTemplate.update(table, map.get("type"),map.get("contentid"));
         log.info("存mysql数据库进度--->{}",map.get("contentid"));
     }
 }
