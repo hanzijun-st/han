@@ -96,4 +96,14 @@ public class StrUtil {
         //可以替换大部分空白字符， 不限于空格 ；
        return str.replaceAll("\\s*", "");
     }
+
+    /**
+     * 给字符串拼接双引号
+     * @param str
+     * @return
+     */
+    public static String splictYh(String str){
+        String s = "\""+str+"\"";
+        return s;
+    }
 }

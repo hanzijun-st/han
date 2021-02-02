@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.han.TestTencentService;
+import com.qianlima.offline.util.QianlimaZTUtil;
 import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -802,38 +803,38 @@ public class CusDataFieldService {
 
 
 
-    // 获取中台接口通用字段
-//    private JSONArray getJSONArrayWithFields(String infoId, boolean flag){
-//        JSONArray jsonArray = new JSONArray();
-//        try {
-//            String fileName = "id,title,url,progid,area_areaid,updatetime,xmNumber,extract_budget,extract_zhaoBiaoUnit,extract_zhongBiaoUnit,extract_amountUnit,extract_agentUnit," +
-//                    "extractDateDetail,biddingTypeDetail,expandField,zhaoBiaoDetail,agentDetail,zhongbiaoDetail" ;
-//            if (flag){
-//                fileName += ",content";
-//            }
-//            Map<String, Object> map = QianlimaZTUtil.getFields(apiUrl, infoId, fileName, "");
-//            log.info("处理到:{}",atomicInteger.incrementAndGet());
-//            if (map == null) {
-//                log.error("获取中台接口失败", infoId);
-//                throw new RuntimeException("调取中台失败");
-//            }
-//            String returnCode = (String) map.get("returnCode");
-//            if ("500".equals(returnCode) || "1".equals(returnCode)) {
-//                log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
-//                throw new RuntimeException("数据调取中台失败");
-//            } else if ("0".equals(returnCode)) {
-//                JSONObject data = (JSONObject) map.get("data");
-//                if (data == null) {
-//                    log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
-//                    throw new RuntimeException("数据调取中台失败");
-//                }
-//                jsonArray = data.getJSONArray("fields");
-//            }
-//        } catch (Exception e){
-//            log.error("数据调取中台字段失败, infoId:{} 原因:{}", infoId, e);
-//        }
-//        return jsonArray;
-//    }
+    // 获取中台接口通用字段---之前调用中台方法
+    private JSONArray getJSONArrayWithFieldsOld(String infoId, boolean flag){
+        JSONArray jsonArray = new JSONArray();
+        try {
+            String fileName = "id,title,url,progid,area_areaid,updatetime,xmNumber,extract_budget,extract_zhaoBiaoUnit,extract_zhongBiaoUnit,extract_amountUnit,extract_agentUnit," +
+                    "extractDateDetail,biddingTypeDetail,expandField,zhaoBiaoDetail,agentDetail,zhongbiaoDetail" ;
+            if (flag){
+                fileName += ",content";
+            }
+            Map<String, Object> map = QianlimaZTUtil.getFields(apiUrl, infoId, fileName, "");
+            log.info("处理到:{}",atomicInteger.incrementAndGet());
+            if (map == null) {
+                log.error("获取中台接口失败", infoId);
+                throw new RuntimeException("调取中台失败");
+            }
+            String returnCode = (String) map.get("returnCode");
+            if ("500".equals(returnCode) || "1".equals(returnCode)) {
+                log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
+                throw new RuntimeException("数据调取中台失败");
+            } else if ("0".equals(returnCode)) {
+                JSONObject data = (JSONObject) map.get("data");
+                if (data == null) {
+                    log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
+                    throw new RuntimeException("数据调取中台失败");
+                }
+                jsonArray = data.getJSONArray("fields");
+            }
+        } catch (Exception e){
+            log.error("数据调取中台字段失败, infoId:{} 原因:{}", infoId, e);
+        }
+        return jsonArray;
+    }
 
     /// 招标单位联系人、联系电话。中标单位联系人、联系电话 多个的用的英文逗号分隔。
     private static String format(String field) {

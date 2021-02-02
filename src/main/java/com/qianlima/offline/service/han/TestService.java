@@ -35,4 +35,24 @@ public interface TestService {
      */
     void getZongHengDaPeng3(Integer type, String date);
 
+    /**
+     * 合肥航联
+     * @param type
+     * @param date
+     */
+    void getHefeiHanglian(Integer type, String date);
+
+    /**
+     * 邯郸开发区中电环境科技有限公司
+     * @param type
+     * @param date
+     */
+    void getHanDanKaiFaQu(Integer type, String date);
+
+    /**
+     * 四川羽医医疗管理有限公司
+     * @param type
+     * @param date
+     */
+    void getSiChuanYuYiYiLiao(Integer type, String date);
 }

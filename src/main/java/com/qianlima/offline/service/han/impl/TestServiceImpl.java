@@ -557,6 +557,608 @@ public class TestServiceImpl implements TestService{
         }
     }
 
+    @Override
+    public void getHefeiHanglian(Integer type, String date) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        try {
+            //关键词a
+            List<String> aa = LogUtils.readRule("keyWordsA");
+            //关键词b
+            List<String> bb = LogUtils.readRule("keyWordsB");
+
+            //读取配置文件中的黑词
+            List<String> blacks = LogUtils.readRule("blockKeys");
+
+            //全文检索关键词a AND 关键词b
+            for (String str : aa) {
+                for (String str2 : bb) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND title:\"" + str + "\"  AND title:\"" + str2 + "\"", str+"&"+str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    for (String black : blacks) {
+                                        if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                            flag = false;
+                                            break;
+                                        }
+                                    }
+                                    if (flag){
+                                        listAll.add(data);
+                                        data.setKeyword(str+"&"+str2);
+                                        if (!dataMap.containsKey(data.getContentid().toString())) {
+                                            list.add(data);
+                                            dataMap.put(data.getContentid().toString(), "0");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重之后的数据量：" + list.size());
+            log.info("==========================");
+
+
+            ArrayList<String> arrayList = new ArrayList<>();
+
+            //关键词a 和 关键词b
+            for (String key : aa) {
+                for (String str2 : bb) {
+                    arrayList.add(key+"&"+str2);
+                }
+            }
+
+
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : list) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (keyword.equals(str)) {
+                        total++;
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                System.out.println(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+
+
+            if (type.intValue() == 1){
+                if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+                    }
+
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+
+                }
+            }
+            System.out.println("==========================================此程序运行结束========================================");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getHanDanKaiFaQu(Integer type, String date) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        try {
+           /* //关键词a
+            List<String> aa = LogUtils.readRule("keyWordsA");
+            //关键词b
+            List<String> bb = LogUtils.readRule("keyWordsB");
+
+            List<String> cc = LogUtils.readRule("keyWordsC");
+            List<String> dd = LogUtils.readRule("keyWordsD");
+            List<String> ee = LogUtils.readRule("keyWordsE");*/
+
+
+            String[] aa={"城市","公路","街道","道路","马路","公测","公共厕所","市容","景区"};
+            String[] bb={"保洁","收运","保洁","管养","管护","清运","环境管理","卫生管理"};
+            String[] cc={"垃圾","环卫"};
+            //String[] dd={"处理","清运","焚烧","填埋","整治","运输","回收","服务"};
+            String[] dd={"处理","清运","焚烧","填埋","整治","运输","回收"};
+            String[] ee={"环卫服务","环卫一体化","垃圾处理","垃圾回收","垃圾治理","农村清运","智慧环卫","市容管理"};
+
+            //全文检索关键词a AND 关键词b
+            for (String a : aa) {
+                for (String b : bb) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND progid:3 AND catid:[* TO 100] AND (newProvince:\"" + "河北省" + "\" OR newProvince:\"" + "山东省" + "\" OR newProvince:\"" + "山西省" + "\" ) AND allcontent:\"" + a + "\"  AND allcontent:\"" + b + "\"", a+"&"+b, 2);
+                        log.info(a.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    if (flag){
+                                        listAll.add(data);
+                                        data.setKeyword(a+"&"+b);
+                                        if (!dataMap.containsKey(data.getContentid().toString())) {
+                                            list.add(data);
+                                            dataMap.put(data.getContentid().toString(), "0");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+            //全文检索关键词c AND 关键词d
+            for (String c : cc) {
+                for (String d : dd) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND progid:3 AND catid:[* TO 100] AND (newProvince:\"" + "河北省" + "\" OR newProvince:\"" + "山东省" + "\" OR newProvince:\"" + "山西省" + "\") AND allcontent:\"" + c + "\"  AND allcontent:\"" + d + "\"", c+"&"+d, 2);
+                        log.info(c.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    if (flag){
+                                        listAll.add(data);
+                                        data.setKeyword(c+"&"+d);
+                                        if (!dataMap.containsKey(data.getContentid().toString())) {
+                                            list.add(data);
+                                            dataMap.put(data.getContentid().toString(), "0");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+
+            //关键字ee
+            for (String keyWord : ee) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+ date + "] AND progid:3 AND catid:[* TO 100] AND (newProvince:\"" + "河北省" +"\" OR newProvince:\"" + "山东省" +"\" OR newProvince:\"" + "山西省" + "\") AND allcontent:\"" + keyWord + "\"",keyWord, 1);
+                    //List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+ date + "] AND progid:3 AND catid:[* TO 100] AND (newProvince:\"" + "河北省" + "\" OR newProvince:\"" + "山东省" + "\" OR newProvince:\"" + "山西省" +") AND allcontent:\"" + keyWord + "\"",keyWord, 2);
+                    log.info( "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    listAll.add(data);
+                                    data.setKeyword(keyWord);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重之后的数据量：" + list.size());
+            log.info("==========================");
+
+
+            ArrayList<String> arrayList = new ArrayList<>();
+
+            //关键词a 和 关键词b
+            for (String a : aa) {
+                for (String b : bb) {
+                    arrayList.add(a+"&"+b);
+                }
+            }
+            //关键词c 和 关键词d
+            for (String c : cc) {
+                for (String d : dd) {
+                    arrayList.add(c+"&"+d);
+                }
+            }
+            for (String e : ee) {
+                arrayList.add(e);
+            }
+
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : list) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (keyword.equals(str)) {
+                        total++;
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                System.out.println(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+
+
+            if (type.intValue() == 1){
+                if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+                    }
+
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+
+                }
+            }
+            System.out.println("==========================================此程序运行结束========================================");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getSiChuanYuYiYiLiao(Integer type, String date) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        try {
+            //关键词a
+            List<String> aa = LogUtils.readRule("keyWordsA");
+            //关键词b
+            List<String> bb = LogUtils.readRule("keyWordsB");
+
+            List<String> cc = LogUtils.readRule("keyWordsC");
+            List<String> dd = LogUtils.readRule("keyWordsD");
+
+            String[] bt1 ={"B超","彩超","TCD"};//标题1
+            String[] bt2 ={"CT","DR","DSA","MRI"};//标题2
+            String[] bt3 ={"球管","探头","配件"};//标题3
+
+            String[] blacks ={"救护车","电梯","空调"};//黑词
+
+            //全文检索关键词a AND 标题关键词b
+            for (String str : aa) {
+                for (String str2 : bb) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5)  AND catid:[* TO 100] AND newProvince:\"" + "四川省" +"\" AND allcontent:\"" + str + "\"  AND title:\"" + str2 + "\"", str+"&"+str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    for (String black : blacks) {
+                                        if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                            flag = false;
+                                            break;
+                                        }
+                                    }
+                                    if (flag){
+                                        String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
+                                        String[] split = zhaobiaoindustry.split("-");
+                                        if (StringUtils.isNotBlank(zhaobiaoindustry)) {
+                                            if ("政府机构-医疗".equals(zhaobiaoindustry) || "商业公司-医疗服务".equals(zhaobiaoindustry)
+                                                    || "医疗单位".equals(split[0])) {
+                                                listAll.add(data);
+                                                data.setKeyword(str + "&" + str2);
+                                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                                    list.add(data);
+                                                    dataMap.put(data.getContentid().toString(), "0");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+            //标题搜索-bt1 AND 标题检索关键词b
+            for (String str : bt1) {
+                for (String str2 : bb) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND newProvince:\"" + "四川省" + "\" AND title:\"" + str + "\"  AND title:\"" + str2 + "\"", str+"&"+str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    for (String black : blacks) {
+                                        if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                            flag = false;
+                                            break;
+                                        }
+                                    }
+                                    if (flag){
+                                        String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
+                                        String[] split = zhaobiaoindustry.split("-");
+                                        if (StringUtils.isNotBlank(zhaobiaoindustry)) {
+                                            if ("政府机构-医疗".equals(zhaobiaoindustry) || "商业公司-医疗服务".equals(zhaobiaoindustry)
+                                                    || "医疗单位".equals(split[0])) {
+                                                listAll.add(data);
+                                                data.setKeyword(str + "&" + str2);
+                                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                                    list.add(data);
+                                                    dataMap.put(data.getContentid().toString(), "0");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+            //全文检索关键词c AND 标题检索关键词d
+            for (String str : cc) {
+                for (String str2 : dd) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND newProvince:\"" + "四川省" + "\" AND allcontent:\"" + str + "\"  AND title:\"" + str2 + "\"", str+"&"+str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    for (String black : blacks) {
+                                        if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                            flag = false;
+                                            break;
+                                        }
+                                    }
+                                    if (flag) {
+                                        String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
+                                        String[] split = zhaobiaoindustry.split("-");
+                                        if (StringUtils.isNotBlank(zhaobiaoindustry)) {
+                                            if ("政府机构-医疗".equals(zhaobiaoindustry) || "商业公司-医疗服务".equals(zhaobiaoindustry)
+                                                    || "医疗单位".equals(split[0])) {
+                                                listAll.add(data);
+                                                data.setKeyword(str + "&" + str2);
+                                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                                    list.add(data);
+                                                    dataMap.put(data.getContentid().toString(), "0");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+            //标题检索-bt2 AND 标题检索关键词d
+            for (String str : bt2) {
+                for (String str2 : dd) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND newProvince:\"" + "四川省" + "\" AND title:\"" + str + "\"  AND title:\"" + str2 + "\"", str+"&"+str2, 2);
+                        log.info(str.trim() + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    for (String black : blacks) {
+                                        if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                            flag = false;
+                                            break;
+                                        }
+                                    }
+                                    if (flag) {
+                                        String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
+                                        String[] split = zhaobiaoindustry.split("-");
+                                        if (StringUtils.isNotBlank(zhaobiaoindustry)) {
+                                            if ("政府机构-医疗".equals(zhaobiaoindustry) || "商业公司-医疗服务".equals(zhaobiaoindustry)
+                                                    || "医疗单位".equals(split[0])) {
+                                                listAll.add(data);
+                                                data.setKeyword(str + "&" + str2);
+                                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                                    list.add(data);
+                                                    dataMap.put(data.getContentid().toString(), "0");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+
+            //标题检索-bt3
+            for (String keyWord : bt3) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+ date + "] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND newProvince:\"" + "四川省" +"\" AND title:\"" + keyWord + "\"",keyWord, 1);
+                    log.info( "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                for (String black : blacks) {
+                                    if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                                if (flag) {
+                                    String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
+                                    String[] split = zhaobiaoindustry.split("-");
+                                    if (StringUtils.isNotBlank(zhaobiaoindustry)) {
+                                        if ("政府机构-医疗".equals(zhaobiaoindustry) || "商业公司-医疗服务".equals(zhaobiaoindustry)
+                                                || "医疗单位".equals(split[0])) {
+                                            listAll.add(data);
+                                            data.setKeyword(keyWord);
+                                            if (!dataMap.containsKey(data.getContentid().toString())) {
+                                                list.add(data);
+                                                dataMap.put(data.getContentid().toString(), "0");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重之后的数据量：" + list.size());
+            log.info("==========================");
+
+
+            ArrayList<String> arrayList = new ArrayList<>();
+
+            //关键词a 和 关键词b
+            for (String key : aa) {
+                for (String str2 : bb) {
+                    arrayList.add(key+"&"+str2);
+                }
+            }
+            //标题1 和 关键词b
+            for (String key : bt1) {
+                for (String str2 : bb) {
+                    arrayList.add(key+"&"+str2);
+                }
+            }
+            //关键词c 和 关键词d
+            for (String c : cc) {
+                for (String d : dd) {
+                    arrayList.add(c+"&"+d);
+                }
+            }
+            //标题2 和 关键词d
+            for (String bt : bt2) {
+                for (String d : dd) {
+                    arrayList.add(bt+"&"+d);
+                }
+            }
+            for (String bt : bt3) {
+                arrayList.add(bt);
+            }
+
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : list) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (keyword.equals(str)) {
+                        total++;
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                System.out.println(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+
+
+            if (type.intValue() == 1){
+                if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+                    }
+
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+
+                }
+            }
+            System.out.println("==========================================此程序运行结束========================================");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     //调用中台数据，进行处理
     private void getZhongTaiDatasAndSave(NoticeMQ noticeMQ) {
         boolean b = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
@@ -626,7 +1228,7 @@ public class TestServiceImpl implements TestService{
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
             try {
-                saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR_COPY);
+                saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
             }catch (Exception e) {
                 e.printStackTrace();
             }
