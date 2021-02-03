@@ -82,14 +82,11 @@ public class TestServiceImpl implements TestService{
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
         List<Future> futureList = new ArrayList<>();
         //contentid
-        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT contentid FROM han_contentid");
-        Integer num = mapList.size();
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT id,contentid FROM han_contentid");
         for (Map<String, Object> mapData : mapList) {
-            num --;
-            String syNum = num.toString();//剩余数据量
             futureList.add(executorService1.submit(() -> {
                 newBiaoDiWuService.handleForData(Long.valueOf(mapData.get("contentid").toString()),type);
-                log.info("新标的物方法--->:{}",mapData.get("contentid").toString()+"---剩余数量：{}",syNum);
+                log.info("新标的物方法--->:{}",mapData.get("contentid").toString()+"======="+mapData.get("id").toString());
             }));
         }
         for (Future future1 : futureList) {
