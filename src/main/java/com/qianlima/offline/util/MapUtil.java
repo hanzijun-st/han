@@ -39,4 +39,19 @@ public class MapUtil {
         return bean;
     }
 
+    /**
+     * 获取单个map的key
+     * @param map
+     * @param type 1为key  2为value
+     * @return
+     */
+    public static String getMapToKeyOrValue(Map<String,Object> map,Integer type){
+        for(String key : map.keySet()) {
+            if (type.intValue() == 1){
+                return key;
+             }
+             return map.get(key).toString();
+        }
+        return null;
+    }
 }

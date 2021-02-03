@@ -3,11 +3,15 @@ package com.qianlima.offline.controller;
 import com.qianlima.offline.service.han.HanPocService;
 import com.qianlima.offline.service.han.TestMongoService;
 import com.qianlima.offline.service.han.TestTencentService;
+import com.qianlima.offline.util.MapUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * hanzijun 接口
@@ -53,6 +57,15 @@ public class HanPocController {
     public String getZheJiangNiuRuoSi(String date,Integer type){
         hanPocService.getZheJiangNiuRuoSi(date,type);
         return "---getZheJiangNiuRuoSi---";
+    }
+
+    @ApiOperation("通用---直接查询solr,参数：tiaojian为solr查询条件，date为年")
+    @PostMapping("/getSolrByMonth")
+    @ResponseBody
+    public Map<String,Object> getSolrByMonth(String tiaojian,String date){
+        Map<String, Object> solr = hanPocService.getSolr(tiaojian, date);
+        System.out.println("时间："+ MapUtil.getMapToKeyOrValue(solr,1)+"---"+MapUtil.getMapToKeyOrValue(solr,2));
+        return solr;
     }
 
 }

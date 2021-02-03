@@ -239,6 +239,11 @@ public class HanPocServiceImpl implements HanPocService {
         log.info("当前接口执行完毕：-->{}",StrUtil.getPutStr());
     }
 
+    @Override
+    public Map<String, Object> getSolr(String tiaojian,String date) {
+        return updateSolr.getSolr(tiaojian, date);
+    }
+
     //调用中台数据，进行处理
     private void getZhongTaiDatasAndSave(NoticeMQ noticeMQ) {
         boolean b = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
