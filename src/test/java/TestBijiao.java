@@ -46,7 +46,7 @@ public class TestBijiao {
                 for (String s : strList) {
                     bw.write(s+"\r\n");
                 }
-                System.out.println("已完成100%-导入结束！");
+                System.out.println("已完成100%，导入结束！");
                 bw.close();
             } catch (IOException e) {
                 e.printStackTrace();
