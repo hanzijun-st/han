@@ -59,7 +59,7 @@ public class HanPocController {
         return "---getZheJiangNiuRuoSi---";
     }
 
-    @ApiOperation("通用---直接查询solr,参数：tiaojian为solr查询条件，date为年")
+    @ApiOperation("通用---直接查询solr(12),参数：tiaojian为solr查询条件，date为年")
     @PostMapping("/getSolrByMonth")
     @ResponseBody
     public Map<String,Object> getSolrByMonth(String tiaojian,String date){
