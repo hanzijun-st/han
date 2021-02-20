@@ -17,7 +17,7 @@ public class EmailServiceImpl implements EmailService {
         //创建10位发验证码
         Random random=new Random();
         String str="";
-        for(int i=0;i<5;i++) {
+        for(int i=0;i<4;i++) {
             int n=random.nextInt(4);
             str+=n;
         }
