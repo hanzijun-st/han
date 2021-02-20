@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.poi.ss.formula.functions.T;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,15 +36,19 @@ public class JsonUtil {
     }
 
     /**
-     * json 转 list
+     * json 转 listMap
      * @param json
      * @return
      */
     public static List<Map<String,Object>> jsonToListMap(String json){
-        JSONObject jsonStr = JSONObject.parseObject(json);
-        List<Map<String, Object>> list = (List<Map<String,Object>>) jsonStr;
+
+        List<Map> list = JSON.parseArray(json, Map.class);
+        List<Map<String,Object>> listMap = new ArrayList<>();
         if (list !=null && list.size() >0){
-            return list;
+            for (Map map : list) {
+                listMap.add(map);
+            }
+            return listMap;
         }
         return null;
     }

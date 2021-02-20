@@ -1,5 +1,6 @@
 package com.qianlima.offline.service.han.impl;
 
+import com.alibaba.druid.sql.visitor.functions.Char;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -7,10 +8,7 @@ import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.han.TestTencentService;
-import com.qianlima.offline.util.ContentSolr;
-import com.qianlima.offline.util.KeyUtils;
-import com.qianlima.offline.util.LogUtils;
-import com.qianlima.offline.util.StrUtil;
+import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -111,6 +109,100 @@ public class TestTencentServiceImpl implements TestTencentService {
     }
 
 
+    //企业
+    public static final String INSERT_QY = "INSERT INTO han_qy (first_qy,end_qy,level,route) VALUES (?,?,?,?)";
+
+    @Override
+    public void jsonTo() {
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT * FROM han_api");
+        for (Map<String, Object> map : mapList) {
+            String first_qy = map.get("qy_name").toString();//起始企业
+            String end_qy = "";//最大企业
+            int level =0;//层级
+            String route ="";//路径
+            String json_data = map.get("json_data").toString();//json
+            Map jsonMap = JsonUtil.jsonToBean(json_data, Map.class);
+            if (jsonMap !=null){
+                if (jsonMap.get("result") !=null && StringUtils.isNotEmpty(jsonMap.get("result").toString())){
+                    String result = jsonMap.get("result").toString();
+                    Map m = JsonUtil.jsonToBean(result, Map.class);
+                    if (m !=null){
+                        String pathMapStr = m.get("pathMap").toString();
+                        Map path = JsonUtil.jsonToBean(pathMapStr, Map.class);
+                        if (path !=null){
+                            String p = path.get("p_1").toString();
+                            Map mp = JsonUtil.jsonToBean(p, Map.class);
+                            if (mp !=null){
+                                String nodes = mp.get("nodes").toString();
+                                if (StringUtils.isNotEmpty(nodes)){
+                                    List<Map<String, Object>> mapList1 = JsonUtil.jsonToListMap(nodes);
+                                    if (!CollectionUtils.isEmpty(mapList1)){
+                                        int i =0;
+                                        for (Map<String, Object> strMap : mapList1) {
+                                            String properties = strMap.get("properties").toString();
+                                            if (StringUtils.isNotEmpty(properties)){
+                                                Map na = JsonUtil.jsonToBean(properties, Map.class);
+                                                if (na !=null){
+                                                    String name = na.get("name").toString();
+                                                    route += name+"/";
+                                                    if (i ==0){
+                                                        end_qy=name;
+                                                    }
+                                                    if (mapList1.size() >0){
+                                                        level = mapList1.size()-1;
+                                                    }
+                                                    i++;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }else{
+                log.info("json数据为空");
+            }
+            if (StringUtils.isNotEmpty(route)){
+                route = route.substring(0,route.length()-1);
+                route = getString(route);
+            }
+            //存库
+            bdJdbcTemplate.update(INSERT_QY,first_qy,end_qy,level,route);
+            log.info("存企业的mysql数据库进度--->{}",first_qy);
+        }
+    }
+
+    public String INSERT_ZT_RESULT_HXR = "INSERT INTO han_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    @Override
+    public void toIds() throws Exception{
+        List<String> idsFile = LogUtils.readRule("idsFile");
+        for (String s : idsFile) {
+            boolean b = cusDataFieldService.checkStatus(s);//范围 例如:全国
+            if (!b) {
+                log.info("contentid:{} 对应的数据状态不是99, 丢弃", s);
+                return;
+            }
+
+            NoticeMQ noticeMQ = new NoticeMQ();
+            noticeMQ.setContentid(Long.valueOf(s));
+            //全部自提，不需要正文
+            try {
+                Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+                if (resultMap != null) {
+                    saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     /**
      * 调用中台接口, 获取结果类型细分
      * 06-答疑公告， 07-废标公告， 08-流标公告， 09-开标公示， 10-候选人公示， 11-中标通知， 12-合同公告， 13-验收合同， 14-违规公告， 15-其他公告
@@ -162,5 +254,14 @@ public class TestTencentServiceImpl implements TestTencentService {
     public void saveIntoMysql(Map<String, Object> map ,String table){
         bdJdbcTemplate.update(table, map.get("type"),map.get("contentid"));
         log.info("存mysql数据库进度--->{}",map.get("contentid"));
+    }
+
+    public String getString(String str) {
+        String resultStr ="";
+        String[] split = str.split("/");
+        for (int i=split.length-2;i>-1;i--) {
+            resultStr+=split[i]+"/";
+        }
+        return resultStr.substring(0,resultStr.length()-1);
     }
 }

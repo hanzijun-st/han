@@ -188,5 +188,10 @@ public class HanTestController {
         return "---getSiChuanYuYiYiLiao---";
     }
 
-
+    @ApiOperation("北京金万维科技有限公司")
+    @PostMapping("/getJingWanWei")
+    public String getJingWanWei(Integer type,String date) throws Exception{
+        testService.getJingWanWei(type,date);
+        return "---getJingWanWei---";
+    }
 }

@@ -1156,6 +1156,82 @@ public class TestServiceImpl implements TestService{
         }
     }
 
+    @Override
+    public void getJingWanWei(Integer type, String date) throws Exception{
+        ExecutorService executorService1 = Executors.newFixedThreadPool(16);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        List<String> keyWords = LogUtils.readRule("keyWords");//中标单位
+        try {
+            for (String str : keyWords) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND progid:3 AND zhongBiaoUnit:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重之后的数据量：" + list.size());
+            log.info("==========================");
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(32);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
     //调用中台数据，进行处理
     private void getZhongTaiDatasAndSave(NoticeMQ noticeMQ) {
         boolean b = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
@@ -1167,11 +1243,11 @@ public class TestServiceImpl implements TestService{
         //全部自提，不需要正文
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
-            String province = resultMap.get("province").toString();//省
-
-            if (province.contains("重庆市")) {
+            //判断中标单位联系方式是不是手机号
+            //boolean link_phone = NumberUtil.validateMobilePhone(resultMap.get("link_phone").toString());
+            //if (link_phone){
                 saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
-            }
+            //}
         }
     }
 

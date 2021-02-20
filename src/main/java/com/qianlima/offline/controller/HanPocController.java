@@ -68,4 +68,18 @@ public class HanPocController {
         return solr;
     }
 
+    @ApiOperation("json")
+    @PostMapping("/toJson")
+    @ResponseBody
+    public String toJson(){
+        testTencentService.jsonTo();
+        return "json is ok";
+    }
+    @ApiOperation("通过单独contentid/id 走默认的自提获取数据")
+    @GetMapping("/ids")
+    @ResponseBody
+    public String toIds() throws Exception{
+        testTencentService.toIds();
+        return "ids is ok";
+    }
 }

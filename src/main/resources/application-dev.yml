@@ -109,6 +109,10 @@ qlm:
     updateSolr: http://172.18.30.12:8984/solr/ka_info_shard3_replica1
     #    http://172.18.30.12:8984/solr/qianlima_all_in_shard1_replica1
     #    http://172.18.30.12:8984/solr/search_normal_shard3_replica1
+
+    #线上solr 查全量
+    onlineSolr: http://47.104.20.30:8984/solr/ka_info_shard1_replica1
+
     ictsolr: http://172.18.30.12:8984/solr/qianlima_ict_shard2_replica1
     QYHYsolr: http://120.27.23.156:8984/solr/qlm_qy_info
     normalsolr: http://172.18.30.12:8984/solr/search_normal_shard3_replica1

@@ -55,4 +55,13 @@ public interface TestService {
      * @param date
      */
     void getSiChuanYuYiYiLiao(Integer type, String date);
+
+    /**
+     * 北京金万维科技有限公司
+     * @param type
+     * @param date
+     */
+    void getJingWanWei(Integer type, String date) throws Exception;
+
+
 }

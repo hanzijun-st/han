@@ -3,10 +3,13 @@ package com.qianlima.offline.util;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author mahao
@@ -182,5 +185,30 @@ public class DateUtils {
         return calendar;
     }
 
+    private static  Date getDateAdd(int days){
+        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -days);
+        return c.getTime();
+    }
+    //最近几天日期
+    public static List<String> getDaysBetwwen(int days){
+        List<String> dayss = new ArrayList<>();
+        Calendar start = Calendar.getInstance();
+        start.setTime(getDateAdd(days-1));
+        Long startTIme = start.getTimeInMillis();
+        Calendar end = Calendar.getInstance();
+        end.setTime(new Date());
+        Long endTime = end.getTimeInMillis();
+        Long oneDay = 1000 * 60 * 60 * 24l;
+        Long time = startTIme;
+        while (time <= endTime) {
+            Date d = new Date(time);
+            DateFormat df = new SimpleDateFormat("yyyyMMdd");
+            dayss.add(df.format(d));
+            time += oneDay;
+        }
+        return dayss;
+    }
 
 }

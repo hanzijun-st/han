@@ -2,7 +2,7 @@ import com.qianlima.offline.util.StrUtil;
 
 public class TestString {
     public static void main(String[] args) {
-        String str ="我是";
+       /* String str ="我是";
         str += StrUtil.splictYh("中国人");
 
         str +=",我爱";
@@ -15,6 +15,13 @@ public class TestString {
                 continue;
             }
             System.out.println(i);
+        }*/
+       String resultStr ="";
+        String str = "国务院国有资产监督管理委员会/中国移动通信集团有限公司/中国铁通集团有限公司/中国铁通集团有限公司北京通信设备维护中心";
+        String[] split = str.split("/");
+        for (int i=split.length-1;i>-1;i--) {
+            resultStr+=split[i]+"/";
         }
+        System.out.println(resultStr);
     }
 }
