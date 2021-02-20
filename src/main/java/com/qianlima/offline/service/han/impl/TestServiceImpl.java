@@ -39,6 +39,10 @@ public class TestServiceImpl implements TestService{
 
     @Autowired
     private UpdateContentSolr contentSolr;
+
+    @Autowired
+    private OnlineContentSolr onlineContentSolr;
+
     @Autowired
     private ZhongTaiBiaoDiWuService bdwService;
 
@@ -1292,6 +1296,7 @@ public class TestServiceImpl implements TestService{
                 map.get("configuration_key"),map.get("configuration_value"),map.get("appendix_suffix"));
     }
 
+
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
         boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
         if (result == false) {
@@ -1300,7 +1305,7 @@ public class TestServiceImpl implements TestService{
         }
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
-            try {
+           try {
                 saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
             }catch (Exception e) {
                 e.printStackTrace();
@@ -1309,4 +1314,193 @@ public class TestServiceImpl implements TestService{
 
     }
 
+    /**
+     * 中标单位取前两个
+     */
+    public void getDataFromZhongTaiAndSave6(NoticeMQ noticeMQ) {
+        boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
+        if (result == false) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+        if (resultMap != null) {
+            String unit = handleInfoId(resultMap);
+            if (StringUtils.isNotBlank(unit)){
+                resultMap.put("zhong_biao_unit",unit);
+                cusDataFieldService.saveIntoMysql(resultMap);
+            }
+        }
+
+    }
+    private String handleInfoId(Map<String, Object> map) {
+        String keyword = map.get("keyword").toString();
+        String zhongUnit = map.get("zhong_biao_unit") != null ? map.get("zhong_biao_unit").toString() : "";
+        String newUnit = "";
+        String[] split = zhongUnit.split("、");
+        if (split.length == 1){
+            newUnit = zhongUnit;
+        } else {
+            for (int i = 0; i < split.length; i++) {
+                String unit = split[i];
+                if (i == 0){
+                    newUnit += unit + ConstantBean.RULE_SEPARATOR;
+                } else {
+                    if (newUnit.contains(keyword)){
+                        newUnit += unit + ConstantBean.RULE_SEPARATOR;
+                        break;
+                    } else {
+                        if (unit.contains(keyword)){
+                            newUnit += unit + ConstantBean.RULE_SEPARATOR;
+                            break;
+                        }
+                    }
+                }
+            }
+            //
+            if (StringUtils.isNotBlank(newUnit)){
+                newUnit = newUnit.substring(0, newUnit.length() - 1);
+            }
+        }
+        return newUnit;
+    }
+
+
+    public void getDaoJinSolrAllField() {
+
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<NoticeMQ> list = new ArrayList<>();
+        List<NoticeMQ> list1 = new ArrayList<>();
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        String[] aa1 = {"拍片机","医用X线机","高频X线机","X线摄影系统","医用诊断X光","高频X光机","摄影X光机","医用x光机","数字x光机","摄影X射线机","高频X射线摄影机","X射线拍片机","X线拍片机","X射线机","体检透视机","医学拍片","医用拍片","医疗拍片","拍片仪","拍片设备","床旁机","床边X线机","床旁X光机","移动X光机","移动DR","床边机","骨科小C","C型臂","C形臂","C臂","小C臂","介入C臂","影增C臂","移动式C形臂","骨科小型C","小型C臂","移动式C形臂X射线机","胃肠机","多功能X线机","遥控X线机","胃肠系统","遥控X光机","胃肠诊断","遥控医用诊断X射线机","X光透视拍片机","多功能数字化胃肠X线机","多功能数字化胃肠造影X光机","数字化X射线遥控透视摄影系统","数字化遥控胃肠X光机","数字胃肠","数字化透视摄影系统","数字多功能X光","平板多功能X线透视","动态平板透视摄影系统","动态平板","透视摄影X射线机","数字化透视摄影X射线机","胃肠X射线机","医用诊断X射线透视摄影系统","X射线胃肠诊断床","数字化透视X射线机","医用诊断X射线透视摄影系统","胃肠X射线机","医学透视摄影","医用透视摄影","医疗透视摄影","胃肠机","透视摄影仪","透视摄影机","透视摄影设备","x光透视机","透视X射线机","数字X","数字化X","平板X","平板摄影","平板摄片","直接X","X线数字","数字化X射线成像系统","平板DR","医用诊断X射线机","数字X线摄影","计算机X线摄影","动态DR","U臂DR","数字化医用X射线影像系统","悬吊DR","医学X光","医学X线","医学X射线","医学DR","医用X光","医用X线","医用X射线","医用DR","医疗X光","医疗X线","医疗X射线","医疗DR","X光设备","X线机","X线设备","X射线机","X射线设备","DR仪","DR机","DR设备","血管机组","血管机","血管造影","大C","大型血管介入治疗","外周血管造影机","大型血管介入治疗系统","大型心血管介入治疗系统","平板血管机","平板血管造影机","大型平板心血管介入治疗系统","直接转换型平板血管机","直接转换式平板血管造影机","数字减影","血管造影X射线机","数字X线血管机","血管造影设备","减影仪","减影机","减影设备","剪影血管造影仪","正电子发射型计算机断层显像","正电子发射断层成像设备","骨密度","X线双能量","骨密度仪","骨密度检测仪","双能量X线","双能X线","X射线骨密度仪","双能X射线骨密度仪","骨密度机","骨密度设备"};
+        String[] aa2 = {"DR","DSA","PET","PET-CT","PET/CT","PETCT"};
+        String[] bbb = {"X光机","X射线"};
+        String[] blacks = {"口腔X射线","乳腺X射线","周口X射线","牙科x光机","车载X射线机","携带式X射线机","微型X射线机","牙科X射线机","乳腺X射线机","口腔X射线机","口腔全景X射线机","口腔颌面全景X射线机","口腔数字化体层摄影X射线机","口腔颌面锥形束计算机体层摄影设备","肢体数字化体层摄影X射线机","肢体锥形束计算机体层摄影设备","X射线放射治疗机","X射线放射治疗系统","体检机","口腔CBCT","牙科影像板","牙科X射线机","CBCT","泌尿X射线机","牙科CBCT","医用小型X光机","X射线摄影床","X射线摄影床","遥测监护系统","心电遥测系统","远程监护系统","中央监护系统","中央监护仪","数字化X射线影像处理软件","X射线平板探测器","X射线CCD探测器","X射线动态平板探测器","数字平板探测器成像系统","乳腺数字化体层摄影X射线机","透视摄影X射线机","数字化透视摄影X射线机","医用诊断X射线透视摄影系统","乳腺X射线摄影系统","X射线影像计算机辅助诊断软件","X射线发生装置","X射线血管造影影像处理软件","血管内超声诊断系统","血管内超声诊断仪","体外冲击波心血管治疗系统","X射线计算机断层成像系统","X射线计算机体层摄影设备","X射线摄影用影像板成像装置","影像板扫描仪","X射线立体定向放射外科治疗系统","X射线放射治疗机","X射线放射治疗系统","超声骨密度仪","放射性核素骨密度仪","口腔","牙科","齿科","乳腺","改造工程","配套设备","改造项目","用户改造","机房改造","家具","场地改造","药物采购","药物单一","网关升级","服务器","保修","维保","保养","维修","修理","维养","口牙","耗材","配件","备件","身体检查","体检项目","职工体检","新生体检","体检服务","干部体检","体检采购","入学体检","防护工程","防护项目","印刷服务","维护","检测服务","计量检测","检测项目","环评服务","验收服务","健康管理服务","预控评服务","移机","后勤保障服务","技术服务项目","护工服务","安保服务","物业服务","保安服务","保洁服务","检定服务","防护预评价","防护服务","防护评价","标识","委托项目","年度检测","锅炉","查体服务","健康检查服务","螺旋风管","舾装件","DR胶片机","硒鼓","设计图","柱塞泵","双屏机","复印机","图强","电动执行器","设备搬迁","打印机","劳务派遣","配电箱","高压注射器","体膜","球管","零件","部件","螺旋CT","定位CT","层CT","排CT","滑轨CT","门诊CT","台CT","院CT","用CT","方舱CT","移动CT"};
+
+
+        for (String a1 : aa1) {
+            futureList1.add(executorService1.submit(() -> {
+                String key = a1 ;
+                List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[20150101 TO 20200131] AND progid:3 AND allcontent:\"" + a1 + "\" ", key, 1);
+                log.info(key.trim() + "————" + mqEntities.size());
+                if (!mqEntities.isEmpty()) {
+                    for (NoticeMQ data : mqEntities) {
+                        if (data.getTitle() != null) {
+                            boolean flag = true;
+                            for (String black : blacks) {
+                                if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                    flag = false;
+                                    break;
+                                }
+                            }
+                            if (flag) {
+                                list1.add(data);
+                                data.setKeyword(key);
+                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                    list.add(data);
+                                    dataMap.put(data.getContentid().toString(), "0");
+                                }
+                            }
+                        }
+                    }
+                }
+            }));
+        }
+
+        for (String a2 : aa2) {
+            futureList1.add(executorService1.submit(() -> {
+                String key = a2 ;
+                List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[20150101 TO 20200131] AND progid:3 AND title:\"" + a2 + "\" ", key, 1);
+                log.info(key.trim() + "————" + mqEntities.size());
+                if (!mqEntities.isEmpty()) {
+                    for (NoticeMQ data : mqEntities) {
+                        if (data.getTitle() != null) {
+                            boolean flag = true;
+                            for (String black : blacks) {
+                                if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                    flag = false;
+                                    break;
+                                }
+                            }
+                            if (flag) {
+                                list1.add(data);
+                                data.setKeyword(key);
+                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                    list.add(data);
+                                    dataMap.put(data.getContentid().toString(), "0");
+                                }
+                            }
+                        }
+                    }
+                }
+            }));
+        }
+
+        for (String bb : bbb) {
+            futureList1.add(executorService1.submit(() -> {
+                String key = bb ;
+                //                                                                        yyyymmdd:[20150101 TO 20200131] AND progid:3 AND ( zhaoFirstIndustry:"医疗单位" OR (zhaoFirstIndustry:"政府机构" AND zhaoSecondIndustry:"医疗") OR ( zhaoFirstIndustry:"商业公司" AND zhaoSecondIndustry:"医疗服务" ) OR zhaoBiaoUnit:"监狱" )
+                List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[20150101 TO 20200131] AND progid:3 AND ( zhaoFirstIndustry:" + "医疗单位" + " OR (zhaoFirstIndustry:" + "政府机构" + " AND zhaoSecondIndustry:" + "医疗" + " ) OR ( zhaoFirstIndustry:" + "商业公司" + " AND zhaoSecondIndustry:" + "医疗服务" + ") OR zhaoBiaoUnit:" + "监狱" + " ) AND allcontent:\"" + bb + "\" ", key, 2);
+                log.info(key.trim() + "————" + mqEntities.size());
+                if (!mqEntities.isEmpty()) {
+                    for (NoticeMQ data : mqEntities) {
+                        if (data.getTitle() != null) {
+                            boolean flag = true;
+                            for (String black : blacks) {
+                                if(StringUtils.isNotBlank(data.getTitle()) && data.getTitle().contains(black)){
+                                    flag = false;
+                                    break;
+                                }
+                            }
+                            if (flag) {
+                                list1.add(data);
+                                data.setKeyword(key);
+                                if (!dataMap.containsKey(data.getContentid().toString())) {
+                                    list.add(data);
+                                    dataMap.put(data.getContentid().toString(), "0");
+                                }
+                            }
+                        }
+                    }
+                }
+            }));
+        }
+
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+
+        log.info("全部数据量：" + list1.size());
+        log.info("去重之后的数据量：" + list.size());
+        log.info("==========================");
+
+        if (list != null && list.size() > 0) {
+            ExecutorService executorService = Executors.newFixedThreadPool(80);
+            List<Future> futureList = new ArrayList<>();
+            for (NoticeMQ content : list) {
+                futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave6(content)));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
+        }
+    }
 }

@@ -194,4 +194,11 @@ public class HanTestController {
         testService.getJingWanWei(type,date);
         return "---getJingWanWei---";
     }
+
+    @GetMapping("/start/cs")
+    @ApiOperation("测试")
+    public String cs(){
+        testService.getDaoJinSolrAllField();
+        return "请求成功--";
+    }
 }

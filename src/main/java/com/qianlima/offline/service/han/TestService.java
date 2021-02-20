@@ -64,4 +64,6 @@ public interface TestService {
     void getJingWanWei(Integer type, String date) throws Exception;
 
 
+    void getDaoJinSolrAllField();
+
 }
