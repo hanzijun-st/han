@@ -3,7 +3,7 @@ package com.qianlima.offline.util;
 import com.google.common.collect.Maps;
 import org.springframework.cglib.beans.BeanMap;
 
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Administrator on 2021/1/15.
@@ -53,5 +53,21 @@ public class MapUtil {
              return map.get(key).toString();
         }
         return null;
+    }
+
+    public static List<String> getMapToKeyOrValue(Map<String,Object> map){
+
+        List<String> list = new ArrayList<>();
+        Set keys = map.keySet();
+        if(keys != null) {
+            Iterator iterator = keys.iterator();
+            while(iterator.hasNext()) {
+                Object key = iterator.next();
+                Object value = map.get(key);
+                list.add(key.toString());
+                list.add(value.toString());
+            }
+        }
+        return list;
     }
 }

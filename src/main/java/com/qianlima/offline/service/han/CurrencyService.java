@@ -34,7 +34,7 @@ public interface CurrencyService {
     /**
      * 行业标签
      */
-    void getBiaoQian();
+    void getBiaoQian(Integer type) throws Exception;
 
     void getPpei();
 

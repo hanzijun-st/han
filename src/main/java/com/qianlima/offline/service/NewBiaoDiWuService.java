@@ -110,6 +110,8 @@ public class NewBiaoDiWuService {
                     }
                 }
             }
+        }else {
+            log.info("标的物不存在");
         }
     }
 

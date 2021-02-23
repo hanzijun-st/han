@@ -6,6 +6,7 @@ import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -130,8 +131,8 @@ public class HanTestController {
 
     @ApiOperation("行业标签")
     @PostMapping("/start/getBiaoQian")
-    public String getBiaoQian(){
-        currencyService.getBiaoQian();
+    public String getBiaoQian(@RequestParam("type") Integer type) throws Exception{
+        currencyService.getBiaoQian(type);
         return "---123---";
     }
 
@@ -200,5 +201,25 @@ public class HanTestController {
     public String cs(){
         testService.getDaoJinSolrAllField();
         return "请求成功--";
+    }
+
+    @ApiOperation("北京宇信科技集团股份有限公司")
+    @PostMapping("/getYuxin")
+    public String getYuxin(Integer type,String date) throws Exception{
+        testService.getYuxin(type,date);
+        return "---getYuxin is ok---";
+    }
+    @ApiOperation("北京宇信科技集团股份有限公司-第二回合")
+    @PostMapping("/getYuxin2")
+    public String getYuxin2(Integer type,String date) throws Exception{
+        testService.getYuxin2(type,date);
+        return "---getYuxin is ok---";
+    }
+
+    @ApiOperation("北京宇信科技集团股份有限公司-行业标签")
+    @PostMapping("/getYuxin3")
+    public String getYuxin3(Integer type,String date) throws Exception{
+        testService.getYuxin3(type,date);
+        return "---getYuxin3 is ok---";
     }
 }

@@ -106,4 +106,14 @@ public class StrUtil {
         String s = "\""+str+"\"";
         return s;
     }
+
+    /**
+     * 替换双引号
+     * @param str
+     * @return
+     */
+    public static String replaceMarks(String str){
+        String t = str.replaceAll("\"","");
+        return t;
+    }
 }

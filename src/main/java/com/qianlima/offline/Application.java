@@ -12,7 +12,9 @@ public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
-		aixing(12);
+		//aixing(12);
+		System.out.println("=======================================================================================================================================================");
+		System.out.println("================================================>>>>>>>>端口号为："+8999);
 	}
 
 

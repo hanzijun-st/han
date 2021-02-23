@@ -66,4 +66,20 @@ public interface TestService {
 
     void getDaoJinSolrAllField();
 
+    /**
+     * 北京宇信科技集团股份有限公司
+     * @param type
+     * @param date
+     */
+    void getYuxin(Integer type, String date);
+
+    /**
+     * 北京宇信科技集团股份有限公司-第二回合
+     * @param type
+     * @param date
+     */
+    void getYuxin2(Integer type, String date);
+
+
+    void getYuxin3(Integer type, String date);
 }

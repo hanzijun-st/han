@@ -52,7 +52,7 @@ public class TestTencentServiceImpl implements TestTencentService {
 
     //mysql数据库中插入数据
     public static final String INSERT_ZT_RESULT_TYPE = "INSERT INTO han_tencent (type,contentid,title) VALUES (?,?,?)";
-    public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE lala_data SET code =? WHERE content_id =?";
+    public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE han_data SET code =? WHERE content_id =?";
     @Override
     public void saveTencent() {
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
@@ -61,7 +61,7 @@ public class TestTencentServiceImpl implements TestTencentService {
 
         /*HashMap<String, String> simpleAreaMap = KeyUtils.getSimpleMap();
         Set<Map.Entry<String, String>> entries = simpleAreaMap.entrySet();//将map的key和value 进行映射成 集合*/
-        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT content_id,title FROM lala_data");
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT content_id,title FROM han_data");
 
         String url ="http://cusdata.qianlima.com/api/infoType";
         if (mapList !=null && mapList.size() >0){

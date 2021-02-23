@@ -300,35 +300,42 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void getBiaoQian() {
+    public void getBiaoQian(Integer type) throws Exception{
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
         List<NoticeMQ> list = new ArrayList<>();
         List<NoticeMQ> list1 = new ArrayList<>();
         HashMap<String, String> dataMap = new HashMap<>();
         List<Future> futureList1 = new ArrayList<>();
 
-        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20201222 TO 20201231] AND (progid:3 OR progid:5) AND zhaoBiaoUnit:*", "", 1);
-        if (!mqEntities.isEmpty()) {
-            for (NoticeMQ data : mqEntities) {
-                if (data.getTitle() != null) {
-                    futureList1.add(executorService1.submit(() -> {
-                        boolean flag = true;
-                        if (flag) {
-                            String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
-                            if (StringUtils.isNotBlank(zhaobiaoindustry)){
-                                if ("商业公司-文化".equals(zhaobiaoindustry) || "商业公司-旅游".equals(zhaobiaoindustry) || "政府机构-文化和旅游".equals(zhaobiaoindustry)){
+        List<String> hybq = LogUtils.readRule("hybq");
+        if (hybq !=null && hybq.size() >0){
+            for (String s : hybq) {
+                Map hashMap = HybqUtil.getHashMap(s);
+                List<String> mapToKeyOrValue = MapUtil.getMapToKeyOrValue(hashMap);
+                String key = mapToKeyOrValue.get(0);
+                String value = mapToKeyOrValue.get(1);
+
+                List<NoticeMQ> mqEntities = updateSolr.companyResultsBaoXian("yyyymmdd:[20201222 TO 20201231] AND progid:3 AND zhaoFirstIndustry:\"" + key + "\"   AND zhaoSecondIndustry:\"" + value + "\"  AND zhaoBiaoUnit:*", "", 1);
+                if (!mqEntities.isEmpty()) {
+                    for (NoticeMQ data : mqEntities) {
+                        if (data.getTitle() != null) {
+                            futureList1.add(executorService1.submit(() -> {
+                                boolean flag = true;
+                                if (flag) {
+                                    //通过读取配置文件
                                     list1.add(data);
                                     if (!dataMap.containsKey(data.getContentid().toString())) {
                                         list.add(data);
                                         dataMap.put(data.getContentid().toString(), "0");
                                     }
                                 }
-                            }
+                            }));
                         }
-                    }));
+                    }
                 }
             }
         }
+
 
         for (Future future1 : futureList1) {
             try {
@@ -347,22 +354,24 @@ public class CurrencyServiceImpl implements CurrencyService {
         log.info("去重之后的数据量：" + list.size());
         log.info("==========================");
 
-        if (list != null && list.size() > 0) {
-            ExecutorService executorService = Executors.newFixedThreadPool(80);
-            List<Future> futureList = new ArrayList<>();
-            for (NoticeMQ content : list) {
-                futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
-            }
-            for (Future future : futureList) {
-                try {
-                    future.get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
                 }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
             }
-            executorService.shutdown();
         }
     }
 
