@@ -82,4 +82,11 @@ public interface TestService {
 
 
     void getYuxin3(Integer type, String date);
+
+    /**
+     * 第一回合4.0
+     * @param type
+     * @param date
+     */
+    void getYuxin1_4(Integer type, String date);
 }

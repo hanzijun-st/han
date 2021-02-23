@@ -99,6 +99,11 @@ spring:
       filters: stat,wall
       # 合并多个DruidDataSource的监控数据
       useGlobalDataSourceStat: true
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password:
 qlm:
   data:
     lasttimeFile: /usr/local/ka/producer/lasttime.txt

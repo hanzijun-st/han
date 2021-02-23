@@ -222,4 +222,11 @@ public class HanTestController {
         testService.getYuxin3(type,date);
         return "---getYuxin3 is ok---";
     }
+
+    @ApiOperation("北京宇信科技集团股份有限公司-第一回合4.0")
+    @PostMapping("/getYuxin1_4")
+    public String getYuxin1_4(Integer type,String date) throws Exception{
+        testService.getYuxin1_4(type,date);
+        return "---getYuxin is ok---";
+    }
 }

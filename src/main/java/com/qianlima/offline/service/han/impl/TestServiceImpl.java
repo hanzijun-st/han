@@ -1324,7 +1324,7 @@ public class TestServiceImpl implements TestService{
             log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
             return;
         }
-        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithHunHe(noticeMQ, false);
         if (resultMap != null) {
            try {
                 saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
@@ -1813,5 +1813,114 @@ public class TestServiceImpl implements TestService{
     @Override
     public void getYuxin3(Integer type, String date) {
 
+    }
+
+    @Override
+    public void getYuxin1_4(Integer type, String date) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        try {
+
+            String[] aa={"文思海辉"};
+
+            //自提招标单位检索“行业标签”中标黄部分  AND  标题检索关键词aa
+            for (String keyWord : aa) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+ date + "] AND progid:3 AND catid:[* TO 100] AND newZhongBiaoUnit:\"" + keyWord + "\"",keyWord, 1);
+                    log.info(keyWord+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    listAll.add(data);
+                                    data.setKeyword(keyWord);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+
+
+
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重之后的数据量：" + list.size());
+            log.info("==========================");
+
+
+            ArrayList<String> arrayList = new ArrayList<>();
+
+            //关键词aa
+            for (String a : aa) {
+                arrayList.add(a);
+            }
+
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : list) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (keyword.equals(str)) {
+                        total++;
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                System.out.println(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+
+
+            if (type.intValue() == 1){
+                if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+                    }
+
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+
+                }
+            }
+            System.out.println("==========================================此程序运行结束========================================");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
