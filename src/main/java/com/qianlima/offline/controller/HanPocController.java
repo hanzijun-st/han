@@ -45,7 +45,7 @@ public class HanPocController {
         return "---getMongo---";
     }
 
-    @ApiOperation("--补录腾讯--")
+    @ApiOperation("----细分类型---")
     @PostMapping("/saveTencent")
     public String saveTencent(String str){
         testTencentService.saveTencent();

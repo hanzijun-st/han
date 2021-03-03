@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.NoticeMQ;
+import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -423,6 +424,7 @@ public class CusDataFieldService {
         String blZhongBiaoUnit = null; //获取自提中标单位
         String blBidder = null; //获取候选人
         String blAgents = null; //百炼代理机构
+        //String projName=null;//项目名称
         for (int d = 0; d < jsonArray.size(); d++) {
             JSONObject object = jsonArray.getJSONObject(d);
             // 获取招标预算
@@ -436,6 +438,8 @@ public class CusDataFieldService {
                 blZhongbiaoAmount = object.getString("extract_amountUnit");
             }  else if (null != object.get("extract_agentUnit")) {
                 blAgents = object.getString("extract_agentUnit");
+           /* } else if (null != object.get("extract_proj_name")) {
+                projName = object.getString("extract_proj_name");*/
             }
         }
         resultMap.put("baiLian_budget", blBudget); //获取预算金额
@@ -444,6 +448,7 @@ public class CusDataFieldService {
         resultMap.put("zhao_biao_unit", blZhaoBiaoUnit);//获取招标单位
         resultMap.put("bidder", blBidder);  //候选人
         resultMap.put("agent_unit", blAgents);  //百炼代理机构
+        //resultMap.put("keyword", projName);  //百炼代理机构
         return resultMap;
     }
 
@@ -570,10 +575,10 @@ public class CusDataFieldService {
         String xmNumber = null; // 项目编号
         String relationName = null; //招标单位联系人
         String relationWay = null; //招标单位联系方式
-        String linkMan = null; //招标单位联系人
-        String linkPhone = null; //招标单位联系人
-        String agentRelationName = null; //招标单位联系人
-        String agentRelationWay = null; //招标单位联系人
+        String linkMan = null; //中标单位联系人
+        String linkPhone = null; //中标单位联系人
+        String agentRelationName = null; //代理联系人
+        String agentRelationWay = null; //代理联系方式
         String infoTypeSegment = null;
         String projectInvest = null;
         String projectInvestUnit = null;
@@ -748,7 +753,11 @@ public class CusDataFieldService {
             }
         }
         resultMap.put("registration_begin_time", registrationBeginTime);  //报名开始时间
-        resultMap.put("registration_end_time", registrationEndTime); //报名截止时间
+        if (StrUtil.isNotEmpty(registrationEndTime)){
+            resultMap.put("registration_end_time", com.qianlima.offline.util.DateUtils.parseDateFromDateStr(registrationEndTime)); //报名截止时间
+        }else {
+            resultMap.put("registration_end_time", null); //报名截止时间
+        }
         resultMap.put("biding_acquire_time", bidingAcquireTime);  //标书获取时间
         resultMap.put("open_biding_time", openBidingTime);  //开标时间
         resultMap.put("tender_begin_time", tenderBeginTime);  //投标开始时间

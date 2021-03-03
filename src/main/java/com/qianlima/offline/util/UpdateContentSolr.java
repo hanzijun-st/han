@@ -36,7 +36,8 @@ public class UpdateContentSolr {
         while (true) {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(tiaojian);
-            solrQuery.setRows(5000);
+            solrQuery.setRows(2000);
+            //solrQuery.setFields("fl","id","zhaoBiaoUnit","title","blZhongBiaoUnit","zhongBiaoUnit","zhongRelationWay");
             solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
             if (StringUtils.isEmpty(cursormark)) {
                 solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
@@ -53,6 +54,8 @@ public class UpdateContentSolr {
                         if (doc.containsKey("id") && null != doc.get("id")) {
                             NoticeMQ toMQEntity = new NoticeMQ();
                             toMQEntity.setContentid(Long.valueOf(doc.get("id").toString()));
+                            toMQEntity.setZhongRelationWay(doc.get("zhongRelationWay") !=null ? doc.get("zhongRelationWay").toString() : null);//中标单位联系方式
+                            toMQEntity.setZhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);//中标单位
                             toMQEntity.setTitle(doc.get("title") != null ? doc.get("title").toString() : null);
                             toMQEntity.setZhaoBiaoUnit(doc.get("zhaoBiaoUnit") != null ? doc.get("zhaoBiaoUnit").toString() : null);
                             toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);
@@ -65,7 +68,7 @@ public class UpdateContentSolr {
                             toMQEntity.setAmount(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);
                             toMQEntity.setNewAmountUnit(doc.get("newAmountUnit") != null ? doc.get("newAmountUnit").toString() : null);
                             toMQEntity.setBudget(doc.get("budget") != null ? doc.get("budget").toString() : null);
-                            toMQEntity.setBudget(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);
+                            toMQEntity.setNewZhongBiaoUnit(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);//混合中标单位（自提为主）
                             resultMap.add(toMQEntity);
                         }
                     }

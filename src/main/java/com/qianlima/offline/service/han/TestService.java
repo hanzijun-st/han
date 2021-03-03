@@ -1,5 +1,7 @@
 package com.qianlima.offline.service.han;
 
+import java.util.Map;
+
 /**
  * Created by Administrator on 2021/1/12.
  */
@@ -81,7 +83,12 @@ public interface TestService {
     void getYuxin2(Integer type, String date);
 
 
-    void getYuxin3(Integer type, String date);
+    /**
+     * 北京金万维科技第三回合-1
+     * @param type
+     * @param date
+     */
+    void getYuxin3(Integer type, String date) throws  Exception;
 
     /**
      * 第一回合4.0
@@ -89,4 +96,21 @@ public interface TestService {
      * @param date
      */
     void getYuxin1_4(Integer type, String date);
+
+
+    void getError(Integer type, String date);
+
+    Map getBeiJianGong(String units);
+
+    /**
+     * 大金额
+     */
+    void getKaHangYeSolrAllField();
+
+    /**
+     * 文思海辉
+     * @param type
+     * @param date
+     */
+    void getWenSiHaiHuib(Integer type, String date) throws Exception;
 }

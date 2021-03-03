@@ -7,7 +7,8 @@ logging:
 spring:
   data:
     mongodb:
-      uri: mongodb://172.18.30.12:27017/move
+      #uri: mongodb://172.18.30.12:27017/move
+      uri: mongodb://172.18.30.12:27017/qianliyan
   #数据库信息
   datasource:
     bd:
@@ -130,3 +131,6 @@ zt:
     singleFieldUrl: http://datafetcher.intra.qianlima.com/dc/bidding/field
     fieldsUrl: http://datafetcher.intra.qianlima.com/dc/bidding/fields
 
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.qianlima.offline.entity

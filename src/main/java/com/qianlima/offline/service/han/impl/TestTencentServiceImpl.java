@@ -52,7 +52,7 @@ public class TestTencentServiceImpl implements TestTencentService {
 
     //mysql数据库中插入数据
     public static final String INSERT_ZT_RESULT_TYPE = "INSERT INTO han_tencent (type,contentid,title) VALUES (?,?,?)";
-    public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE han_data SET code =? WHERE content_id =?";
+    public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE han_tencent SET type=? WHERE contentid =?";
     @Override
     public void saveTencent() {
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
@@ -61,12 +61,12 @@ public class TestTencentServiceImpl implements TestTencentService {
 
         /*HashMap<String, String> simpleAreaMap = KeyUtils.getSimpleMap();
         Set<Map.Entry<String, String>> entries = simpleAreaMap.entrySet();//将map的key和value 进行映射成 集合*/
-        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT content_id,title FROM han_data");
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT contentid,title FROM han_tencent");
 
         String url ="http://cusdata.qianlima.com/api/infoType";
         if (mapList !=null && mapList.size() >0){
             for (Map<String, Object> map : mapList) {
-                String contentid = map.get("content_id").toString();
+                String contentid = map.get("contentid").toString();
                 String title = map.get("title").toString();
                 futureList1.add(executorService1.submit(() -> {
                     NoticeMQ noticeMQ = new NoticeMQ();
@@ -83,13 +83,13 @@ public class TestTencentServiceImpl implements TestTencentService {
                     Map<String,Object> m = new HashMap<>();
                     m.put("type",dataType2);
                     m.put("contentid",contentid);
-                    m.put("title",title);
+                    //m.put("title",title);
                     //System.out.println(dataType2);
                     //Map<String, Object> allFieldsWithOther = cusDataFieldService.getDataType(title,content,url,noticeMQ, false);
                     //if (allFieldsWithOther != null && allFieldsWithOther.size() >0) {
                     //    saveIntoMysql(allFieldsWithOther,INSERT_ZT_RESULT_HAN);
                     //}
-                    saveIntoMysql(m,UPDATE_ZT_RESULT_TYPE);
+                    saveIntoMysqlTenxun(m,UPDATE_ZT_RESULT_TYPE);
 
                 }));
                 log.info("-----------------------执行的contentid:{}",contentid);
@@ -200,6 +200,7 @@ public class TestTencentServiceImpl implements TestTencentService {
                 e.printStackTrace();
             }
         }
+        log.info("--------该接口运行结束--------");
     }
 
 
@@ -252,7 +253,19 @@ public class TestTencentServiceImpl implements TestTencentService {
 
     //存储数据库
     public void saveIntoMysql(Map<String, Object> map ,String table){
-        bdJdbcTemplate.update(table, map.get("type"),map.get("contentid"));
+        bdJdbcTemplate.update(table,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                map.get("code"), map.get("isfile"), map.get("keyword_term"));
+        log.info("存mysql数据库进度--->{}",map.get("content_id"));
+    }
+    public void saveIntoMysqlTenxun(Map<String, Object> map ,String table){
+        bdJdbcTemplate.update(table,map.get("type"), map.get("contentid"));
         log.info("存mysql数据库进度--->{}",map.get("contentid"));
     }
 

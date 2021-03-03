@@ -4,12 +4,15 @@ import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestService;
+import com.qianlima.offline.util.LogUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * hanzijun 接口
@@ -216,7 +219,7 @@ public class HanTestController {
         return "---getYuxin is ok---";
     }
 
-    @ApiOperation("北京宇信科技集团股份有限公司-行业标签")
+    @ApiOperation("北京宇信科技集团股份有限公司-第三回合")
     @PostMapping("/getYuxin3")
     public String getYuxin3(Integer type,String date) throws Exception{
         testService.getYuxin3(type,date);
@@ -228,5 +231,36 @@ public class HanTestController {
     public String getYuxin1_4(Integer type,String date) throws Exception{
         testService.getYuxin1_4(type,date);
         return "---getYuxin is ok---";
+    }
+
+    @ApiOperation("查找行业标签的错误问题")
+    @PostMapping("/getError")
+    public String getError(Integer type,String date) throws Exception{
+        testService.getError(type,date);
+        return "---getError is ok---";
+    }
+
+    @ApiOperation("北建工的穿透单位数据")
+    @PostMapping("/getBeiJianGong")
+    public String getBeiJianGong(String unit) throws Exception{
+        //List<String> keyWords = LogUtils.readRule("keyWords");
+        testService.getBeiJianGong(unit);
+        return "---getBeiJianGong is ok---";
+    }
+
+    @ApiOperation("ICT大金额id")
+    @PostMapping("/getDaJinE")
+    public String getDaJinE() throws Exception{
+        testService.getKaHangYeSolrAllField();
+        log.info("===============================数据运行结束===================================");
+        return "---getDaJinE is ok---";
+    }
+
+    @ApiOperation("文思海辉")
+    @PostMapping("/getWenSiHaiHui")
+    public String getWenSiHaiHui(Integer type,String date) throws Exception{
+        testService.getWenSiHaiHuib( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWenSiHaiHui is ok---";
     }
 }
