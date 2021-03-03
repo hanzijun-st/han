@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/t")
 @Slf4j
 @Api("t")
-public class TestHanController {
+public class TestRedisHanController {
     @Autowired
     private TestHanServcie testHanServcie;
 

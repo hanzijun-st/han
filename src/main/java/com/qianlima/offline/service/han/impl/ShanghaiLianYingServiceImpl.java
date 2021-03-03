@@ -1,16 +1,15 @@
 package com.qianlima.offline.service.han.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.qianlima.extract.target.TargetExtractService;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.ShanghaiLianYingService;
-import com.qianlima.offline.util.*;
+import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.KeyUtils;
+import com.qianlima.offline.util.LogUtils;
+import com.qianlima.offline.util.MathUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -231,80 +230,7 @@ public class ShanghaiLianYingServiceImpl implements ShanghaiLianYingService{
         }
     }
     public void getBiaoDiWuForAll(String content, String contentId, Integer taskId){
-        if (StringUtils.isEmpty(content) && StringUtils.isEmpty(contentId)){
-            return;
-        }
-        try {
-            //标的物解析表---对象（进行解析）
-            String target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(target)){
-                JSONObject targetObject = JSONObject.parseObject(target);
-                if (targetObject.containsKey("targetDetails")){
-                    JSONArray targetDetails = (JSONArray) targetObject.get("targetDetails");
-                    for (Object targetDetail : targetDetails) {
-                        String detail = targetDetail.toString();
-                        Map detailMap = JSON.parseObject(detail, Map.class);
-                        String serialNumber = ""; //标的物序号
-                        String name = ""; //名称
-                        String brand = ""; //品牌
-                        String model = ""; //型号
-                        String number = ""; //数量
-                        String numberUnit = ""; //数量单位
-                        String price = ""; //单价
-                        String priceUnit = "";  //单价单位
-                        String totalPrice = ""; //总价
-                        String totalPriceUnit = ""; //总价单位
-                        String keyword = "";
-                        if (detailMap.containsKey("serialNumber")){
-                            serialNumber = (String) detailMap.get("serialNumber");
-                        }
-                        if (detailMap.containsKey("name")){
-                            name = (String) detailMap.get("name");
-                        }
-                        if (detailMap.containsKey("brand")){
-                            brand = (String) detailMap.get("brand");
-                        }
-                        if (detailMap.containsKey("model")){
-                            model = (String) detailMap.get("model");
-                        }
-                        if (detailMap.containsKey("number")){
-                            number = (String) detailMap.get("number");
-                        }
-                        if (detailMap.containsKey("numberUnit")){
-                            numberUnit = (String) detailMap.get("numberUnit");
-                        }
-                        if (detailMap.containsKey("price")){
-                            price = (String) detailMap.get("price");
-                        }
-                        if (detailMap.containsKey("priceUnit")){
-                            priceUnit = (String) detailMap.get("priceUnit");
-                        }
 
-                        if (detailMap.containsKey("totalPrice")){
-                            totalPrice = (String) detailMap.get("totalPrice");
-                        }
-                        if (detailMap.containsKey("totalPriceUnit")){
-                            totalPriceUnit = (String) detailMap.get("totalPriceUnit");
-                        }
-
-                        String result = name + "&" + brand + "&" + model;
-                        result = result.toUpperCase();
-                        List<String> allKeyWords = LogUtils.readRule("keyWords");
-                        for (String cc : allKeyWords) {
-                            if (result.contains(cc.toUpperCase())){
-                                keyword += cc + ConstantBean.RULE_SEPARATOR_NAME;
-                            }
-                        }
-                        keyword = StringUtils.isEmpty(keyword) ? keyword.substring(0, keyword.length() -1) : "";
-
-                        //标的物操作数据库接口
-                        bdJdbcTemplate.update(UPDATA_BDW_SQL, contentId, keyword, taskId, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit);
-                    }
-                }
-            }
-        } catch (Exception e){
-            log.info("infoId:{} 获取标的物信息异常", contentId);
-        }
     }
 
 

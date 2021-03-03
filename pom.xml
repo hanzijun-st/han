@@ -154,10 +154,9 @@
         <!--中台提供的标的物jar包-->
         <dependency>
             <groupId>com.qianlima.extract</groupId>
-            <artifactId>extract-target</artifactId>
-            <version>1.0</version>
+            <artifactId>target-extractor</artifactId>
+            <version>1.2</version>
         </dependency>
-
         <!-- 解析html -->
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -199,11 +198,11 @@
             <artifactId>c3p0</artifactId>
             <version>0.9.5.2</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.qianlima.extractor</groupId>
             <artifactId>target-extractor</artifactId>
             <version>1.0</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
@@ -236,7 +235,7 @@
     <build>
         <finalName>han</finalName>
         <plugins>
-            <plugin>
+            <!--<plugin>
                 <groupId>org.mybatis.generator</groupId>
                 <artifactId>mybatis-generator-maven-plugin</artifactId>
                 <version>1.3.2</version>
@@ -244,7 +243,7 @@
                     <verbose>true</verbose>
                     <overwrite>true</overwrite>
                 </configuration>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
@@ -286,13 +285,13 @@
             </plugin>
         </plugins>
         <resources>
-           <!-- <resource>
+           <resource>
                 <directory>src/main/webapp</directory>
                 <targetPath>META-INF/resources</targetPath>
                 <includes>
                     <include>**/**</include>
                 </includes>
-            </resource>-->
+            </resource>
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>

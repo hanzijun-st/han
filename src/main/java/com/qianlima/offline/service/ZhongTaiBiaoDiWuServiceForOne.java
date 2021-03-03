@@ -3,7 +3,6 @@ package com.qianlima.offline.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.qianlima.extract.target.TargetExtractService;
 import com.qianlima.offline.bean.ConstantBean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -73,49 +72,8 @@ public class ZhongTaiBiaoDiWuServiceForOne {
 
     public String getAllZhongTaiBiaoDIWu(String contentId) throws Exception{
 
-        String biaodiwu = "";
-        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
-        if (contentList == null && contentList.size() == 0){
-            return null;
-        }
-        String content = contentList.get(0).get("content").toString();
 
-        if (StringUtils.isNotBlank(content)){
-            String target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
-            if (StringUtils.isNotBlank(target)){
-                JSONObject targetObject = JSONObject.parseObject(target);
-                if (targetObject.containsKey("targetDetails")){
-                    StringBuilder sb = new StringBuilder();
-                    JSONArray targetDetails = (JSONArray) targetObject.get("targetDetails");
-                    for (Object targetDetail : targetDetails) {
-                        String detail = targetDetail.toString();
-                        Map detailMap = JSON.parseObject(detail, Map.class);
-                        if (detailMap.containsKey("name")){
-                            String name = (String) detailMap.get("name");
-                            sb.append("名称:"+name);
-                        }
-                        if (detailMap.containsKey("brand")){
-                            String brand = (String) detailMap.get("brand");
-                            sb.append(" ,品牌:"+brand);
-                        }
-                        if (detailMap.containsKey("model")){
-                            String model = (String) detailMap.get("model");
-                            sb.append(" ,型号:"+model);
-                        }
-                        sb.append(" ;");
-                    }
-                    biaodiwu = sb.toString();
-                } else {
-                    biaodiwu = "";
-                }
-            }
-        }
-        if (StringUtils.isNotBlank(biaodiwu)){
-            biaodiwu = biaodiwu.substring(0, biaodiwu.length() - 1);
-            bdJdbcTemplate.update("UPDATE loiloi_data SET code = ? WHERE content_id = ? ", biaodiwu, contentId);
-            log.info("contentId:{} 获取标的物需求字段成功!!! ", contentId);
-        }
-        return biaodiwu;
+        return "";
     }
 
 

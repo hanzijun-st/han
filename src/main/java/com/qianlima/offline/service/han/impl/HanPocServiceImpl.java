@@ -3,7 +3,6 @@ package com.qianlima.offline.service.han.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.qianlima.extract.target.TargetExtractService;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.CusDataFieldService;
@@ -275,73 +274,6 @@ public class HanPocServiceImpl implements HanPocService {
 
     public void getAllZhongTaiBiaoDIWu(String contentId) throws Exception{
 
-        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
-        if (contentList == null && contentList.size() == 0){
-            return;
-        }
-        String content = contentList.get(0).get("content").toString();
-        String target = "";
-        if (StringUtils.isNotBlank(content)){
-            try{
-                target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
-            } catch (Exception e){
-                log.error("contentId:{}==========", contentId);
-            }
 
-            if (StringUtils.isNotBlank(target)){
-                JSONObject targetObject = JSONObject.parseObject(target);
-                if (targetObject.containsKey("targetDetails")){
-                    JSONArray targetDetails = (JSONArray) targetObject.get("targetDetails");
-                    for (Object targetDetail : targetDetails) {
-                        String detail = targetDetail.toString();
-                        Map detailMap = JSON.parseObject(detail, Map.class);
-                        String serialNumber = ""; //标的物序号
-                        String name = ""; //名称
-                        String brand = ""; //品牌
-                        String model = ""; //型号
-                        String number = ""; //数量
-                        String numberUnit = ""; //数量单位
-                        String price = ""; //单价
-                        String priceUnit = "";  //单价单位
-                        String totalPrice = ""; //总价
-                        String totalPriceUnit = ""; //总价单位
-                        if (detailMap.containsKey("serialNumber")){
-                            serialNumber = (String) detailMap.get("serialNumber");
-                        }
-                        if (detailMap.containsKey("name")){
-                            name = (String) detailMap.get("name");
-                        }
-                        if (detailMap.containsKey("brand")){
-                            brand = (String) detailMap.get("brand");
-                        }
-                        if (detailMap.containsKey("model")){
-                            model = (String) detailMap.get("model");
-                        }
-                        if (detailMap.containsKey("number")){
-                            number = (String) detailMap.get("number");
-                        }
-                        if (detailMap.containsKey("numberUnit")){
-                            numberUnit = (String) detailMap.get("numberUnit");
-                        }
-                        if (detailMap.containsKey("price")){
-                            price = (String) detailMap.get("price");
-                        }
-                        if (detailMap.containsKey("priceUnit")){
-                            priceUnit = (String) detailMap.get("priceUnit");
-                        }
-
-                        if (detailMap.containsKey("totalPrice")){
-                            totalPrice = (String) detailMap.get("totalPrice");
-                        }
-                        if (detailMap.containsKey("totalPriceUnit")){
-                            totalPriceUnit = (String) detailMap.get("totalPriceUnit");
-                        }
-                        bdJdbcTemplate.update(UPDATA_SQL_01, contentId, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit);
-//                        bdJdbcTemplate.update("UPDATE loiloi_biaodiwu SET code = ? WHERE content_id = ? ", 1, contentId);
-                        log.info("contentId:{} =========== 标的物解析表数据处理成功！！！ ",contentId);
-                    }
-                }
-            }
-        }
     }
 }
