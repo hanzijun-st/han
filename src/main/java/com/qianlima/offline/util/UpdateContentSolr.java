@@ -26,7 +26,7 @@ import java.util.Map;
 public class UpdateContentSolr {
 
     @Autowired
-    @Qualifier("updateSolr")
+    //@Qualifier("updateSolr")
     private SolrClient solrClient;
 
     public List<NoticeMQ> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {

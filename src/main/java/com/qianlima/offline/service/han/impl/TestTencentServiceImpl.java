@@ -36,8 +36,6 @@ import java.util.concurrent.Future;
 @Service
 @Slf4j
 public class TestTencentServiceImpl implements TestTencentService {
-    @Autowired
-    private ContentSolr contentSolr;
 
     @Autowired
     private CusDataFieldService cusDataFieldService;

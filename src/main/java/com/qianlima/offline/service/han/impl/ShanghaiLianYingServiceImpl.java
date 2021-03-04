@@ -6,7 +6,7 @@ import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.ShanghaiLianYingService;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.KeyUtils;
 import com.qianlima.offline.util.LogUtils;
 import com.qianlima.offline.util.MathUtil;
@@ -33,7 +33,7 @@ import java.util.concurrent.Future;
 public class ShanghaiLianYingServiceImpl implements ShanghaiLianYingService{
 
     @Autowired
-    private ContentSolr contentSolr;//solr 查询
+    private FbsContentSolr contentSolr;//solr 查询
 
     @Autowired
     private CusDataFieldService cusDataFieldService;//处理中台数据的方法

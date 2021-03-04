@@ -1,7 +1,6 @@
 package com.qianlima.offline.service;
 
-import com.qianlima.offline.util.CollectionUtils;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,10 @@ public class ZhongTaiBiaoDiWuService {
 
 
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
+
+    @Autowired
+    private NewBiaoDiWuService newBiaoDiWuService;
 
     @Autowired
     @Qualifier("bdJdbcTemplate")
@@ -69,39 +71,30 @@ public class ZhongTaiBiaoDiWuService {
 
 
     }
-    public void getSolrAllField2(){
+    public void getSolrAllField2(Integer type){
 
-        ExecutorService executorService = Executors.newFixedThreadPool(80);
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
         List<Future> futureList = new ArrayList<>();
-
-        Set<String> ids = new HashSet<>();
-        List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT contentid FROM han_contentid");
-        if (!CollectionUtils.isEmpty(maps)){
-            for (Map<String, Object> map : maps) {
-                ids.add(map.get("contentid").toString());
-            }
-        }
-        for (String id : ids) {
-            futureList.add(executorService.submit(() -> {
-                try {
-                    getAllZhongTaiBiaoDIWu(id,1);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        //contentid
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT id,contentid FROM han_contentid");
+        for (Map<String, Object> mapData : mapList) {
+            futureList.add(executorService1.submit(() -> {
+                newBiaoDiWuService.handleForData(Long.valueOf(mapData.get("contentid").toString()),type);
+                log.info("新标的物方法--->:{}",mapData.get("contentid").toString()+"======="+mapData.get("id").toString());
             }));
         }
-
-        for (Future future : futureList) {
+        for (Future future1 : futureList) {
             try {
-                future.get();
+                future1.get();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                executorService1.shutdown();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             }
         }
-        executorService.shutdown();
-        System.out.println("--------------------------------标的物查询结束---------------------------------------");
+        executorService1.shutdown();
+        log.info("---------------===============================新标的物方法运行结束==================================");
     }
 
 

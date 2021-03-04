@@ -24,7 +24,7 @@ public interface CurrencyService {
     /**
      * 标的物
      */
-    void getBdw();
+    void getBdw(Integer type);
 
     /**
      * 批量导入

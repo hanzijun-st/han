@@ -9,7 +9,7 @@ import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.middleground.ZhongTaiService;
 import com.qianlima.offline.rule02.MyRuleUtils;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.IctContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import com.qianlima.offline.util.MathUtil;
@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
 public class PocService2 {
 
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
 
     @Autowired
     private IctContentSolr ictContentSolr;

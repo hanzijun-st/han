@@ -3,7 +3,7 @@ package com.qianlima.offline.service;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.rule02.MyRuleUtils;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.KeyUtils;
 import com.qianlima.offline.util.MathUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
 public class LianYing01Service {
 
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
 
     private static final String UPDATA_SQL_01 = "INSERT INTO poc_biaodiwu (contentid, keyword, taskId, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 

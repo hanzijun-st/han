@@ -34,9 +34,9 @@ public class CurrencyController {
     }
 
     @GetMapping("/start/getBdw")
-    @ApiOperation("获取标的物的数据")
-    public String getBdw(){
-        currencyService.getBdw();
+    @ApiOperation("获取标的物的数据-type(1:迈瑞；2:ICT；3:医疗；4:没有侧重点)")
+    public String getBdw(Integer type){
+        currencyService.getBdw(type);
         return "请求成功---成功获取标的物";
     }
 }

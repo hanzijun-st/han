@@ -33,7 +33,7 @@ import java.util.concurrent.Future;
 public class DeliveryPocService {
 
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
 
     @Autowired
     private IctContentSolr ictContentSolr;

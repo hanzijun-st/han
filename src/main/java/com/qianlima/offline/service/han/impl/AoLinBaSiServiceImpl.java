@@ -2,12 +2,11 @@ package com.qianlima.offline.service.han.impl;
 
 import com.alibaba.druid.support.json.JSONUtils;
 import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.PocService;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.CurrencyService;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import com.qianlima.offline.util.QianlimaZTUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.beans.Expression;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -30,7 +28,7 @@ import java.util.concurrent.Future;
 @Slf4j
 public class AoLinBaSiServiceImpl implements AoLinBaSiService {
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
 
     @Autowired
     private PocService pocService;

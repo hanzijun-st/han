@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 线上solr
+ */
 @Component
 @Slf4j
 public class OnlineContentSolr {

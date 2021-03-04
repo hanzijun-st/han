@@ -1,18 +1,13 @@
 package com.qianlima.offline.service.han.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.han.HanPocService;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import com.qianlima.offline.util.StrUtil;
 import com.qianlima.offline.util.UpdateContentSolr;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,8 +28,6 @@ import java.util.concurrent.Future;
 @Service
 @Slf4j
 public class HanPocServiceImpl implements HanPocService {
-    @Autowired
-    private ContentSolr contentSolr;//solr查询接口
 
     @Autowired
     private UpdateContentSolr updateSolr;//solr查询接口

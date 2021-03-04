@@ -122,6 +122,9 @@ qlm:
     ictsolr: http://172.18.30.12:8984/solr/qianlima_ict_shard2_replica1
     QYHYsolr: http://120.27.23.156:8984/solr/qlm_qy_info
     normalsolr: http://172.18.30.12:8984/solr/search_normal_shard3_replica1
+    solr:
+      host: solr1:2181,solr2:2181,solr3:2181
+      defaultCollection: ka_info
 data:
   contentid: C:\Users\Dell\Desktop\qianlima\ka_for_poc\src\main\resources\rule\contentid.txt
 zt:

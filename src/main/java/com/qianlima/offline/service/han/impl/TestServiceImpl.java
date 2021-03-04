@@ -24,7 +24,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,8 +39,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static com.ibm.icu.impl.ValidIdentifiers.Datatype.unit;
-
 /**
  * Created by Administrator on 2021/1/12.
  */
@@ -52,6 +49,9 @@ public class TestServiceImpl implements TestService{
 
     @Autowired
     private UpdateContentSolr contentSolr;
+
+    @Autowired
+    private FbsContentSolr fbsContentSolr;
 
     @Autowired
     private OnlineContentSolr onlineContentSolr;
@@ -88,9 +88,9 @@ public class TestServiceImpl implements TestService{
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     @Override
-    public void getBdw() {
+    public void getBdw(Integer type) {
         try {
-            bdwService.getSolrAllField2();
+            bdwService.getSolrAllField2(type);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1371,7 +1371,7 @@ public class TestServiceImpl implements TestService{
             log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
             return;
         }
-        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithHunHe(noticeMQ, false);
+        Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
            try {
                 saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
@@ -2231,7 +2231,7 @@ public class TestServiceImpl implements TestService{
             for (String str2 : dw) {
                 futureList1.add(executorService1.submit(() -> {
                     List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5)  AND catid:[* TO 100] AND title:\"" + str + "\"  AND allcontent:\"" + str2 + "\"", str+"&"+str2, 2);
-                    log.info(str.trim()+"&"+str2 + "————" + mqEntities.size());
+                    log.info(str.trim() + "————" + mqEntities.size());
                     if (!mqEntities.isEmpty()) {
                         for (NoticeMQ data : mqEntities) {
                             if (data.getTitle() != null) {
@@ -2260,7 +2260,7 @@ public class TestServiceImpl implements TestService{
             for (String str2 : dw) {
                 futureList1.add(executorService1.submit(() -> {
                     List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:[0 TO 3] OR progid:5) AND catid:[* TO 100] AND allcontent:\"" + str + "\"  AND allcontent:\"" + str2 + "\"", str+"&"+str2, 2);
-                    log.info(str.trim()+"&"+str2 + "————" + mqEntities.size());
+                    log.info(str.trim()+"" + "————" + mqEntities.size());
                     if (!mqEntities.isEmpty()) {
                         for (NoticeMQ data : mqEntities) {
                             if (data.getTitle() != null) {
@@ -2316,6 +2316,359 @@ public class TestServiceImpl implements TestService{
             for (String str2 : dw) {
                 arrayList.add(key+"&"+str2);
             }
+        }
+
+        for (String str : arrayList) {
+            int total = 0;
+            for (NoticeMQ noticeMQ : list) {
+                String keyword = noticeMQ.getKeyword();
+                if (keyword.equals(str)) {
+                    total++;
+                }
+            }
+            if (total == 0) {
+                continue;
+            }
+            System.out.println(str + ": " + total);
+        }
+        System.out.println("全部数据量：" + listAll.size());
+        System.out.println("去重之后的数据量：" + list.size());
+
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+    }
+
+    @Override
+    public void getWenSiHaiHuib2_1(Integer type, String date) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);
+        List<NoticeMQ> list = new ArrayList<>();
+        List<NoticeMQ> listAll = new ArrayList<>();
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        String[] a = {"RAP","信创","天眼","SCM","EAM"};
+        String[] b = {"安全监控","供应链运营管理系统","供应链信息系统","供应链金融平台","供应链金融服务平台","供应链系统解决方案","供应链信息平台","供应链大数据应用项目","供应链数字金融项目","供应链协同服务平台","供应链综合服务平台","供应链业务系统","供应链综合管理平台","供应链综合管理系统","供应链协同服务系统","供应链综合服务系统","供应链金融系统","供应链服务平台","供应链服务系统","供应链业务平台","固定资产管理信息系统","固定资产管理系统","固定资产管理信息平台","固定资产管理平台","资产经营管理系统","实物资产系统","资产管理系统","资产管理云平台","资产管理平台","资产托管系统","资产管理软件","资产交易管理信息平台","资产交易平台","资产管理信息化系统","资产数字管理平台","资产精细化管理综合平台","资产监督管理平台","资产监督平台","资产监督管理信息化系统","资产一体化管理平台","资产综合信息管理平台","资产管理信息系统","资产数字化运营管理平台","资产数字化管理平台","资产数字化管理系统","资产数字化运营管理系统","资产一体化管理系统","资产数字管理系统","资产动态管理云平台","资产动态管理系统","资产动态管理平台","资产管理信息化平台","资产盘点系统","资产盘点平台","资产盘点软件","资产盘点管理系统","资产盘点管理平台","资产盘点管理软件","资产管理工具软件","接口管理平台","接口文档管理平台","接口文档管理工具","智慧园区","智慧城市","安保监控","安防监控"};
+
+        String[] bq ={"教育","能源","电力","新能源","制造","汽车","通信","教育服务"};
+        for (String str : a) {
+
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = fbsContentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3)  AND catid:[* TO 100] AND title:\"" + str + "\"" , str, 2);
+                    log.info(str.trim()+ "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+        }
+        for (String str : b) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3) AND catid:[* TO 100] AND allcontent:\"" + str +  "\"", str, 2);
+                    log.info(str.trim() + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+
+        }
+/*
+        for (String str : a) {
+            for (String str2 : bq) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3)  AND catid:[* TO 100] AND title:\"" + str + "\"  AND zhaoBiaoUnit:\"" + str2 + "\"", str+"&"+str2, 2);
+                    log.info(str.trim()+"&"+str2 + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str+"&"+str2);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+        for (String str : b) {
+            for (String str2 : bq) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3) AND catid:[* TO 100] AND allcontent:\"" + str + "\"  AND zhaoBiaoUnit:\"" + str2 + "\"", str+"&"+str2, 2);
+                    log.info(str.trim()+"&"+str2 + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str+"&"+str2);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+*/
+
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+
+        log.info("全部数据量：" + listAll.size());
+        log.info("去重之后的数据量：" + list.size());
+        log.info("==========================");
+
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        //关键词a 和 定位词
+        for (String key : a) {
+           /* for (String str2 : bq) {
+                arrayList.add(key+"&"+str2);
+            }*/
+            arrayList.add(key);
+        }
+        //关键词a 和 定位词
+        for (String key : b) {
+            /*for (String str2 : bq) {
+                arrayList.add(key+"&"+str2);
+            }*/
+            arrayList.add(key);
+        }
+
+        for (String str : arrayList) {
+            int total = 0;
+            for (NoticeMQ noticeMQ : list) {
+                String keyword = noticeMQ.getKeyword();
+                if (keyword.equals(str)) {
+                    total++;
+                }
+            }
+            if (total == 0) {
+                continue;
+            }
+            System.out.println(str + ": " + total);
+        }
+        System.out.println("全部数据量：" + listAll.size());
+        System.out.println("去重之后的数据量：" + list.size());
+
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+    }
+
+    @Override
+    public void getWenSiHaiHuib2_2(Integer type, String date) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);
+        List<NoticeMQ> list = new ArrayList<>();
+        List<NoticeMQ> listAll = new ArrayList<>();
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        String[] a = {"RAP","信创","天眼","SCM","EAM"};
+        String[] b = {"安全监控","供应链运营管理系统","供应链信息系统","供应链金融平台","供应链金融服务平台","供应链系统解决方案","供应链信息平台","供应链大数据应用项目","供应链数字金融项目","供应链协同服务平台","供应链综合服务平台","供应链业务系统","供应链综合管理平台","供应链综合管理系统","供应链协同服务系统","供应链综合服务系统","供应链金融系统","供应链服务平台","供应链服务系统","供应链业务平台","固定资产管理信息系统","固定资产管理系统","固定资产管理信息平台","固定资产管理平台","资产经营管理系统","实物资产系统","资产管理系统","资产管理云平台","资产管理平台","资产托管系统","资产管理软件","资产交易管理信息平台","资产交易平台","资产管理信息化系统","资产数字管理平台","资产精细化管理综合平台","资产监督管理平台","资产监督平台","资产监督管理信息化系统","资产一体化管理平台","资产综合信息管理平台","资产管理信息系统","资产数字化运营管理平台","资产数字化管理平台","资产数字化管理系统","资产数字化运营管理系统","资产一体化管理系统","资产数字管理系统","资产动态管理云平台","资产动态管理系统","资产动态管理平台","资产管理信息化平台","资产盘点系统","资产盘点平台","资产盘点软件","资产盘点管理系统","资产盘点管理平台","资产盘点管理软件","资产管理工具软件","接口管理平台","接口文档管理平台","接口文档管理工具","智慧园区","智慧城市","安保监控","安防监控"};
+
+        String[] bq ={"教育","能源","电力","新能源","制造","汽车","通信","教育服务"};
+
+
+        for (String str : a) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3) AND catid:[* TO 100] AND title:\"" + str + "\"", str, 2);
+                    log.info(str.trim() + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+        }
+        for (String str : b) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3) AND catid:[* TO 100] AND title:\"" + str + "\"", str, 2);
+                    log.info(str.trim() + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+
+        }
+/*
+        for (String str : a) {
+            for (String str2 : bq) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3) AND catid:[* TO 100] AND title:\"" + str + "\"  AND zhaoBiaoUnit:\"" + str2 + "\"", str+"&"+str2, 2);
+                    log.info(str.trim()+"&"+str2 + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str+"&"+str2);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+        for (String str : b) {
+            for (String str2 : bq) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND (progid:0 OR progid:3) AND catid:[* TO 100] AND title:\"" + str + "\"  AND zhaoBiaoUnit:\"" + str2 + "\"", str+"&"+str2, 2);
+                    log.info(str.trim()+"&"+str2 + "————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag){
+                                    listAll.add(data);
+                                    data.setKeyword(str+"&"+str2);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+*/
+
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+
+
+        log.info("全部数据量：" + listAll.size());
+        log.info("去重之后的数据量：" + list.size());
+        log.info("==========================");
+
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        //关键词a 和 定位词
+        for (String key : a) {
+           /* for (String str2 : bq) {
+                arrayList.add(key+"&"+str2);
+            }*/
+            arrayList.add(key);
+        }
+        //关键词a 和 定位词
+        for (String key : b) {
+           /* for (String str2 : bq) {
+                arrayList.add(key+"&"+str2);
+            }*/
+            arrayList.add(key);
         }
 
         for (String str : arrayList) {

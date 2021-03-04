@@ -7,7 +7,7 @@ import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.middleground.NiZaiJianService;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
 import com.qianlima.offline.rule02.MyRuleUtils;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.IctContentSolr;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class HyService {
 
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
 
     @Autowired
     private IctContentSolr ictContentSolr;

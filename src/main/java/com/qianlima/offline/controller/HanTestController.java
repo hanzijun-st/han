@@ -46,8 +46,8 @@ public class HanTestController {
 
     @GetMapping("/start/getBdw")
     @ApiOperation("获取标的物的数据")
-    public String getBdw(){
-        testService.getBdw();
+    public String getBdw(Integer type){
+        testService.getBdw(type);
         return "请求成功---成功获取标的物";
     }
 
@@ -262,5 +262,21 @@ public class HanTestController {
         testService.getWenSiHaiHuib( type, date);
         log.info("===============================数据运行结束===================================");
         return "---getWenSiHaiHui is ok---";
+    }
+
+    @ApiOperation("文思海辉-2-规则一")
+    @PostMapping("/getWenSiHaiHui2_1")
+    public String getWenSiHaiHui2_1(Integer type,String date) throws Exception{
+        testService.getWenSiHaiHuib2_1( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWenSiHaiHui2 is ok---";
+    }
+
+    @ApiOperation("文思海辉-2-规则二")
+    @PostMapping("/getWenSiHaiHui2_2")
+    public String getWenSiHaiHui2_2(Integer type,String date) throws Exception{
+        testService.getWenSiHaiHuib2_2( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWenSiHaiHui2_2 is ok---";
     }
 }

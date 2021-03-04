@@ -1,6 +1,7 @@
 package com.qianlima.offline.configuration;
 
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,7 @@ public class SolrClientConfig {
     @Autowired
     private Environment environment;
 
-    @Bean(name = "allSolr")
+    /*@Bean(name = "allSolr")
     public SolrClient contentSolr() {
         return new HttpSolrClient(environment.getRequiredProperty("qlm.data.allsolr"));
     }
@@ -45,7 +46,22 @@ public class SolrClientConfig {
     @Bean(name = "normalSolr")
     public SolrClient normalContentSolr() {
         return new HttpSolrClient(environment.getRequiredProperty("qlm.data.normalsolr"));
-    }
+    }*/
 
+    /**
+     * 线上的solr，单独配置
+     * @return
+     */
+    /*@Bean(name = "onlineSolr")
+    public SolrClient onlineSolr() {
+        return new HttpSolrClient(environment.getRequiredProperty("qlm.data.onlineSolr"));
+    }*/
+
+    @Bean
+    public SolrClient solrClient(){
+        CloudSolrClient solrClient = new CloudSolrClient(environment.getRequiredProperty("qlm.data.solr.host"));
+        solrClient.setDefaultCollection(environment.getRequiredProperty("qlm.data.solr.defaultCollection"));
+        return solrClient;
+    }
 
 }

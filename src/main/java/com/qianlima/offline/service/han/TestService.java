@@ -7,9 +7,9 @@ import java.util.Map;
  */
 public interface TestService {
     /**
-     * 之前的方式获取标的物
+     * 最新方式获取标的物
      */
-    void getBdw();
+    void getBdw(Integer type);
 
     /**
      * 新方式获取标的物
@@ -113,4 +113,18 @@ public interface TestService {
      * @param date
      */
     void getWenSiHaiHuib(Integer type, String date) throws Exception;
+
+    /**
+     * 文思海辉第二回合
+     * @param type
+     * @param date
+     */
+    void getWenSiHaiHuib2_1(Integer type, String date);
+
+    /**
+     * 文思海辉第二回合-规则二
+     * @param type
+     * @param date
+     */
+    void getWenSiHaiHuib2_2(Integer type, String date);
 }

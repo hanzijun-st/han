@@ -53,8 +53,6 @@ import java.util.concurrent.Future;
 @Service
 @Slf4j
 public class CurrencyServiceImpl implements CurrencyService {
-    @Autowired
-    private ContentSolr contentSolr;
 
     @Autowired
     private UpdateContentSolr updateSolr;
@@ -275,9 +273,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void getBdw() {
+    public void getBdw(Integer type) {
         try {
-            bdwService.getSolrAllField2();
+            bdwService.getSolrAllField2(type);
         } catch (Exception e) {
             e.printStackTrace();
         }

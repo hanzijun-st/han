@@ -3,7 +3,7 @@ package com.qianlima.offline.service;
 import com.qianlima.offline.bean.Area;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.middleground.NotBaiLianZhongTaiService;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 public class BoKeService02 {
 
     @Autowired
-    private ContentSolr contentSolr;
+    private FbsContentSolr contentSolr;
 
     @Autowired
     @Qualifier("gwJdbcTemplate")

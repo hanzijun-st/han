@@ -17,14 +17,15 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
-public class ContentSolr {
+public class FbsContentSolr {
 
     @Autowired
-    @Qualifier("allSolr")
     private SolrClient solrClient;
 
     public List<NoticeMQ> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {
@@ -34,7 +35,8 @@ public class ContentSolr {
         while (true) {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(tiaojian);
-            solrQuery.setRows(5000);
+            solrQuery.setRows(2000);
+            //solrQuery.setFields("fl","id","zhaoBiaoUnit","title","blZhongBiaoUnit","zhongBiaoUnit","zhongRelationWay");
             solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
             if (StringUtils.isEmpty(cursormark)) {
                 solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
@@ -51,6 +53,8 @@ public class ContentSolr {
                         if (doc.containsKey("id") && null != doc.get("id")) {
                             NoticeMQ toMQEntity = new NoticeMQ();
                             toMQEntity.setContentid(Long.valueOf(doc.get("id").toString()));
+                            toMQEntity.setZhongRelationWay(doc.get("zhongRelationWay") !=null ? doc.get("zhongRelationWay").toString() : null);//中标单位联系方式
+                            toMQEntity.setZhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);//中标单位
                             toMQEntity.setTitle(doc.get("title") != null ? doc.get("title").toString() : null);
                             toMQEntity.setZhaoBiaoUnit(doc.get("zhaoBiaoUnit") != null ? doc.get("zhaoBiaoUnit").toString() : null);
                             toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);
@@ -63,6 +67,7 @@ public class ContentSolr {
                             toMQEntity.setAmount(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);
                             toMQEntity.setNewAmountUnit(doc.get("newAmountUnit") != null ? doc.get("newAmountUnit").toString() : null);
                             toMQEntity.setBudget(doc.get("budget") != null ? doc.get("budget").toString() : null);
+                            toMQEntity.setNewZhongBiaoUnit(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);//混合中标单位（自提为主）
                             resultMap.add(toMQEntity);
                         }
                     }
@@ -80,5 +85,41 @@ public class ContentSolr {
             log.info("=====关键词:" + key + " solr执行到了：" + resultMap.size());
         }
         return resultMap;
+    }
+
+    /**
+     * 查询solr中的数据  通过输入的年份
+     * @param tiaojian  查询条件
+     * @param time 输入的时间
+     * @return
+     */
+    public Map<String,Object> getSolr(String tiaojian,String time){
+        Map<String,Object> map = new HashMap<>();
+
+        tiaojian = "yyyymm:"+time+" AND "+tiaojian;
+        String cursormark = "";
+
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setQuery(tiaojian);
+        solrQuery.setRows(5000);
+        solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
+        if (StringUtils.isEmpty(cursormark)) {
+            solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
+        } else {
+            solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, cursormark);
+        }
+        solrQuery.setSort("id", SolrQuery.ORDER.desc);
+        try {
+            QueryResponse response = solrClient.query(solrQuery, SolrRequest.METHOD.POST);
+            SolrDocumentList results = response.getResults();
+            if (results != null && results.size() > 0) {
+                map.put(time,results.getNumFound());
+            } else {
+                map.put(time,0);
+            }
+        } catch (SolrServerException | IOException e) {
+            log.error("跑数据异常,{}", e);
+        }
+        return map;
     }
 }

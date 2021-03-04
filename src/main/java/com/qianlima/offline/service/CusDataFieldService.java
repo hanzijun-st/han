@@ -1,6 +1,5 @@
 package com.qianlima.offline.service;
 
-import com.alibaba.druid.support.json.JSONUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -585,6 +584,7 @@ public class CusDataFieldService {
         String projectNature = null;
         String projectOwner = null;
         String catid = null;
+        String extract_proj_name = null;//项目名称
 
         for (int d = 0; d < jsonArray.size(); d++) {
             JSONObject object = jsonArray.getJSONObject(d);
@@ -642,6 +642,8 @@ public class CusDataFieldService {
                 projectOwner = object.getString("project_owner");
             } else if (null != object.get("catid")) {
                 catid = object.getString("catid");
+            } else if (null != object.get("extract_proj_name")) {
+                extract_proj_name = object.getString("extract_proj_name");
             }
         }
 
@@ -691,6 +693,7 @@ public class CusDataFieldService {
         resultMap.put("infoTypeSegment", infoTypeSegment);
         resultMap.put("type", "");  // 预留字段1
         resultMap.put("keyword_term", ""); // 预留字段2
+        resultMap.put("extract_proj_name", extract_proj_name); //项目名称字段
         return resultMap;
     }
 
