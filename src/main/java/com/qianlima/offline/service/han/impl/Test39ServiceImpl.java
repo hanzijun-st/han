@@ -6,6 +6,7 @@ import com.qianlima.offline.service.han.CusDataNewService;
 import com.qianlima.offline.service.han.Test39Service;
 import com.qianlima.offline.util.OnlineContentSolr;
 import com.qianlima.offline.util.ReadFileUtil;
+import com.qianlima.offline.util.ReadPathUtil;
 import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,7 +167,7 @@ public class Test39ServiceImpl implements Test39Service {
             readList.add("全部数据量：" + listAll.size());
             readList.add("去重之后的数据量：" + list.size());
 
-            ReadFileUtil.readFile("C:/Users/Administrator/Desktop/wenjian","关键词.txt",readList);
+            ReadFileUtil.readFile(ReadPathUtil.getPath("file"),"关键词.txt",readList);
         } catch (Exception e) {
             e.printStackTrace();
         }

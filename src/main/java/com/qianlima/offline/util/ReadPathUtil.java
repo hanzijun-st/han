@@ -2,6 +2,8 @@ package com.qianlima.offline.util;
 
 import org.springframework.util.ResourceUtils;
 
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
 import java.io.FileNotFoundException;
 
 public class ReadPathUtil {
@@ -22,5 +24,15 @@ public class ReadPathUtil {
 
         }
         return null;
+    }
+
+    /**
+     *  获取当前系统电脑桌面路径
+     * @return
+     */
+    public static String getHomePath(){
+        FileSystemView fsv = FileSystemView.getFileSystemView();
+        File com = fsv.getHomeDirectory();
+        return com.getPath();
     }
 }
