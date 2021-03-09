@@ -1,13 +1,11 @@
-package test.java;
-
 import com.qianlima.offline.util.CommonDateUtils;
 import com.qianlima.offline.util.DateUtils;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Administrator on 2021/1/12.
+ * 对时间进行处理
  */
 public class TestTime {
     public static void main(String[] args) {
@@ -30,8 +28,13 @@ public class TestTime {
         Date lastDayOfWeek = CommonDateUtils.getLastDayOfWeek(2021, 5);
         System.out.println(DateUtils.getFormatDateStr(lastDayOfWeek,"yyyy-MM-dd"));*/
 
-        List<String> daysBetwwen = DateUtils.getDaysBetwwen(7);
+        List<String> daysBetwwen = DateUtils.getDaysBetwwen(7, CommonDateUtils.COMMON_DATE_STR3);
+        List<String> list = new ArrayList<>();
         System.out.println(daysBetwwen);
+        for (String s : daysBetwwen) {
+            list.add(s.replace("-", ""));
+        }
+        System.out.println("最新list："+list);
 
         String s = daysBetwwen.get(0);
         String s1 = daysBetwwen.get(6);

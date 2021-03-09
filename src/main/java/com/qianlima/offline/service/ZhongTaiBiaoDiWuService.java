@@ -26,7 +26,7 @@ public class ZhongTaiBiaoDiWuService {
 
 
     @Autowired
-    private FbsContentSolr contentSolr;
+    private YiLiaoBiaoDiWuService yiLiaoBiaoDiWuService;
 
     @Autowired
     private NewBiaoDiWuService newBiaoDiWuService;
@@ -73,13 +73,13 @@ public class ZhongTaiBiaoDiWuService {
     }
     public void getSolrAllField2(Integer type){
 
-        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        ExecutorService executorService1 = Executors.newFixedThreadPool(4);
         List<Future> futureList = new ArrayList<>();
         //contentid
         List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT id,contentid FROM han_contentid");
         for (Map<String, Object> mapData : mapList) {
             futureList.add(executorService1.submit(() -> {
-                newBiaoDiWuService.handleForData(Long.valueOf(mapData.get("contentid").toString()),type);
+                yiLiaoBiaoDiWuService.handleForYiLiao(Long.valueOf(mapData.get("contentid").toString()),type);
                 log.info("新标的物方法--->:{}",mapData.get("contentid").toString()+"======="+mapData.get("id").toString());
             }));
         }

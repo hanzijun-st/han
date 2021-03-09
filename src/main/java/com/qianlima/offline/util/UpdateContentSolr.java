@@ -36,9 +36,10 @@ public class UpdateContentSolr {
         while (true) {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(tiaojian);
-            solrQuery.setRows(2000);
+            //solrQuery.setRows(2000);
+            solrQuery.setRows(5000);
             //solrQuery.setFields("fl","id","zhaoBiaoUnit","title","blZhongBiaoUnit","zhongBiaoUnit","zhongRelationWay");
-            solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
+            solrQuery.setFields("fl","id","zhaoBiaoUnit","title","zhaoFirstIndustry","zhaoSecondIndustry");
             if (StringUtils.isEmpty(cursormark)) {
                 solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
             } else {
@@ -69,6 +70,8 @@ public class UpdateContentSolr {
                             toMQEntity.setNewAmountUnit(doc.get("newAmountUnit") != null ? doc.get("newAmountUnit").toString() : null);
                             toMQEntity.setBudget(doc.get("budget") != null ? doc.get("budget").toString() : null);
                             toMQEntity.setNewZhongBiaoUnit(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);//混合中标单位（自提为主）
+                            toMQEntity.setZhaoFirstIndustry(doc.get("zhaoFirstIndustry") != null ? doc.get("zhaoFirstIndustry").toString() : null);
+                            toMQEntity.setZhaoSecondIndustry(doc.get("zhaoSecondIndustry") != null ? doc.get("zhaoSecondIndustry").toString() : null);
                             resultMap.add(toMQEntity);
                         }
                     }

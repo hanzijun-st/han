@@ -279,4 +279,66 @@ public class HanTestController {
         log.info("===============================数据运行结束===================================");
         return "---getWenSiHaiHui2_2 is ok---";
     }
+
+    @ApiOperation("奥林巴斯-第二回合")
+    @PostMapping("/getAolinbasi2")
+    public String getAolinbasi2(Integer type,String date) throws Exception{
+        testService.getAolinbasi2( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getAolinbasi2 is ok---";
+    }
+    @ApiOperation("奥林巴斯-第二回合(全文检索关键词b)")
+    @PostMapping("/getAolinbasi2_qw")
+    public String getAolinbasi2_qw(Integer type,String date) throws Exception{
+        testService.getAolinbasi2_qw( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getAolinbasi2_qw is ok---";
+    }
+
+    @ApiOperation("奥林巴斯-第二回合_规则3")
+    @PostMapping("/getAolinbasi2_3")
+    public String getAolinbasi2_3(Integer type,String date) throws Exception{
+        testService.getAolinbasi2_3( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getAolinbasi2_3 is ok---";
+    }
+
+    @ApiOperation("贝登")
+    @PostMapping("/getBeiDeng")
+    public String getBeiDeng(Integer type,String date) throws Exception{
+        testService.getBeiDeng( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getBeiDeng is ok---";
+    }
+
+    @ApiOperation("文思海辉-交付数据")
+    @PostMapping("/getWensihaihui_Jiaofu")
+    public String getWensihaihui_Jiaofu(Integer type,String date) throws Exception{
+        testService.getWensihaihui_Jiaofu( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWensihaihui_Jiaofu is ok---";
+    }
+
+    /**
+     * 贝登第二次
+     * @param type
+     * @param date
+     * @return
+     * @throws Exception
+     */
+    @ApiOperation("贝登-2")
+    @PostMapping("/getBeiDeng2")
+    public String getBeiDeng2(Integer type,String date) throws Exception{
+        testService.getBeiDeng2( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getBeiDeng2 is ok---";
+    }
+
+    @ApiOperation("云南獾少科技")
+    @PostMapping("/getYuNanMaoShao")
+    public String getYuNanMaoShao(Integer type,String date) throws Exception{
+        testService.getYuNanMaoShao( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getYuNanMaoShao is ok---";
+    }
 }

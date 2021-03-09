@@ -20,12 +20,12 @@ public class TestBijiao {
             System.out.println(noHave.toString());
 
             readFile(noHave);
-            for (String datass : bjDatass) {
+            /*for (String datass : bjDatass) {
                 if (bjDatasD.contains(datass)){
                     continue;
                 }
                 System.out.println("存在不同的数据："+no);
-            }
+            }*/
         } catch (IOException e) {
 
         }

@@ -29,7 +29,7 @@ import java.util.Map;
 public class OnlineContentSolr {
 
     @Autowired
-    @Qualifier("onlineSolr")
+    //@Qualifier("onlineSolr")
     private SolrClient solrClient;
 
     public List<NoticeMQ> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {
@@ -40,7 +40,7 @@ public class OnlineContentSolr {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(tiaojian);
             solrQuery.setRows(5000);
-            solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
+            //solrQuery.setFields("fl","id","zhaoBiaoUnit","title","newZhongBiaoUnit","newAmountUnit");
             if (StringUtils.isEmpty(cursormark)) {
                 solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
             } else {
@@ -68,6 +68,7 @@ public class OnlineContentSolr {
                             toMQEntity.setAmount(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);
                             toMQEntity.setNewAmountUnit(doc.get("newAmountUnit") != null ? doc.get("newAmountUnit").toString() : null);
                             toMQEntity.setBudget(doc.get("budget") != null ? doc.get("budget").toString() : null);
+                            toMQEntity.setNewZhongBiaoUnit(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);//混合中标单位
                             resultMap.add(toMQEntity);
                         }
                     }

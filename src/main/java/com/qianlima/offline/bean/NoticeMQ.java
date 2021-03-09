@@ -81,7 +81,14 @@ public class NoticeMQ implements Serializable {
 
     private String areaid;
 
-    private String newZhongBiaoUnit;
+    private String newZhongBiaoUnit;//混合中标单位
 
     private String zhongRelationWay;
+
+    private String zhaoFirstIndustry;//自提招标单位一级行业标签
+
+    private String zhaoSecondIndustry;//自提招标单位二级行业标签
+
+    private String heici;
+
 }

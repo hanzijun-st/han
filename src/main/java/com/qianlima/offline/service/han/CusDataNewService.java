@@ -1,9 +1,12 @@
-package com.qianlima.offline.service;
+
+package com.qianlima.offline.service.han;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
+import com.qianlima.offline.util.MathUtil;
 import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
-public class CusDataFieldService {
+public class CusDataNewService {
 
     @Autowired
     @Qualifier("gwJdbcTemplate")
@@ -47,7 +50,7 @@ public class CusDataFieldService {
     private final static List<String> kaAreaList = new ArrayList<>();
 
     // 数据入库操作
-    private static final String INSERT_ZT_RESULT_HXR = "INSERT INTO zt_data_result_poc_table (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+    public static final String INSERT_ZT_RESULT_HXR = "INSERT INTO han_new_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -70,6 +73,7 @@ public class CusDataFieldService {
         return result;
     }
 
+
     /**
      * 保存数据入库
      */
@@ -82,7 +86,30 @@ public class CusDataFieldService {
                 map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
-                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment") );
+                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"));
+    }
+
+    /**
+     * 获取正文字段
+     * @param map
+     * @return
+     */
+    public String getContent(Map<String, Object> map){
+
+        //String title = map.get("title") != null ? map.get("title").toString() : "";//标题
+        //获取正文字段
+        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, map.get("content_id").toString());
+        if (contentList == null || contentList.size() <=0){
+            return "";
+        }
+        String content = contentList.get(0).get("content").toString();//正文字段
+
+       /* String tempContent = content;//设定不变正文字段，下文使用
+        content = MathUtil.delHTMLTag(content);//去除正文中的html
+        content = title +"&" + content;// 标题 + 正文
+        content = content.toUpperCase();//将最后正文的字符转成大写
+        title = title.toUpperCase();//将标题字符转成大写*/
+       return content;
     }
 
     /**
@@ -103,9 +130,6 @@ public class CusDataFieldService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
-            //hashMap.put("zhao_first_industry",noticeMQ.getZhaoFirstIndustry());
-            //hashMap.put("zhao_second_industry",noticeMQ.getZhaoSecondIndustry());
-            //hashMap.put("heici",noticeMQ.getHeici());
         }
         return hashMap;
     }
@@ -176,8 +200,6 @@ public class CusDataFieldService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
-            hashMap.put("new_zhong_biao_unit",noticeMQ.getNewZhongBiaoUnit());//混合中标单位
-            hashMap.put("new_amount_unit",noticeMQ.getNewAmountUnit());
         }
 
         return hashMap;
@@ -191,7 +213,6 @@ public class CusDataFieldService {
         StringBuilder blZhongBiaoUnit = new StringBuilder(); //获取百炼中标单位
         StringBuilder blBidder = new StringBuilder(); //获取候选人
         StringBuilder blAgents = new StringBuilder(); //百炼代理机构
-        StringBuffer newAmountUnit = new StringBuffer();//混合中标金额
         for (int d = 0; d < jsonArray.size(); d++) {
             JSONObject object = jsonArray.getJSONObject(d);
             if (null != object.getJSONObject("expandField")) {
@@ -296,8 +317,8 @@ public class CusDataFieldService {
             if (StringUtils.isBlank(blZhongBiaoUnit) && null != object.get("extract_zhongBiaoUnit")){
                 blZhongBiaoUnit.append(object.getString("extract_zhongBiaoUnit"));
             }
-            if (StringUtils.isBlank(newAmountUnit) && null != object.get("extract_newAmountUnit")){
-                newAmountUnit.append(object.getString("extract_newAmountUnit"));
+            if (StringUtils.isBlank(blAgents) && null != object.get("extract_agentUnit")){
+                blAgents.append(object.getString("extract_agentUnit"));
             }
         }
         resultMap.put("baiLian_budget", blBudget); //获取预算金额
@@ -306,7 +327,6 @@ public class CusDataFieldService {
         resultMap.put("zhao_biao_unit", blZhaoBiaoUnit);//获取招标单位
         resultMap.put("bidder", blBidder);  //候选人
         resultMap.put("agent_unit", blAgents);  //百炼代理机构
-        resultMap.put("newAmountUnit",newAmountUnit);//混合中标金额
         return resultMap;
 
     }
@@ -430,7 +450,6 @@ public class CusDataFieldService {
         String blZhongBiaoUnit = null; //获取自提中标单位
         String blBidder = null; //获取候选人
         String blAgents = null; //百炼代理机构
-        //String projName=null;//项目名称
         for (int d = 0; d < jsonArray.size(); d++) {
             JSONObject object = jsonArray.getJSONObject(d);
             // 获取招标预算
@@ -444,8 +463,6 @@ public class CusDataFieldService {
                 blZhongbiaoAmount = object.getString("extract_amountUnit");
             }  else if (null != object.get("extract_agentUnit")) {
                 blAgents = object.getString("extract_agentUnit");
-           /* } else if (null != object.get("extract_proj_name")) {
-                projName = object.getString("extract_proj_name");*/
             }
         }
         resultMap.put("baiLian_budget", blBudget); //获取预算金额
@@ -454,7 +471,6 @@ public class CusDataFieldService {
         resultMap.put("zhao_biao_unit", blZhaoBiaoUnit);//获取招标单位
         resultMap.put("bidder", blBidder);  //候选人
         resultMap.put("agent_unit", blAgents);  //百炼代理机构
-        //resultMap.put("keyword", projName);  //百炼代理机构
         return resultMap;
     }
 
@@ -581,19 +597,17 @@ public class CusDataFieldService {
         String xmNumber = null; // 项目编号
         String relationName = null; //招标单位联系人
         String relationWay = null; //招标单位联系方式
-        String linkMan = null; //中标单位联系人
-        String linkPhone = null; //中标单位联系人
-        String agentRelationName = null; //代理联系人
-        String agentRelationWay = null; //代理联系方式
+        String linkMan = null; //招标单位联系人
+        String linkPhone = null; //招标单位联系人
+        String agentRelationName = null; //招标单位联系人
+        String agentRelationWay = null; //招标单位联系人
         String infoTypeSegment = null;
         String projectInvest = null;
         String projectInvestUnit = null;
         String projectNature = null;
         String projectOwner = null;
         String catid = null;
-        String extract_proj_name = null;//项目名称
-        String zhao_first_industry=null;//招标单位一级行业标签
-        String zhao_second_industr=null;//招标单位二级行业标签
+        String extract_proj_name = null;
 
         for (int d = 0; d < jsonArray.size(); d++) {
             JSONObject object = jsonArray.getJSONObject(d);
@@ -654,6 +668,7 @@ public class CusDataFieldService {
             } else if (null != object.get("extract_proj_name")) {
                 extract_proj_name = object.getString("extract_proj_name");
             }
+
         }
 
         String provinceName = null;
@@ -669,9 +684,12 @@ public class CusDataFieldService {
         String isHasAddition = "否";
         StringBuilder urls = new StringBuilder();
         List<Map<String, Object>> jobList1 = gwJdbcTemplate.queryForList("select * from phpcms_c_zb_file where contentid = ?", infoId);
-        for (Map<String, Object> stringObjectMap : jobList1) {
-            urls.append("http://file.qianlima.com:11180/ae_ids/download/download_out.jsp?id=" + stringObjectMap.get("fileid").toString());
+        if (jobList1 != null && jobList1.size() > 0){
+            for (Map<String, Object> stringObjectMap : jobList1) {
+                urls.append("http://file.qianlima.com:11180/ae_ids/download/download_out.jsp?id=" + stringObjectMap.get("fileid").toString());
+            }
         }
+
         if (StringUtils.isNotBlank(urls.toString())) {
             isHasAddition = "是";
         }
@@ -702,7 +720,7 @@ public class CusDataFieldService {
         resultMap.put("infoTypeSegment", infoTypeSegment);
         resultMap.put("type", "");  // 预留字段1
         resultMap.put("keyword_term", ""); // 预留字段2
-        resultMap.put("extract_proj_name", extract_proj_name); //项目名称字段
+        resultMap.put("extract_proj_name", extract_proj_name); // 预留字段2
         return resultMap;
     }
 
@@ -792,7 +810,7 @@ public class CusDataFieldService {
             httpGet.setConfig(requestConfig);
             CloseableHttpResponse response = client.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                log.info("=====调用分支机构接口====>{}",infoId);
+                log.info("=====调用分支机构接口====");
                 String result = EntityUtils.toString(response.getEntity(), "UTF-8");
                 if (StringUtils.isNotBlank(result)){
                     jsonObject = JSON.parseObject(result);
@@ -826,49 +844,6 @@ public class CusDataFieldService {
         }
         return jsonArray;
     }
-
-
-    public static void main(String[] args) {
-        CusDataFieldService cusDataFieldService = new CusDataFieldService();
-        JSONArray jsonArrayWithFields = cusDataFieldService.getJSONArrayWithFields("208790280", false);
-        System.out.println(1);
-    }
-
-
-
-
-//     获取中台接口通用字段
-//    private JSONArray getJSONArrayWithFields(String infoId, boolean flag){
-//        JSONArray jsonArray = new JSONArray();
-//        try {
-//            String fileName = "id,title,url,progid,area_areaid,updatetime,xmNumber,extract_budget,extract_zhaoBiaoUnit,extract_zhongBiaoUnit,extract_amountUnit,extract_agentUnit," +
-//                    "extractDateDetail,biddingTypeDetail,expandField,zhaoBiaoDetail,agentDetail,zhongbiaoDetail" ;
-//            if (flag){
-//                fileName += ",content";
-//            }
-//            Map<String, Object> map = QianlimaZTUtil.getFields(apiUrl, infoId, fileName, "");
-//            log.info("处理到:{}",atomicInteger.incrementAndGet());
-//            if (map == null) {
-//                log.error("获取中台接口失败", infoId);
-//                throw new RuntimeException("调取中台失败");
-//            }
-//            String returnCode = (String) map.get("returnCode");
-//            if ("500".equals(returnCode) || "1".equals(returnCode)) {
-//                log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
-//                throw new RuntimeException("数据调取中台失败");
-//            } else if ("0".equals(returnCode)) {
-//                JSONObject data = (JSONObject) map.get("data");
-//                if (data == null) {
-//                    log.error("该条 info_id：{}，数据调取中台字段失败", infoId);
-//                    throw new RuntimeException("数据调取中台失败");
-//                }
-//                jsonArray = data.getJSONArray("fields");
-//            }
-//        } catch (Exception e){
-//            log.error("数据调取中台字段失败, infoId:{} 原因:{}", infoId, e);
-//        }
-//        return jsonArray;
-//    }
 
     /// 招标单位联系人、联系电话。中标单位联系人、联系电话 多个的用的英文逗号分隔。
     private static String format(String field) {
@@ -908,3 +883,4 @@ public class CusDataFieldService {
         return resultMap;
     }
 }
+

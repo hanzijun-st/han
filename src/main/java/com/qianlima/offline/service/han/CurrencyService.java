@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public interface CurrencyService {
     /**
-     *  区分 1全部，2.招标 3.中标
+     *  判断 0:0、1:全部、2:招标[0 TO 2]、3:3、4:[0 TO 3]、5:中标[3 OR progid:5]、6:[0 OR progid:3]
      */
     String getProgidStr(String str);
 
@@ -66,4 +66,9 @@ public interface CurrencyService {
 
     List<Map<String,Object>> getListMap(String sql);
 
+    /**
+     * 标的物获取的第三版本
+     * @param type
+     */
+    void getNewBdw3(Integer type);
 }

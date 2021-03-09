@@ -186,13 +186,18 @@ public class DateUtils {
     }
 
     private static  Date getDateAdd(int days){
-        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -days);
         return c.getTime();
     }
-    //最近几天日期
-    public static List<String> getDaysBetwwen(int days){
+
+    /**
+     * 最近几天日期(包括当天)
+     * @param days 想要几天的日期，就输入多少（例如：7天）
+     * @param formate 格式（例如：yyyyMMdd 或者yyyy-MM-dd）
+     * @return
+     */
+    public static List<String> getDaysBetwwen(int days,String formate){
         List<String> dayss = new ArrayList<>();
         Calendar start = Calendar.getInstance();
         start.setTime(getDateAdd(days-1));
@@ -204,11 +209,12 @@ public class DateUtils {
         Long time = startTIme;
         while (time <= endTime) {
             Date d = new Date(time);
-            DateFormat df = new SimpleDateFormat("yyyyMMdd");
+            DateFormat df = new SimpleDateFormat(formate);
             dayss.add(df.format(d));
             time += oneDay;
         }
         return dayss;
     }
+
 
 }

@@ -127,4 +127,48 @@ public interface TestService {
      * @param date
      */
     void getWenSiHaiHuib2_2(Integer type, String date);
+
+    /**
+     * 奥林巴斯第二回合
+     * @param type
+     * @param date
+     */
+    void getAolinbasi2(Integer type, String date);
+
+    /**
+     * 奥林巴斯第二回合-全文检索关键词b
+     * @param type
+     * @param date
+     */
+    void getAolinbasi2_qw(Integer type, String date);
+
+    void getAolinbasi2_3(Integer type, String date);
+
+    /**
+     * 贝登
+     * @param type
+     * @param date
+     */
+    void getBeiDeng(Integer type, String date) throws Exception;
+
+    /**
+     * 文思海辉-交付数据
+     * @param type
+     * @param date
+     */
+    void getWensihaihui_Jiaofu(Integer type, String date);
+
+    /**
+     * 贝登第二次
+     * @param type
+     * @param date
+     */
+    void getBeiDeng2(Integer type, String date)  throws Exception;
+
+    /**
+     * 云南獾少科技
+     * @param type
+     * @param date
+     */
+    void getYuNanMaoShao(Integer type, String date) throws Exception;
 }

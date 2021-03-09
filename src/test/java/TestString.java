@@ -1,6 +1,11 @@
 import com.alibaba.fastjson.JSON;
+import com.qianlima.offline.service.han.CurrencyService;
+import com.qianlima.offline.service.han.impl.CurrencyServiceImpl;
 import com.qianlima.offline.util.StrUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +52,7 @@ public class TestString {
       if (str.contains("h")){
           System.out.println("hahaha"+str);
       }*/
-      String str ="{\"code\": 0,\"msg\": \"\",\"data\": {\"province\": \"北京市\",\"city\": \"海淀区\",\"regLocation\": \"北京市海淀区上地东路1号院1号楼8层A801-5\"}}";
+      /*String str ="{\"code\": 0,\"msg\": \"\",\"data\": {\"province\": \"北京市\",\"city\": \"海淀区\",\"regLocation\": \"北京市海淀区上地东路1号院1号楼8层A801-5\"}}";
       Map map =  (Map) JSON.parse(str);
       String code = map.get("code").toString();
       String data = map.get("data").toString();
@@ -59,6 +64,18 @@ public class TestString {
         System.out.println("code:"+code);
         System.out.println("province:"+regLocation);
         System.out.println("city:"+city);
-        System.out.println("regLocation:"+regLocation);
+        System.out.println("regLocation:"+regLocation);*/
+
+      /*BigDecimal a = new BigDecimal("10");
+      BigDecimal b = new BigDecimal("11");
+
+      if (a.compareTo(b) >-1){
+        System.out.println("true");
+      }*/
+      CurrencyService currencyService = new CurrencyServiceImpl();
+      for (int i =0;i<6;i++){
+          String progidStr = currencyService.getProgidStr(String.valueOf(i));
+          System.out.println("参数："+i+"-------"+progidStr);
+      }
     }
 }
