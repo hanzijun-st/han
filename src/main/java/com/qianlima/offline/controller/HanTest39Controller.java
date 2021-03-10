@@ -49,4 +49,22 @@ public class HanTest39Controller {
         log.info("===============================数据运行结束===================================");
         return "---中软集团第二回合 接口运行结束---";
     }
+
+    @ApiOperation("阿里标题调查")
+    @PostMapping(value = "/getAliBiaoti",produces = "text/plain;charset=utf-8")
+    public String getAliBiaoti(Integer type,String date,String progidStr) {
+        test39Service.getAliBiaoti(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---阿里标题调查 接口运行结束---";
+    }
+
+    @ApiOperation("测试获取solr中的doc为map结构")
+    @PostMapping(value = "/getTest",produces = "text/plain;charset=utf-8")
+    public String getTest(Integer type,String date,String progidStr) {
+        test39Service.getTest(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---测试获取solr中的doc为map结构 接口运行结束---";
+    }
+
+
 }

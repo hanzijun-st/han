@@ -1,5 +1,6 @@
 package com.qianlima.offline.util;
 
+import com.qianlima.offline.bean.NoticeAllField;
 import com.qianlima.offline.bean.NoticeMQ;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +13,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -22,25 +22,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 线上solr
+ *  调用solr 直接返回map结构
  */
 @Component
 @Slf4j
-public class OnlineContentSolr {
+public class OnlineNewContentSolr {
 
     @Autowired
     //@Qualifier("onlineSolr")
     private SolrClient solrClient;
 
-    public List<NoticeMQ> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {
+    public List<NoticeAllField> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {
         String cursormark = "";
-        List<NoticeMQ> resultMap = new ArrayList<>();
-
+        List<NoticeAllField> resultList = new ArrayList<>();
         while (true) {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(tiaojian);
             solrQuery.setRows(5000);
-            //solrQuery.setFields("fl","id","zhaoBiaoUnit","title","newZhongBiaoUnit","newAmountUnit");
             if (StringUtils.isEmpty(cursormark)) {
                 solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
             } else {
@@ -54,33 +52,11 @@ public class OnlineContentSolr {
                     int count = 0;
                     for (SolrDocument doc : results) {
                         if (doc.containsKey("id") && null != doc.get("id")) {
-                            NoticeMQ toMQEntity = new NoticeMQ();
-                            toMQEntity.setContentid(Long.valueOf(doc.get("id").toString()));
-                            toMQEntity.setTitle(doc.get("title") != null ? doc.get("title").toString() : null);//标题
-                            toMQEntity.setZhaoBiaoUnit(doc.get("zhaoBiaoUnit") != null ? doc.get("zhaoBiaoUnit").toString() : null);
-                            toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);
-                            toMQEntity.setZhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);
-                            toMQEntity.setUpdatetime(doc.get("updatetime") != null ? doc.get("updatetime").toString() : null);//发布时间
-                            toMQEntity.setTags(doc.get("tags") != null ? doc.get("tags").toString() : null);
-                            toMQEntity.setTags(doc.get("tagids") != null ? doc.get("tagids").toString() : null);
-                            toMQEntity.setKey(key);
-                            toMQEntity.setTaskId(taskId);
-                            toMQEntity.setAmount(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);
-                            toMQEntity.setNewAmountUnit(doc.get("newAmountUnit") != null ? doc.get("newAmountUnit").toString() : null);
-                            toMQEntity.setBudget(doc.get("budget") != null ? doc.get("budget").toString() : null);
-                            //toMQEntity.setNewZhongBiaoUnit(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);//混合中标单位
-                            toMQEntity.setXmNumber(doc.get("xmNumber") != null ? doc.get("xmNumber").toString() : null);//项目编号
-                            toMQEntity.setNewProvince(doc.get("newProvince") != null ? doc.get("newProvince").toString() : null);//
-                            toMQEntity.setNewCity(doc.get("newCity") != null ? doc.get("newCity").toString() : null);//
-                            toMQEntity.setNewCountry(doc.get("newCountry") != null ? doc.get("newCountry").toString() : null);//
-                            toMQEntity.setBiddingType(doc.get("biddingType") != null ? doc.get("biddingType").toString() : null);//
-                            toMQEntity.setUrl(doc.get("url") != null ? doc.get("url").toString() : null);//
-                            toMQEntity.setAmountUnit(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);//
-                            toMQEntity.setProgid(doc.get("progid") != null ? doc.get("progid").toString() : null);//
-                            toMQEntity.setZhaoRelationName(doc.get("zhaoRelationName") != null ? doc.get("zhaoRelationName").toString() : null);//
-                            toMQEntity.setZhaoRelationWay(doc.get("zhaoRelationWay") != null ? doc.get("zhaoRelationWay").toString() : null);//
-                            toMQEntity.setAgentUnit(doc.get("agentUnit") != null ? doc.get("agentUnit").toString() : null);//
-                            resultMap.add(toMQEntity);
+
+                            NoticeAllField noticeAllField = MapUtil.mapToBean(doc, NoticeAllField.class);
+                            if (noticeAllField !=null){
+                                resultList.add(noticeAllField);
+                            }
                         }
                     }
                 } else {
@@ -94,9 +70,9 @@ public class OnlineContentSolr {
             } catch (SolrServerException | IOException e) {
                 log.error("跑数据异常,{}", e);
             }
-            log.info("=====关键词:" + key + " solr执行到了：" + resultMap.size());
+            log.info("=====关键词:" + key + " solr执行到了：" + resultList.size());
         }
-        return resultMap;
+        return resultList;
     }
 
     /**

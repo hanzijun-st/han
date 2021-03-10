@@ -1,13 +1,11 @@
 package com.qianlima.offline.service.han.impl;
 
+import com.qianlima.offline.bean.NoticeAllField;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.CusDataNewService;
 import com.qianlima.offline.service.han.Test39Service;
-import com.qianlima.offline.util.OnlineContentSolr;
-import com.qianlima.offline.util.ReadFileUtil;
-import com.qianlima.offline.util.ReadPathUtil;
-import com.qianlima.offline.util.StrUtil;
+import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +25,8 @@ public class Test39ServiceImpl implements Test39Service {
 
     @Autowired
     private OnlineContentSolr onlineContentSolr;
+    @Autowired
+    private OnlineNewContentSolr onlineNewContentSolr;
 
     @Autowired
     private CurrencyService currencyService;//为了获取 progid
@@ -318,6 +318,94 @@ public class Test39ServiceImpl implements Test39Service {
             }
         }
         System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getAliBiaoti(Integer type, String date,String progidStr) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        String progid = currencyService.getProgidStr(progidStr);//获取对应的progid对应的值
+        //关键词a
+        try {
+            List<String> a = LogUtils.readRule("keyWords");
+            for (String str : a) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:"+progid+") AND allcontent:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                    /*if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }*/
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            System.out.println("全部数据量：" + listAll.size());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (listAll != null && listAll.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(60);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : listAll) {
+                    futureList.add(executorService.submit(() -> cusDataNewService.saveIntoMysqlToAli(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getTest(Integer type, String date, String progidStr) {
+        String progid = currencyService.getProgidStr(progidStr);//获取对应的progid对应的值
+        String str ="S603环万佛湖公路养护";
+        List<NoticeAllField> noticeAllFields = onlineNewContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:" + progid + ") AND allcontent:\"" + str + "\"", "", 1);
+        for (NoticeAllField noticeAllField : noticeAllFields) {
+            log.info("得到的所有solr中的字段：{}",noticeAllField);
+        }
     }
 
 

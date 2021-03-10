@@ -21,4 +21,14 @@ public interface Test39Service {
      * @param progidStr
      */
     void getZhongRuan2(Integer type, String date, String progidStr);
+
+    /**
+     * 阿里标题调查
+     * @param type
+     * @param date
+     */
+    void getAliBiaoti(Integer type, String date,String progidStr);
+
+    //只是测试数据--删除
+    void getTest(Integer type, String date, String progidStr);
 }

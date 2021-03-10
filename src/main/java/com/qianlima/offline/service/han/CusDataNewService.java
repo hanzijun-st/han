@@ -88,6 +88,14 @@ public class CusDataNewService {
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
                 map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"));
     }
+    public void saveIntoMysqlToAli(NoticeMQ noticeMQ){
+        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR,null, noticeMQ.getKeyword(), noticeMQ.getContentid(), noticeMQ.getTitle(),
+                null, noticeMQ.getNewProvince(), noticeMQ.getNewCity(), noticeMQ.getNewCountry(), noticeMQ.getUrl(), noticeMQ.getBudget(),
+                noticeMQ.getAmountUnit(), noticeMQ.getXmNumber(), noticeMQ.getBiddingType(), noticeMQ.getProgid(), noticeMQ.getZhaoBiaoUnit(),
+                noticeMQ.getZhaoRelationName(), noticeMQ.getZhaoRelationWay(),noticeMQ.getAgentUnit(), noticeMQ.getAgentRelationName(),
+                noticeMQ.getAgentRelationWay(),noticeMQ.getZhongBiaoUnit(), noticeMQ.getZhongRelationName(), noticeMQ.getZhongRelationWay(),
+                null, null, null, null, null,null, noticeMQ.getUpdatetime(),null, null, null, null, null, null, null, null,null,null);
+    }
 
     /**
      * 获取正文字段

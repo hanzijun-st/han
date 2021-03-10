@@ -1,6 +1,8 @@
 package com.qianlima.offline.util;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
+import org.apache.catalina.User;
 import org.springframework.cglib.beans.BeanMap;
 
 import java.util.*;
@@ -26,17 +28,26 @@ public class MapUtil {
         }
         return map;
     }
+
+    /**
+     * 通过实体类转成json，然后转换成map对象
+     * @param bean
+     * @param <T>
+     * @return
+     */
+    public static <T> Map<String,Object> beanToMapNew(T bean){
+        Map map = JSON.parseObject(JSON.toJSONString(bean), Map.class);
+        return map;
+    }
+
     /**
      * 将map转换为 bean对象
      *
-     * @param map
      * @param bean
      * @return
      */
-    public static <T> T mapToBean(Map<String, Object> map, T bean) {
-        BeanMap beanMap = BeanMap.create(bean);
-        beanMap.putAll(map);
-        return bean;
+    public static <T> T mapToBean(Object obj, Class<T> bean) {
+        return JSON.parseObject(JSON.toJSONString(obj), bean);
     }
 
     /**
