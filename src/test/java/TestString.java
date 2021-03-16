@@ -72,10 +72,15 @@ public class TestString {
       if (a.compareTo(b) >-1){
         System.out.println("true");
       }*/
-      CurrencyService currencyService = new CurrencyServiceImpl();
+     /* CurrencyService currencyService = new CurrencyServiceImpl();
       for (int i =0;i<6;i++){
           String progidStr = currencyService.getProgidStr(String.valueOf(i));
           System.out.println("参数："+i+"-------"+progidStr);
-      }
+      }*/
+
+        String s1 = "abc";
+        String s2 = "abc";
+        System.out.println(s1.intern() ==s2.intern());
+
     }
 }

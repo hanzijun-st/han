@@ -1,5 +1,6 @@
 package com.qianlima.offline.controller;
 
+import com.qianlima.offline.entity.TestUser;
 import com.qianlima.offline.service.han.TestMyBatisService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,7 +21,8 @@ public class TestMyBatisController {
     @ApiOperation("测试mybatis")
     @PostMapping("/test")
     public String test(){
-        testMyBatisService.testMyBatis();
-        return "---test---";
+        TestUser testUser = testMyBatisService.testMyBatis();
+
+        return testUser.getName();
     }
 }

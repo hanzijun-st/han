@@ -41,7 +41,7 @@ public class HanTest39Controller {
         return "---getZhongRuan is ok---";
     }
 
-    @ApiOperation("中软集团-第二回合")
+    @ApiOperation("中软集团-第二回合(测试接口)")
     @PostMapping(value = "/getZhongRuan2",produces = "text/plain;charset=utf-8")
     //参数：progidStr取值---> 判断 0:0、1:全部、2:招标[0 TO 2]、3:3、4:[0 TO 3]、5:中标[3 OR progid:5]、6:[0 OR progid:3]
     public String getZhongRuan2(Integer type,String date,String progidStr) {
@@ -66,5 +66,59 @@ public class HanTest39Controller {
         return "---测试获取solr中的doc为map结构 接口运行结束---";
     }
 
+    @ApiOperation("毕马威中国-allcontent")
+    @PostMapping(value = "/getBiMaWei",produces = "text/plain;charset=utf-8")
+    public String getBiMaWei(Integer type,String date,String progidStr) {
+        test39Service.getBiMaWei(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---毕马威中国全文检索 接口运行结束---";
+    }
 
+    @ApiOperation("毕马威中国-title")
+    @PostMapping(value = "/getBiMaWeiByTitle",produces = "text/plain;charset=utf-8")
+    public String getBiMaWeiByTitle(Integer type,String date,String progidStr) {
+        test39Service.getBiMaWeiByTitle(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---毕马威中国-标题检索 接口运行结束---";
+    }
+
+    @ApiOperation("毕马威中国-规则三")
+    @PostMapping(value = "/getBiMaWeiByTitle_3",produces = "text/plain;charset=utf-8")
+    public String getBiMaWeiByTitle_3(Integer type,String date,String progidStr) {
+        test39Service.getBiMaWeiByTitle_3(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---毕马威中国-规则三 接口运行结束---";
+    }
+    @ApiOperation("毕马威中国-规则三-屏蔽词(金融行业)")
+    @PostMapping(value = "/getBiMaWeiByTitle_3_1",produces = "text/plain;charset=utf-8")
+    public String getBiMaWeiByTitle_3_1(Integer type,String date,String progidStr) {
+        test39Service.getBiMaWeiByTitle_3_1(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---毕马威中国-规则三-屏蔽词(金融行业) 接口运行结束---";
+    }
+
+
+    @ApiOperation("陕西星宝莱厨房设备有限公司")
+    @PostMapping(value = "/getShanXiXingBaoLai",produces = "text/plain;charset=utf-8")
+    public String getShanXiXingBaoLai(Integer type,String date,String progidStr) {
+        test39Service.getShanXiXingBaoLai(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---陕西星宝莱厨房设备有限公司 接口运行结束---";
+    }
+    @ApiOperation("陕西星宝莱厨房设备有限公司-第一回合2")
+    @PostMapping(value = "/getShanXiXingBaoLai2",produces = "text/plain;charset=utf-8")
+    public String getShanXiXingBaoLai2(Integer type,String date,String progidStr) {
+        //参数：progidStr取值---> 判断 0:0、1:全部、2:招标[0 TO 2]、3:3、4:[0 TO 3]、5:中标[3 OR progid:5]、6:[0 OR progid:3]
+        test39Service.getShanXiXingBaoLai2(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---陕西星宝莱厨房设备有限公司-第一回合2 接口运行结束---";
+    }
+
+    @ApiOperation("陕西星宝莱厨房设备有限公司-第二回合")
+    @PostMapping(value = "/getShanXiXingBaoLai2_1",produces = "text/plain;charset=utf-8")
+    public String getShanXiXingBaoLai2_1(Integer type,String date,String progidStr) {
+        test39Service.getShanXiXingBaoLai2_1(type, date,progidStr);
+        log.info("===============================数据运行结束===================================");
+        return "---陕西星宝莱厨房设备有限公司-第二回合 接口运行结束---";
+    }
 }

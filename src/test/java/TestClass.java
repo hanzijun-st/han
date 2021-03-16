@@ -1,5 +1,3 @@
-package java;
-
 import com.qianlima.offline.util.JsonUtil;
 import com.qianlima.offline.util.MapUtil;
 import lombok.Data;
@@ -27,8 +25,12 @@ public class TestClass {
         map.put("name","哈哈哈");
         map.put("age","20");
 
-        Abc abcClass = MapUtil.mapToBean(map,(Abc) abc);
-        System.out.println(abcClass.getName()+"==="+abcClass.getAge());
+        Abc abcClass = MapUtil.mapToBean(map,Abc.class);
+        //System.out.println(abcClass.getName()+"==="+abcClass.getAge());
+
+
+        Map<String, Object> map1 = MapUtil.beanToMapNew(abcClass);
+        System.out.println(map1);
     }
 
 }

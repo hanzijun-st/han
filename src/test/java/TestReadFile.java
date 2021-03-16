@@ -1,8 +1,10 @@
 import com.qianlima.offline.util.LogUtils;
 import com.qianlima.offline.util.ReadFileUtil;
 import com.qianlima.offline.util.ReadPathUtil;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
 
+import javax.swing.filechooser.FileSystemView;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +28,21 @@ public class TestReadFile {
         ReadFileUtil.readFile("E:/work/han/src/test/resource","123.txt",list);
         System.out.println("运行结束");*/
 
-        List<String> list = new ArrayList<>();
-        list.add("2");
+        /*List<String> list = new ArrayList<>();
+        for (int i=0;i<600;i++){
+            list.add("测试一次数据的导入性是不是可以："+i);
+        }
         String path = ReadPathUtil.getPath("file");
         ReadFileUtil.readFile(path,"test.txt",list);
-        System.out.println("运行成功");
+        System.out.println("运行成功");*/
+
+        /*String homePath = ReadPathUtil.getHomePath();
+        List<String> list = new ArrayList<>();
+        for (int i=0;i<100;i++){
+            list.add("测试一次桌面路径："+i);
+        }
+        ReadFileUtil.readFile(homePath,"test.txt",list);*/
+
 
     }
 

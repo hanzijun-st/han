@@ -31,4 +31,61 @@ public interface Test39Service {
 
     //只是测试数据--删除
     void getTest(Integer type, String date, String progidStr);
+
+
+    /**
+     * 毕马威中国
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getBiMaWei(Integer type, String date, String progidStr);
+
+    /**
+     *  毕马威中国-标题检索
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getBiMaWeiByTitle(Integer type, String date, String progidStr);
+
+    /**
+     * 陕西星宝莱厨房设备有限公司
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getShanXiXingBaoLai(Integer type, String date, String progidStr);
+
+    /**
+     * 陕西星宝莱厨房设备有限公司-第一回合2
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getShanXiXingBaoLai2(Integer type, String date, String progidStr);
+
+    /**
+     * 毕马威中国-规则三
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getBiMaWeiByTitle_3(Integer type, String date, String progidStr);
+
+    /**
+     *  毕马威中国-规则三-屏蔽词（金融行业）
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getBiMaWeiByTitle_3_1(Integer type, String date, String progidStr);
+
+    /**
+     * 陕西星宝莱厨房设备有限公司-第二回合
+     * @param type
+     * @param date
+     * @param progidStr
+     */
+    void getShanXiXingBaoLai2_1(Integer type, String date, String progidStr);
 }

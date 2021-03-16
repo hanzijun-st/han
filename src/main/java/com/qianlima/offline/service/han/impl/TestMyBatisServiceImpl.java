@@ -14,8 +14,9 @@ public class TestMyBatisServiceImpl implements TestMyBatisService {
     //private TestUserMapper testUserMapper;
 
     @Override
-    public void testMyBatis() {
-        //TestUser testUser = testUserMapper.selectByPrimaryKey(1);
+    public TestUser testMyBatis() {
+        TestUser testUser = null;
         log.info("name:{}");
+        return testUser;
     }
 }

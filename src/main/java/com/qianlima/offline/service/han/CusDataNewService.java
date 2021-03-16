@@ -99,14 +99,14 @@ public class CusDataNewService {
 
     /**
      * 获取正文字段
-     * @param map
+     * @param noticeMQ
      * @return
      */
-    public String getContent(Map<String, Object> map){
+    public String getContent(NoticeMQ noticeMQ){
 
         //String title = map.get("title") != null ? map.get("title").toString() : "";//标题
         //获取正文字段
-        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, map.get("content_id").toString());
+        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, noticeMQ.getContentid().toString());
         if (contentList == null || contentList.size() <=0){
             return "";
         }
