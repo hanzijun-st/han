@@ -34,9 +34,25 @@ public class CurrencyController {
     }
 
     @GetMapping("/start/getBdw")
-    @ApiOperation("获取标的物的数据")
-    public String getBdw(){
-        currencyService.getBdw();
+    @ApiOperation("获取标的物的数据-type(1:迈瑞；2:ICT；3:医疗；4:没有侧重点)")
+    public String getBdw(Integer type){
+        currencyService.getBdw(type);
         return "请求成功---成功获取标的物";
+    }
+
+    /**
+     *  获取标的物
+     * @param type
+    1、迈瑞接口地址：http://47.104.4.12:5001/to_json_v3/
+    2、[模型识别侧重“ICT行业”]：http://47.104.4.12:2022/inspect
+    3、[模型识别侧重“医疗行业”]：http://47.104.4.12:2023/inspect
+    4、[模型识别没有侧重点]：http://47.104.4.12:2024/inspect
+     * @return
+     */
+    @GetMapping("/getNewBdw3")
+    @ApiOperation("1.3的标的物方式-获取标的物的数据（1:迈瑞；2:ICT；3:医疗；4:没有侧重点；）")
+    public String getNewBdw(Integer type){
+        currencyService.getNewBdw3(type);
+        return "getNewBdw3请求成功---最新方式-获取标的物的数据";
     }
 }

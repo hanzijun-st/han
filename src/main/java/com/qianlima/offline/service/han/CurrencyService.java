@@ -2,6 +2,7 @@ package com.qianlima.offline.service.han;
 
 import com.qianlima.offline.bean.Params;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Map;
  */
 public interface CurrencyService {
     /**
-     *  区分 1全部，2.招标 3.中标
+     *  判断 0:0、1:全部、2:招标[0 TO 2]、3:3、4:[0 TO 3]、5:中标[3 OR progid:5]、6:[0 OR progid:3]
      */
     String getProgidStr(String str);
 
@@ -23,7 +24,7 @@ public interface CurrencyService {
     /**
      * 标的物
      */
-    void getBdw();
+    void getBdw(Integer type);
 
     /**
      * 批量导入
@@ -33,7 +34,7 @@ public interface CurrencyService {
     /**
      * 行业标签
      */
-    void getBiaoQian();
+    void getBiaoQian(Integer type) throws Exception;
 
     void getPpei();
 
@@ -58,4 +59,16 @@ public interface CurrencyService {
      */
     void saveTyInto(Map<String,Object> map, String sql);
 
+    /**
+     * 添加contentId 用来导出标的物
+     */
+    void saveContentId(String contentid);
+
+    List<Map<String,Object>> getListMap(String sql);
+
+    /**
+     * 标的物获取的第三版本
+     * @param type
+     */
+    void getNewBdw3(Integer type);
 }

@@ -10,7 +10,7 @@ import com.qianlima.offline.bean.Area;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.ItemInfo;
 import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.util.ContentSolr;
+import com.qianlima.offline.util.FbsContentSolr;
 import com.qianlima.offline.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
 public class JianGongService006 {
 
     @Autowired
-    private ContentSolr normalSolr;
+    private FbsContentSolr normalSolr;
 
     @Autowired
     private NewZhongTaiService zhongTaiService;

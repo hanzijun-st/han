@@ -4,11 +4,15 @@ import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestService;
-import io.swagger.annotations.*;
+import com.qianlima.offline.util.LogUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * hanzijun 接口
@@ -42,10 +46,39 @@ public class HanTestController {
 
     @GetMapping("/start/getBdw")
     @ApiOperation("获取标的物的数据")
-    public String getBdw(){
-        testService.getBdw();
+    public String getBdw(Integer type){
+        testService.getBdw(type);
         return "请求成功---成功获取标的物";
     }
+
+    /**
+     *  获取标的物
+     * @param type
+                    1、迈瑞接口地址：http://47.104.4.12:5001/to_json_v3/
+                    2、[模型识别侧重“ICT行业”]：http://47.104.4.12:2022/inspect
+                    3、[模型识别侧重“医疗行业”]：http://47.104.4.12:2023/inspect
+                    4、[模型识别没有侧重点]：http://47.104.4.12:2024/inspect
+     * @return
+     */
+    @GetMapping("/getNewBdw")
+    @ApiOperation("最新方式-获取标的物的数据（1:迈瑞；2:ICT；3:医疗；4:没有侧重点；）")
+    public String getNewBdw(Integer type){
+        testService.getNewBdw(type);
+        return "请求成功---最新方式-获取标的物的数据";
+    }
+
+    /**
+     * 1个关键词
+     * @param params
+     * @return
+     */
+    @ApiOperation("一个关键词")
+    @PostMapping("/start/getOne")
+    public String getOne(@RequestBody Params params){
+        currencyService.getOnePoc(params);
+        return "---测试---";
+    }
+
 
     @GetMapping("/start/updateKeyword")
     @ApiOperation("修改关键词")
@@ -91,17 +124,6 @@ public class HanTestController {
         aoLinBaSiService.getJdgl(time1,time2,type,title);
         return "---佳电(上海)管理有限公司---";
     }
-    /**
-     * 1个关键词
-     * @param params
-     * @return
-     */
-    @ApiOperation("一个关键词")
-    @PostMapping("/start/getOne")
-    public String getOne(@RequestBody Params params){
-        currencyService.getOnePoc(params);
-        return "---测试---";
-    }
 
     @ApiOperation("测试批量导入数据库")
     @PostMapping("/start/save")
@@ -112,8 +134,8 @@ public class HanTestController {
 
     @ApiOperation("行业标签")
     @PostMapping("/start/getBiaoQian")
-    public String getBiaoQian(){
-        currencyService.getBiaoQian();
+    public String getBiaoQian(@RequestParam("type") Integer type) throws Exception{
+        currencyService.getBiaoQian(type);
         return "---123---";
     }
 
@@ -142,5 +164,181 @@ public class HanTestController {
     public String getChongqi(){
         testService.getChongqi();
         return "---getChongqi---";
+    }
+
+    @ApiOperation("纵横大鹏无人机-规则三")
+    @PostMapping("/getZongHengDaPeng3")
+    public String getZongHengDaPeng3(Integer type,String date) throws Exception{
+        testService.getZongHengDaPeng3(type,date);
+        return "---getZongHengDaPeng3---";
+    }
+
+    @ApiOperation("合肥航联")
+    @PostMapping("/getHefeiHanglian")
+    public String getHefeiHanglian(Integer type,String date) throws Exception{
+        testService.getHefeiHanglian(type,date);
+        return "---getHefeiHanglian---";
+    }
+    @ApiOperation("邯郸开发区中电环境科技有限公司")
+    @PostMapping("/getHanDanKaiFaQu")
+    public String getHanDanKaiFaQu(Integer type,String date) throws Exception{
+        testService.getHanDanKaiFaQu(type,date);
+        return "---getHanDanKaiFaQu---";
+    }
+    @ApiOperation("四川羽医医疗管理有限公司")
+    @PostMapping("/getSiChuanYuYiYiLiao")
+    public String getSiChuanYuYiYiLiao(Integer type,String date) throws Exception{
+        testService.getSiChuanYuYiYiLiao(type,date);
+        return "---getSiChuanYuYiYiLiao---";
+    }
+
+    @ApiOperation("北京金万维科技有限公司")
+    @PostMapping("/getJingWanWei")
+    public String getJingWanWei(Integer type,String date) throws Exception{
+        testService.getJingWanWei(type,date);
+        return "---getJingWanWei---";
+    }
+
+    @GetMapping("/start/cs")
+    @ApiOperation("测试")
+    public String cs(){
+        testService.getDaoJinSolrAllField();
+        return "请求成功--";
+    }
+
+    @ApiOperation("北京宇信科技集团股份有限公司")
+    @PostMapping("/getYuxin")
+    public String getYuxin(Integer type,String date) throws Exception{
+        testService.getYuxin(type,date);
+        return "---getYuxin is ok---";
+    }
+    @ApiOperation("北京宇信科技集团股份有限公司-第二回合")
+    @PostMapping("/getYuxin2")
+    public String getYuxin2(Integer type,String date) throws Exception{
+        testService.getYuxin2(type,date);
+        return "---getYuxin is ok---";
+    }
+
+    @ApiOperation("北京宇信科技集团股份有限公司-第三回合")
+    @PostMapping("/getYuxin3")
+    public String getYuxin3(Integer type,String date) throws Exception{
+        testService.getYuxin3(type,date);
+        return "---getYuxin3 is ok---";
+    }
+
+    @ApiOperation("北京宇信科技集团股份有限公司-第一回合4.0")
+    @PostMapping("/getYuxin1_4")
+    public String getYuxin1_4(Integer type,String date) throws Exception{
+        testService.getYuxin1_4(type,date);
+        return "---getYuxin is ok---";
+    }
+
+    @ApiOperation("查找行业标签的错误问题")
+    @PostMapping("/getError")
+    public String getError(Integer type,String date) throws Exception{
+        testService.getError(type,date);
+        return "---getError is ok---";
+    }
+
+    @ApiOperation("北建工的穿透单位数据")
+    @PostMapping("/getBeiJianGong")
+    public String getBeiJianGong(String unit) throws Exception{
+        //List<String> keyWords = LogUtils.readRule("keyWords");
+        testService.getBeiJianGong(unit);
+        return "---getBeiJianGong is ok---";
+    }
+
+    @ApiOperation("ICT大金额id")
+    @PostMapping("/getDaJinE")
+    public String getDaJinE() throws Exception{
+        testService.getKaHangYeSolrAllField();
+        log.info("===============================数据运行结束===================================");
+        return "---getDaJinE is ok---";
+    }
+
+    @ApiOperation("文思海辉")
+    @PostMapping("/getWenSiHaiHui")
+    public String getWenSiHaiHui(Integer type,String date) throws Exception{
+        testService.getWenSiHaiHuib( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWenSiHaiHui is ok---";
+    }
+
+    @ApiOperation("文思海辉-2-规则一")
+    @PostMapping("/getWenSiHaiHui2_1")
+    public String getWenSiHaiHui2_1(Integer type,String date) throws Exception{
+        testService.getWenSiHaiHuib2_1( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWenSiHaiHui2 is ok---";
+    }
+
+    @ApiOperation("文思海辉-2-规则二")
+    @PostMapping("/getWenSiHaiHui2_2")
+    public String getWenSiHaiHui2_2(Integer type,String date) throws Exception{
+        testService.getWenSiHaiHuib2_2( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWenSiHaiHui2_2 is ok---";
+    }
+
+    @ApiOperation("奥林巴斯-第二回合")
+    @PostMapping("/getAolinbasi2")
+    public String getAolinbasi2(Integer type,String date) throws Exception{
+        testService.getAolinbasi2( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getAolinbasi2 is ok---";
+    }
+    @ApiOperation("奥林巴斯-第二回合(全文检索关键词b)")
+    @PostMapping("/getAolinbasi2_qw")
+    public String getAolinbasi2_qw(Integer type,String date) throws Exception{
+        testService.getAolinbasi2_qw( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getAolinbasi2_qw is ok---";
+    }
+
+    @ApiOperation("奥林巴斯-第二回合_规则3")
+    @PostMapping("/getAolinbasi2_3")
+    public String getAolinbasi2_3(Integer type,String date) throws Exception{
+        testService.getAolinbasi2_3( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getAolinbasi2_3 is ok---";
+    }
+
+    @ApiOperation("贝登")
+    @PostMapping("/getBeiDeng")
+    public String getBeiDeng(Integer type,String date) throws Exception{
+        testService.getBeiDeng( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getBeiDeng is ok---";
+    }
+
+    @ApiOperation("文思海辉-交付数据")
+    @PostMapping("/getWensihaihui_Jiaofu")
+    public String getWensihaihui_Jiaofu(Integer type,String date) throws Exception{
+        testService.getWensihaihui_Jiaofu( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getWensihaihui_Jiaofu is ok---";
+    }
+
+    /**
+     * 贝登第二次
+     * @param type
+     * @param date
+     * @return
+     * @throws Exception
+     */
+    @ApiOperation("贝登-2")
+    @PostMapping("/getBeiDeng2")
+    public String getBeiDeng2(Integer type,String date) throws Exception{
+        testService.getBeiDeng2( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getBeiDeng2 is ok---";
+    }
+
+    @ApiOperation("云南獾少科技")
+    @PostMapping("/getYuNanMaoShao")
+    public String getYuNanMaoShao(Integer type,String date) throws Exception{
+        testService.getYuNanMaoShao( type, date);
+        log.info("===============================数据运行结束===================================");
+        return "---getYuNanMaoShao is ok---";
     }
 }

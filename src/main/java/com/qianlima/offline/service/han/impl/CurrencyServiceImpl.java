@@ -3,12 +3,12 @@ package com.qianlima.offline.service.han.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.qianlima.extract.target.TargetExtractService;
+
 import com.qianlima.offline.bean.Area;
-import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
+import com.qianlima.offline.rule02.BiaoDiWuRule;
 import com.qianlima.offline.rule02.MyRuleUtils;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
@@ -16,16 +16,16 @@ import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,8 +53,9 @@ import java.util.concurrent.Future;
 @Service
 @Slf4j
 public class CurrencyServiceImpl implements CurrencyService {
+
     @Autowired
-    private ContentSolr contentSolr;
+    private UpdateContentSolr updateSolr;
 
     @Autowired
     @Qualifier("gwJdbcTemplate")
@@ -97,8 +97,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     public String INSERT_HAN_ALL_TEST = "INSERT INTO han_tab_all_copy (id,json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
             "brand,model,number,numberUnit,price,priceUnit,totalPrice,totalPriceUnit,configuration_key,configuration_value,appendix_suffix) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    //标的物1.3版本
+    private String SQL = "insert into han_new_bdw(infoId, sum, sum_unit, keyword, serial_number, name, brand, model, " +
+            "number, number_unit, price, price_unit, total_price, total_price_unit, configuration) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     //标的物sql
-    private static final String UPDATA_BDW_SQL = "INSERT INTO h_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATA_BDW_SQL = "INSERT INTO han_biaodiwu (contentid, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     //地区
     @PostConstruct
     public void init() {
@@ -115,21 +118,32 @@ public class CurrencyServiceImpl implements CurrencyService {
 
 
     /**
-     * 判断 1：全部、2招标、3中标
+     * 判断 0:0、1:全部、2:招标[0 TO 2]、3:3、4:[0 TO 3]、5:中标[3 OR progid:5]
      * @param str
      * @return
      */
     @Override
     public String getProgidStr(String str) {
-        if ("1".equals(str)){
+        if ("0".equals(str)){
+            //直接返回 0
+            str ="0";
+        }else if ("1".equals(str)){
             //全部
             str = "[0 TO 3] OR progid:5";
         }else if ("2".equals(str)){
             //招标
             str = "[0 TO 2]";
         }else if ("3".equals(str)){
+            //直接返回3
+            str = "3";
+        }else if ("4".equals(str)){
+            //直接返回 0 到 3
+            str = "[0 TO 3]";
+        }else if ("5".equals(str)){
             //中标
             str = "3 OR progid:5";
+        } else if("6".equals(str)){
+            str ="0 OR progid:3";
         }
         return str;
     }
@@ -157,7 +171,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             String string = "yyyymmdd:["+time1 + " TO "+time2 + "] AND (progid:"+progidStr+")"+" AND catid:[* TO 100] AND "+titleOrAllcontent;
             for (String str : keyWords) {
                 futureList1.add(executorService1.submit(() -> {
-                    List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian(string+":\""+str+"\"", str, 2);
+                    List<NoticeMQ> mqEntities = updateSolr.companyResultsBaoXian(string+":\""+str+"\"", str, 2);
                     log.info(str.trim() + "————" + mqEntities.size());
                     if (!mqEntities.isEmpty()) {
                         for (NoticeMQ data : mqEntities) {
@@ -244,6 +258,25 @@ public class CurrencyServiceImpl implements CurrencyService {
                     executorService.shutdown();
                 }
             }
+            if (params.getIsSaveContentId().intValue() == 1){
+                if (list != null && list.size() > 0) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(80);
+                    List<Future> futureList = new ArrayList<>();
+                    for (NoticeMQ content : list) {
+                        futureList.add(executorService.submit(() -> saveContentId(content.getContentid().toString())));
+                    }
+                    for (Future future : futureList) {
+                        try {
+                            future.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    executorService.shutdown();
+                }
+            }
             System.out.println("--------------------------------本次任务结束---------------------------------------");
         } catch (IOException e) {
             e.printStackTrace();
@@ -251,10 +284,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void getBdw() {
+    public void getBdw(Integer type) {
         try {
-            bdwService.getSolrAllField2("hBdw");
-        } catch (IOException e) {
+            bdwService.getSolrAllField2(type);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -268,42 +301,49 @@ public class CurrencyServiceImpl implements CurrencyService {
         List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT * FROM han_tab_all");
 
         try {
-            DBUtil.insertAll(INSERT_HAN_ALL_TEST,maps);
-        } catch (SQLException e) {
+            //DBUtil.insertAll(INSERT_HAN_ALL_TEST,maps);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void getBiaoQian() {
+    public void getBiaoQian(Integer type) throws Exception{
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
         List<NoticeMQ> list = new ArrayList<>();
         List<NoticeMQ> list1 = new ArrayList<>();
         HashMap<String, String> dataMap = new HashMap<>();
         List<Future> futureList1 = new ArrayList<>();
 
-        List<NoticeMQ> mqEntities = contentSolr.companyResultsBaoXian("yyyymmdd:[20201222 TO 20201231] AND (progid:3 OR progid:5) AND zhaoBiaoUnit:*", "", 1);
-        if (!mqEntities.isEmpty()) {
-            for (NoticeMQ data : mqEntities) {
-                if (data.getTitle() != null) {
-                    futureList1.add(executorService1.submit(() -> {
-                        boolean flag = true;
-                        if (flag) {
-                            String zhaobiaoindustry = myRuleUtils.getIndustry(data.getZhaoBiaoUnit());
-                            if (StringUtils.isNotBlank(zhaobiaoindustry)){
-                                if ("商业公司-文化".equals(zhaobiaoindustry) || "商业公司-旅游".equals(zhaobiaoindustry) || "政府机构-文化和旅游".equals(zhaobiaoindustry)){
+        List<String> hybq = LogUtils.readRule("hybq");
+        if (hybq !=null && hybq.size() >0){
+            for (String s : hybq) {
+                Map hashMap = HybqUtil.getHashMap(s);
+                List<String> mapToKeyOrValue = MapUtil.getMapToKeyOrValue(hashMap);
+                String key = mapToKeyOrValue.get(0);
+                String value = mapToKeyOrValue.get(1);
+
+                List<NoticeMQ> mqEntities = updateSolr.companyResultsBaoXian("yyyymmdd:[20201222 TO 20201231] AND progid:3 AND zhaoFirstIndustry:\"" + key + "\"   AND zhaoSecondIndustry:\"" + value + "\"  AND zhaoBiaoUnit:*", "", 1);
+                if (!mqEntities.isEmpty()) {
+                    for (NoticeMQ data : mqEntities) {
+                        if (data.getTitle() != null) {
+                            futureList1.add(executorService1.submit(() -> {
+                                boolean flag = true;
+                                if (flag) {
+                                    //通过读取配置文件
                                     list1.add(data);
                                     if (!dataMap.containsKey(data.getContentid().toString())) {
                                         list.add(data);
                                         dataMap.put(data.getContentid().toString(), "0");
                                     }
                                 }
-                            }
+                            }));
                         }
-                    }));
+                    }
                 }
             }
         }
+
 
         for (Future future1 : futureList1) {
             try {
@@ -322,22 +362,24 @@ public class CurrencyServiceImpl implements CurrencyService {
         log.info("去重之后的数据量：" + list.size());
         log.info("==========================");
 
-        if (list != null && list.size() > 0) {
-            ExecutorService executorService = Executors.newFixedThreadPool(80);
-            List<Future> futureList = new ArrayList<>();
-            for (NoticeMQ content : list) {
-                futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
-            }
-            for (Future future : futureList) {
-                try {
-                    future.get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getDataFromZhongTaiAndSave(content)));
                 }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
             }
-            executorService.shutdown();
         }
     }
 
@@ -557,73 +599,7 @@ public class CurrencyServiceImpl implements CurrencyService {
      */
     @Override
     public void getTongYongBdw(String contentId) throws Exception{
-        List<Map<String, Object>> contentList = gwJdbcTemplate.queryForList(ConstantBean.SELECT_ITEM_CONTENT_BY_CONTENTID, contentId);
-        if (contentList == null && contentList.size() == 0){
-            return;
-        }
-        String content = contentList.get(0).get("content").toString();
-        String target = "";
-        if (StringUtils.isNotBlank(content)){
-            try{
-                target = TargetExtractService.getTargetResult("http://47.104.4.12:5001/to_json_v3/", content);
-            } catch (Exception e){
-                log.error("contentId:{}==========", contentId);
-            }
 
-            if (StringUtils.isNotBlank(target)){
-                JSONObject targetObject = JSONObject.parseObject(target);
-                if (targetObject.containsKey("targetDetails")){
-                    JSONArray targetDetails = (JSONArray) targetObject.get("targetDetails");
-                    for (Object targetDetail : targetDetails) {
-                        String detail = targetDetail.toString();
-                        Map detailMap = JSON.parseObject(detail, Map.class);
-                        String serialNumber = ""; //标的物序号
-                        String name = ""; //名称
-                        String brand = ""; //品牌
-                        String model = ""; //型号
-                        String number = ""; //数量
-                        String numberUnit = ""; //数量单位
-                        String price = ""; //单价
-                        String priceUnit = "";  //单价单位
-                        String totalPrice = ""; //总价
-                        String totalPriceUnit = ""; //总价单位
-                        if (detailMap.containsKey("serialNumber")){
-                            serialNumber = (String) detailMap.get("serialNumber");
-                        }
-                        if (detailMap.containsKey("name")){
-                            name = (String) detailMap.get("name");
-                        }
-                        if (detailMap.containsKey("brand")){
-                            brand = (String) detailMap.get("brand");
-                        }
-                        if (detailMap.containsKey("model")){
-                            model = (String) detailMap.get("model");
-                        }
-                        if (detailMap.containsKey("number")){
-                            number = (String) detailMap.get("number");
-                        }
-                        if (detailMap.containsKey("numberUnit")){
-                            numberUnit = (String) detailMap.get("numberUnit");
-                        }
-                        if (detailMap.containsKey("price")){
-                            price = (String) detailMap.get("price");
-                        }
-                        if (detailMap.containsKey("priceUnit")){
-                            priceUnit = (String) detailMap.get("priceUnit");
-                        }
-
-                        if (detailMap.containsKey("totalPrice")){
-                            totalPrice = (String) detailMap.get("totalPrice");
-                        }
-                        if (detailMap.containsKey("totalPriceUnit")){
-                            totalPriceUnit = (String) detailMap.get("totalPriceUnit");
-                        }
-                        bdJdbcTemplate.update(UPDATA_BDW_SQL, contentId, serialNumber, name, brand, model, number, numberUnit, price, priceUnit, totalPrice, totalPriceUnit);
-                        log.info("contentId:{} =========== 标的物解析表数据处理成功！！！ ",contentId);
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -638,6 +614,151 @@ public class CurrencyServiceImpl implements CurrencyService {
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
                 map.get("code"), map.get("isfile"), map.get("keyword_term"));
     }
+
+    @Override
+    public void saveContentId(String contentid) {
+        //mysql数据库中插入数据
+        String sql = "INSERT INTO han_contentid (contentid) VALUES (?)";
+        bdJdbcTemplate.update(sql, contentid);
+        log.info("contentid--->:{}",contentid,"存入成功");
+    }
+
+    @Override
+    public List<Map<String, Object>> getListMap(String sql) {
+        return bdJdbcTemplate.queryForList(sql);
+    }
+
+    @Override
+    public void getNewBdw3(Integer type) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+        List<Future> futureList = new ArrayList<>();
+        //contentid
+        List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT id,contentid FROM han_contentid");
+        for (Map<String, Object> mapData : mapList) {
+            futureList.add(executorService1.submit(() -> {
+                handleForData(Long.valueOf(mapData.get("contentid").toString()),type);
+                log.info("新标的物方法--->:{}",mapData.get("contentid").toString()+"======="+mapData.get("id").toString());
+            }));
+        }
+        for (Future future1 : futureList) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        executorService1.shutdown();
+        log.info("---------------===============================新标的物方法运行结束==================================");
+    }
+
+
+    public void handleForData(Long contentId,Integer type){
+
+        String[] keywords = {"鼻咽喉","摄像系统","超声","摄像平台","支气管","输尿管","胃肠","宫腔","腹腔","呼吸","膀胱","消化","胆道","清洗消毒","整体手术室","影像装置","图像处理","摄像头","监视器","保养装置","光源","台车","主机","显示器","适配器"};
+
+        String url = "";
+        for (BiaoDiWuRule value : BiaoDiWuRule.values()) {
+            if (value.getValue().intValue() == type){
+                url = value.getName();
+            }
+        }
+        //String result = TargetService.extract(contentId,url);
+        String result = null;
+        if (StringUtils.isNotBlank(result)){
+            JSONObject jsonObject = JSONObject.parseObject(result);
+            if (jsonObject != null && jsonObject.containsKey("content_target")){
+                JSONObject resultObject = jsonObject.getJSONObject("content_target");
+                if (resultObject != null && resultObject.containsKey("target_details")){
+                    String sum = resultObject.getString("sum");
+                    String sum_unit = resultObject.getString("sum_unit");
+                    JSONArray targetDetails = resultObject.getJSONArray("target_details");
+                    if (targetDetails != null && targetDetails.size() > 0){
+                        for (int i = 0; i < targetDetails.size(); i++) {
+                            String serial_number = "";
+                            String name = "";
+                            String brand = "";
+                            String model = "";
+                            String number = "";
+                            String number_unit = "";
+                            String price = "";
+                            String price_unit = "";
+                            String total_price = "";
+                            String total_price_unit = "";
+                            String configuration = "";
+                            String keyword = "";
+                            JSONObject finalObject = targetDetails.getJSONObject(i);
+                            if (finalObject != null){
+                                serial_number = finalObject.getString("serial_number");
+                                name = finalObject.getString("name");
+                                brand = finalObject.getString("brand");
+                                model = finalObject.getString("model");
+                                number = finalObject.getString("number");
+                                number_unit = finalObject.getString("number_unit");
+                                price = finalObject.getString("price");
+                                price_unit = finalObject.getString("price_unit");
+                                total_price = finalObject.getString("total_price");
+                                total_price_unit = finalObject.getString("total_price_unit");
+                                JSONArray configurations = finalObject.getJSONArray("configurations");
+                                if (configurations != null && configurations.size() > 0){
+                                    for (int j = 0; j < configurations.size(); j++) {
+                                        JSONObject jsonObject1 = configurations.getJSONObject(j);
+                                        String key = jsonObject1.getString("key");
+                                        String value = jsonObject1.getString("value");
+                                        configuration += key + "：" + value + "：";
+                                    }
+                                }
+                                if (StringUtils.isNotBlank(configuration)){
+                                    configuration = configuration.substring(0, configuration.length() - 1);
+                                }
+                                // 进行匹配关键词操作
+                                if (keywords != null && keywords.length > 0){
+                                    String allField = name + "&" + brand + "&" + model + "&" + configuration;
+                                    for (String key : keywords) {
+                                        if (allField.toUpperCase().contains(key.toUpperCase())){
+                                            keyword += key + "，";
+                                        }
+                                    }
+                                    if (StringUtils.isNotBlank(keyword)){
+                                        keyword = keyword.substring(0, keyword.length() - 1);
+                                    }
+                                }
+                                // 进行数据保存操作
+                            }
+                            // 进行数据库保存操作
+                            bdJdbcTemplate.update(SQL, contentId, sum, sum_unit, keyword, serial_number, name, brand, model, number, number_unit, price, price_unit, total_price, total_price_unit, configuration);
+                        }
+                    }
+                }
+            }
+        }else {
+            log.info("标的物不存在");
+        }
+    }
+
+
+    public void handleForData3(Long contentId,Integer type) throws IOException{
+
+        //String[] keywords = {"鼻咽喉","摄像系统","超声","摄像平台","支气管","输尿管","胃肠","宫腔","腹腔","呼吸","膀胱","消化","胆道","清洗消毒","整体手术室","影像装置","图像处理","摄像头","监视器","保养装置","光源","台车","主机","显示器","适配器"};
+
+        HttpClient client = new DefaultHttpClient();
+        HttpResponse response = null;
+        String url = "http://ip:port/extractTarget";
+        HttpPost post = new HttpPost(url);
+        post.setHeader("Content-Type", "application/json");
+
+        response = client.execute(post);
+        String ret = null;
+        ret = EntityUtils.toString(response.getEntity(), "UTF-8");
+
+        System.out.println(ret);
+        JSONObject parseObject= JSON.parseObject(ret);
+
+
+    }
+
 
 
     //调取中台数据
@@ -697,5 +818,10 @@ public class CurrencyServiceImpl implements CurrencyService {
             }
         }
         return document.body().html();
+    }
+
+
+    public void getAllZhongTaiBiaoDIWu(String contentId){
+
     }
 }
