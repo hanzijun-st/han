@@ -701,7 +701,7 @@ public class CusDataFieldService {
         resultMap.put("link_phone", format(linkPhone));
         resultMap.put("infoTypeSegment", infoTypeSegment);
         resultMap.put("type", "");  // 预留字段1
-        resultMap.put("keyword_term", ""); // 预留字段2
+        resultMap.put("keyword_term", extract_proj_name); // 预留字段2
         resultMap.put("extract_proj_name", extract_proj_name); //项目名称字段
         return resultMap;
     }
@@ -811,18 +811,24 @@ public class CusDataFieldService {
         String code = jsonObject.getString("code");
         if ("-1".equals(code) || "1".equals(code) || "2".equals(code)) {
             if ("1".equals(code)){
-                bdJdbcTemplate.update("INSERT INTO table_code (content_id,code) VALUES (?,?)",infoId,code);
+                try {
+                    bdJdbcTemplate.update("INSERT INTO table_code (content_id,code) VALUES (?,?)",infoId,code);
+                }catch (Exception e){
+                    log.error("table_code表中插入重复的数据", e);
+                }
             }
             log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
-            throw new RuntimeException("调用数据详情接口异常");
+            throw new RuntimeException("调用数据详情接口异常，对应的状态码:"+code);
         }
         JSONObject data = jsonObject.getJSONObject("data");
-        Map<String,Object> map = JSONObject.parseObject(data.toString(), Map.class);
-        Set<Map.Entry<String, Object>> entries = map.entrySet();
-        for (Map.Entry<String, Object> entry : entries) {
-            JSONObject result = new JSONObject();
-            result.put(entry.getKey(), entry.getValue());
-            jsonArray.add(result);
+        if (data !=null){
+            Map<String,Object> map = JSONObject.parseObject(data.toString(), Map.class);
+            Set<Map.Entry<String, Object>> entries = map.entrySet();
+            for (Map.Entry<String, Object> entry : entries) {
+                JSONObject result = new JSONObject();
+                result.put(entry.getKey(), entry.getValue());
+                jsonArray.add(result);
+            }
         }
         return jsonArray;
     }
