@@ -1,11 +1,18 @@
 package com.qianlima.offline.configuration;
 
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientURI;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.DbRefResolver;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
@@ -13,27 +20,45 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 
 /**
- * @author shenjiqiang
  * @Title: MongoConfig
- * @ProjectName qianliyan
- * @date 2019/2/23 15:32
  */
 @Configuration
 public class MongoConfig {
 
-    @Bean
-    public MappingMongoConverter mappingMongoConverter(MongoDbFactory factory, MongoMappingContext context, BeanFactory beanFactory) {
-        DbRefResolver dbRefResolver = new DefaultDbRefResolver(factory);
-        MappingMongoConverter mappingConverter = new MappingMongoConverter(dbRefResolver, context);
-        try {
-            mappingConverter.setCustomConversions(beanFactory.getBean(CustomConversions.class));
-        } catch (NoSuchBeanDefinitionException ignore) {
-        }
+    @Value("${spring.data.mongodb.test}")
+    private String testUri;
 
-        // Don't save _class to mongo
-        mappingConverter.setTypeMapper(new DefaultMongoTypeMapper(null));
+    @Value("${spring.data.mongodb.qly}")
+    private String qlyUri;
 
-        return mappingConverter;
+    @Primary
+    @Bean(name = "testMongoDbFactory")
+    public MongoDbFactory cusdataMongoDbFactory(){
+        MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+        MongoClientURI mongoClientURI=new MongoClientURI(testUri,builder);
+        SimpleMongoDbFactory simpleMongoDbFactory=new SimpleMongoDbFactory(mongoClientURI);
+        return  simpleMongoDbFactory;
+    }
+
+    @Bean(name = "qlyMongoDbFactory")
+    public MongoDbFactory qianliyanMongoDbFactory(){
+        MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+        MongoClientURI mongoClientURI=new MongoClientURI(qlyUri,builder);
+        SimpleMongoDbFactory simpleMongoDbFactory=new SimpleMongoDbFactory(mongoClientURI);
+        return  simpleMongoDbFactory;
+    }
+
+
+    @Primary
+    @Bean(name = "testMongoTemplate") //创建方法 交给  spring 创建的名称 为 mainMongo
+    public MongoTemplate cusdataMongoTemplate(@Qualifier("testMongoDbFactory") MongoDbFactory mongoDbFactory) throws Exception {
+        return new MongoTemplate(mongoDbFactory);
+    }
+
+
+    @Bean(name = "qlyMongoTemplate") //创建方法 交给  spring 创建的名称 为 mainMongo
+    public MongoTemplate qianliyanMongoTemplate(@Qualifier("qlyMongoDbFactory") MongoDbFactory mongoDbFactory) throws Exception {
+        return new MongoTemplate(mongoDbFactory);
     }
 
 }

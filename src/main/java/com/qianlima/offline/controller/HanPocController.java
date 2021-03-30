@@ -45,7 +45,7 @@ public class HanPocController {
         return "---getMongo---";
     }
 
-    @ApiOperation("----细分类型---")
+    @ApiOperation("----腾讯细分类型---")
     @PostMapping("/saveTencent")
     public String saveTencent(String str){
         testTencentService.saveTencent();
@@ -82,4 +82,61 @@ public class HanPocController {
         testTencentService.toIds();
         return "ids is ok";
     }
+
+    @ApiOperation("新的地址获取方式---暂时调用中台服务接口")
+    @GetMapping("/getNewAddress")
+    @ResponseBody
+    public String getNewAddress() throws Exception{
+        testTencentService.getNewAddress();
+        return "getNewAddress is ok";
+    }
+
+    @ApiOperation("新的地址获取方式---缺失数据")
+    @GetMapping("/getNewAddressToQs")
+    @ResponseBody
+    public String getNewAddressToQs() throws Exception{
+        testTencentService.getNewAddressToQs();
+        return "getNewAddress is ok";
+    }
+
+    @ApiOperation("新的地址获取方式---通用方法（contentId）")
+    @PostMapping("/getNewAddressByContentId")
+    @ResponseBody
+    public Map getNewAddressByContentId(String contentId) throws Exception{
+        Map newAddressByContentId = testTencentService.getNewAddressByContentId(contentId);
+        return newAddressByContentId;
+    }
+
+    @ApiOperation("信立方-临时数据进行导出")
+    @PostMapping("/getLinShi")
+    public String getLinShi(String date) throws Exception{
+        testTencentService.getLinShi(date);
+        return "getLinShi is ok";
+    }
+
+    @ApiOperation("凯思轩达医疗")
+    @PostMapping("/getKaisixuanda")
+    public String getKaisixuanda(String date,Integer type) throws Exception{
+        testTencentService.getKaisixuanda(date,type);
+        return "getKaisixuanda is ok";
+    }
+    @ApiOperation("凯思轩达医疗2")
+    @PostMapping("/getKaisixuanda2")
+    public String getKaisixuanda2(String date,Integer type) throws Exception{
+        testTencentService.getKaisixuanda2(date,type);
+        return "getKaisixuanda2 is ok";
+    }
+    @ApiOperation("同方威视")
+    @PostMapping("/getTongfangWeiShi")
+    public String getTongfangWeiShi(String date,Integer type) throws Exception{
+        testTencentService.getTongfangWeiShi(date,type);
+        return "getTongfangWeiShi is ok";
+    }
+    @ApiOperation("同方威视-2")
+    @PostMapping("/getTongfangWeiShi2")
+    public String getTongfangWeiShi2(String date,Integer type) throws Exception{
+        testTencentService.getTongfangWeiShi2(date,type);
+        return "getTongfangWeiShi2 is ok";
+    }
+
 }

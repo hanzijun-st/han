@@ -18,5 +18,8 @@
     -->
     id, name, age, addr
   </sql>
+  <select id="getTestList" resultType="map">
+      SELECT * FROM han_test_user
+  </select>
 
 </mapper>

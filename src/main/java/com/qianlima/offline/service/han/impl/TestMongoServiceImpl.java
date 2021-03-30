@@ -4,6 +4,9 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.qianlima.offline.bean.AreaAlias;
+import com.qianlima.offline.bean.AuthorizeCusdataInfo;
+import com.qianlima.offline.bean.NewareaToOldarea;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.entity.Enterprise;
 import com.qianlima.offline.service.han.TestMongoService;
@@ -13,8 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -39,7 +44,12 @@ public class TestMongoServiceImpl implements TestMongoService {
     private JdbcTemplate bdJdbcTemplate;
 
     @Resource
+    @Qualifier("testMongoTemplate")
     private MongoTemplate mongoTemplate;
+
+    @Resource
+    @Qualifier("qlyMongoTemplate")
+    private MongoTemplate qlyMongoTemplate;
 
     public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE han_unit SET actualCapital=?,estiblishTime=?,regLocation=?,industry=?,base=?,top01=?,top02=? WHERE unit_name =?";
 
@@ -124,6 +134,7 @@ public class TestMongoServiceImpl implements TestMongoService {
 
         }
     }
+
     private Enterprise queryForName(String zhongbiaounit) {
         if (StringUtils.isBlank(zhongbiaounit)){
             return null;

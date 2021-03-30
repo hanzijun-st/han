@@ -55,6 +55,33 @@ public class MathUtil {
         return htmlStr;
     }
 
+    public static String delHTMLAndBlock(String htmlStr) {
+        int idx = htmlStr.indexOf("<block>");
+        if (-1 != idx) {
+            htmlStr = htmlStr.substring(0, idx);
+        }
+        String regEx_script = "<script[^>]*?>[\\s\\S]*?<\\/script>"; //定义script的正则表达式
+        String regEx_style = "<style[^>]*?>[\\s\\S]*?<\\/style>"; //定义style的正则表达式
+        String regEx_html = "<[^>]+>"; //定义HTML标签的正则表达式
+        java.util.regex.Pattern p_script = java.util.regex.Pattern.compile(
+                regEx_script, java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Matcher m_script = p_script.matcher(htmlStr);
+        htmlStr = m_script.replaceAll("");//过滤script标签
+        java.util.regex.Pattern p_style = java.util.regex.Pattern.compile(
+                regEx_style, java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Matcher m_style = p_style.matcher(htmlStr);
+        htmlStr = m_style.replaceAll(""); //过滤style标签
+        java.util.regex.Pattern p_html = java.util.regex.Pattern.compile(
+                regEx_html, java.util.regex.Pattern.CASE_INSENSITIVE);
+
+        java.util.regex.Matcher m_html = p_html.matcher(htmlStr);
+        htmlStr = m_html.replaceAll(""); //过滤html标签
+        htmlStr = htmlStr.replaceAll("(\r?\n(\\s*\r?\n)+)", "\r\n");
+        htmlStr = htmlStr.trim();
+        //返回文本字符串
+        return htmlStr;
+    }
+
     /**
      * 校验日期
      *

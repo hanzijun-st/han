@@ -56,7 +56,10 @@ public class SolrClientConfig {
     public SolrClient onlineSolr() {
         return new HttpSolrClient(environment.getRequiredProperty("qlm.data.onlineSolr"));
     }*/
-
+    /*@Bean(name = "normalsolr")
+    public SolrClient ictContentSolr() {
+        return new HttpSolrClient(environment.getRequiredProperty("qlm.data.normalsolr"));
+    }*/
     @Bean
     public SolrClient solrClient(){
         CloudSolrClient solrClient = new CloudSolrClient(environment.getRequiredProperty("qlm.data.solr.host"));

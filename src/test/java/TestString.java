@@ -1,14 +1,6 @@
-import com.alibaba.fastjson.JSON;
-import com.qianlima.offline.service.han.CurrencyService;
-import com.qianlima.offline.service.han.impl.CurrencyServiceImpl;
 import com.qianlima.offline.util.StrUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
 
 public class TestString {
     public static void main(String[] args) {
@@ -78,9 +70,49 @@ public class TestString {
           System.out.println("参数："+i+"-------"+progidStr);
       }*/
 
-        String s1 = "abc";
+      /*  String s1 = "abc";
         String s2 = "abc";
-        System.out.println(s1.intern() ==s2.intern());
+        System.out.println(s1.intern() ==s2.intern());*/
+        /*DecimalFormat df = new DecimalFormat("#,###");//千分位符
 
+        String format = df.format(12345678);*/
+
+        /*String str = "25%";
+        if (str.contains("%")){
+            System.out.println(true);
+        }else {
+            System.out.println(false);
+        }*/
+
+        boolean isDigit = false;//定义一个boolean值，用来表示是否包含数字
+        boolean isLetter = false;//定义一个boolean值，用来表示是否包含字母
+        String str = "kakakaka";   //假设有一个字符串
+        for(int i=0 ; i<str.length() ; i++){ //循环遍历字符串
+            if(Character.isDigit(str.charAt(i))){     //用char包装类中的判断数字的方法判断每一个字符
+                isDigit = true;
+            }
+            if(Character.isLetter(str.charAt(i))){   //用char包装类中的判断字母的方法判断每一个字符
+                isLetter = true;
+            }
+        }
+
+        if (StrUtil.isNotEmpty(str)){
+            if (isDigit){
+                System.out.println("数字："+true);
+            }else {
+                System.out.println("数字："+false);
+            }
+            if (isLetter){
+                System.out.println("字母："+true);
+            }else{
+                System.out.println("字母："+false);
+            }
+
+            if (isDigit && isLetter){
+                System.out.println("满足条件："+true);
+            }else {
+                System.out.println("不满足条件："+false);
+            }
+        }
     }
 }

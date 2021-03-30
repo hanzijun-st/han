@@ -30,4 +30,7 @@ public class HanMongoController {
         testMongoService.getTest();
         return "-----   000123456----";
     }
+
+
+
 }

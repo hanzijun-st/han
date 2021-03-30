@@ -216,5 +216,55 @@ public class DateUtils {
         return dayss;
     }
 
+    //最近几天日期
+    public static List<String> selectNewBetween(int days){
+        List<String> dayss = new ArrayList<>();
+        Calendar start = Calendar.getInstance();
+        start.setTime(getDateAdd(days-1));
+        Long startTIme = start.getTimeInMillis();
+        Calendar end = Calendar.getInstance();
+        end.setTime(new Date());
+        Long endTime = end.getTimeInMillis();
+        Long oneDay = 1000 * 60 * 60 * 24l;
+        Long time = startTIme;
+        while (time < endTime) {
+            Date d = new Date(time);
+            dayss.add(DateFormatUtils.format(d,"yyyy-MM-dd"));
+            time += oneDay;
+        }
+        return dayss;
+    }
+
+    public static Long getYesterdayBeginTime() {
+        Calendar todayStart = Calendar.getInstance();
+        todayStart.set(Calendar.HOUR, 0);
+        todayStart.set(Calendar.MINUTE, 0);
+        todayStart.set(Calendar.SECOND, 0);
+        todayStart.set(Calendar.MILLISECOND, 0);
+        todayStart.add(Calendar.DAY_OF_MONTH, -1);
+        return todayStart.getTime().getTime();
+    }
+
+    public static Long getYesterdayEndTime() {
+        Calendar todayEnd = Calendar.getInstance();
+        todayEnd.set(Calendar.HOUR, 23);
+        todayEnd.set(Calendar.MINUTE, 59);
+        todayEnd.set(Calendar.SECOND, 59);
+        todayEnd.set(Calendar.MILLISECOND, 999);
+        todayEnd.add(Calendar.DAY_OF_MONTH, -1);
+        return todayEnd.getTime().getTime();
+    }
+
+    public static Long getDayStartTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH)-1,0,0,0);
+        return calendar.getTime().getTime() ;
+    }
+    //获取某个日期的结束时间戳
+    public static Long getDayEndTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH)-1,23,59,59);
+        return calendar.getTime().getTime();
+    }
 
 }

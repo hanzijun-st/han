@@ -56,4 +56,13 @@ public class CurrencyController {
         currencyService.getNewBdw3(type);
         return "getNewBdw3请求成功---最新方式-获取标的物的数据";
     }
+
+    @GetMapping("/getPiPeiHangYeBiaoQian")
+    @ApiOperation("匹配行业标签--- 一级/二级")
+    public String getPiPeiHangYeBiaoQian(){
+        currencyService.getPiPeiHangYeBiaoQian();
+        return "getNewBdw3请求成功---最新方式-获取标的物的数据";
+    }
+
+
 }

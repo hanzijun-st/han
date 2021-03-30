@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -654,6 +655,66 @@ public class CurrencyServiceImpl implements CurrencyService {
         log.info("---------------===============================新标的物方法运行结束==================================");
     }
 
+    public String INSERT_ZT_RESULT_TEST1 = "INSERT INTO han_test1 (task_id,keyword) VALUES (?,?)";
+    @Override
+    @Transactional
+    public void saveData1(List<Map> maps) {
+        if (maps.size()>0){
+            for (Map map : maps) {
+                bdJdbcTemplate.update(INSERT_ZT_RESULT_TEST1,map.get("task_id"), map.get("keyword"));
+            }
+        }
+    }
+
+    public String HANG_YE ="INSERT INTO han_new_hangyequfen (hyname,yi,er) VALUES (?,?,?)";
+    @Override
+    public void getPiPeiHangYeBiaoQian() {
+        try {
+            List<String> list= LogUtils.readRule("hybq");
+            ExecutorService executorService1 = Executors.newFixedThreadPool(32);
+            List<Future> futureList = new ArrayList<>();
+
+            for (String zhaobiaounit : list) {
+                String[] split = zhaobiaounit.split(":");
+                String s1 = split[0];//contentId
+                String s2 = split[1];//招标单位
+
+                futureList.add(executorService1.submit(() -> {
+                    getHangYeBy(s1,s2);
+                }));
+            }
+        } catch (IOException e) {
+            e.getMessage();
+        }
+        log.info("------追加行业标签成功，运行结束-------");
+    }
+
+    private void getHangYeBy(String contentId,String zhaobiaounit) {
+        try {
+            HttpClient client = new DefaultHttpClient();
+            HttpResponse response = null;
+            // --KA自用行业
+            // http://cusdata.qianlima.com/api/ka/industry?unit=上海市公安局国际机场分局
+            String url = "http://cusdata.qianlima.com/api/ka/industry?unit="+zhaobiaounit+"";
+            HttpPost post = new HttpPost(url);
+            post.setHeader("Content-Type", "application/json");
+
+            response = client.execute(post);
+            String ret = null;
+            ret = EntityUtils.toString(response.getEntity(), "UTF-8");
+
+            JSONObject parseObject= JSON.parseObject(ret);
+            JSONObject data = parseObject.getJSONObject("data");
+            String firstLevel = data.getString("firstLevel");
+            String secondLevel = data.getString("secondLevel");
+
+            bdJdbcTemplate.update(HANG_YE,contentId,firstLevel, secondLevel);
+            log.info("contentId:{} =========== KA自用行业数据处理成功！！！ ");
+        }catch (Exception e){
+            e.getMessage();
+        }
+    }
+
 
     public void handleForData(Long contentId,Integer type){
 
@@ -738,29 +799,6 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
     }
 
-
-    public void handleForData3(Long contentId,Integer type) throws IOException{
-
-        //String[] keywords = {"鼻咽喉","摄像系统","超声","摄像平台","支气管","输尿管","胃肠","宫腔","腹腔","呼吸","膀胱","消化","胆道","清洗消毒","整体手术室","影像装置","图像处理","摄像头","监视器","保养装置","光源","台车","主机","显示器","适配器"};
-
-        HttpClient client = new DefaultHttpClient();
-        HttpResponse response = null;
-        String url = "http://ip:port/extractTarget";
-        HttpPost post = new HttpPost(url);
-        post.setHeader("Content-Type", "application/json");
-
-        response = client.execute(post);
-        String ret = null;
-        ret = EntityUtils.toString(response.getEntity(), "UTF-8");
-
-        System.out.println(ret);
-        JSONObject parseObject= JSON.parseObject(ret);
-
-
-    }
-
-
-
     //调取中台数据
     public void getDataFromZhongTaiAndSave(NoticeMQ noticeMQ) {
         boolean result = cusDataFieldService.checkStatus(noticeMQ.getContentid().toString());
@@ -820,8 +858,4 @@ public class CurrencyServiceImpl implements CurrencyService {
         return document.body().html();
     }
 
-
-    public void getAllZhongTaiBiaoDIWu(String contentId){
-
-    }
 }

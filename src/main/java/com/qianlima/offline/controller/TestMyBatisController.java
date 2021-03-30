@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/my")
 @Slf4j
@@ -20,9 +22,9 @@ public class TestMyBatisController {
 
     @ApiOperation("测试mybatis")
     @PostMapping("/test")
-    public String test(){
-        TestUser testUser = testMyBatisService.testMyBatis();
+    public List test(){
+        List list = testMyBatisService.testMyBatis();
 
-        return testUser.getName();
+        return list;
     }
 }

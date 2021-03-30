@@ -71,4 +71,11 @@ public interface CurrencyService {
      * @param type
      */
     void getNewBdw3(Integer type);
+
+    /**
+     * 存库方法1
+     */
+    void saveData1(List<Map> maps);
+
+    void getPiPeiHangYeBiaoQian();
 }

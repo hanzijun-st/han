@@ -16,4 +16,11 @@ public interface HanPocService {
     void getZheJiangNiuRuoSi(String date,Integer type);
 
     Map<String,Object> getSolr(String tiaojian,String date);
+
+    /**
+     *  同方威视
+     * @param type 1保存数据库; 0不保存
+     * @param date solr中查询的时间
+     */
+    void getTongFangWeiShi(Integer type, String date);
 }
