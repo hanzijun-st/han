@@ -6,4 +6,10 @@ package com.qianlima.offline.service.han;
 public interface TestApiService {
 
     void testApi() throws Exception;
+
+    void testDaHua();
+
+
+
+    void jsonToData2() throws Exception;
 }

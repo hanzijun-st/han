@@ -1,6 +1,9 @@
 package com.qianlima.offline.controller;
 
+import com.qianlima.offline.bean.Student;
 import com.qianlima.offline.service.han.TestDownService;
+import com.qianlima.offline.util.ExportExcelUtil;
+import com.qianlima.offline.util.ExportExcelWrapperUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +15,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * hanzijun 接口
@@ -78,4 +84,22 @@ public class HanDownController {
         out.close();
     }
 
+
+
+    @ApiOperation("工具导出")
+    @GetMapping("/downExcel")
+       public void getExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
+           // 准备数据
+            List<Student> list = new ArrayList<>();
+            list.add(new Student(1,"张三asdf",22));
+            list.add(new Student(2,"李四asd",33));
+            list.add(new Student(3,"王五",23));
+            String[] columnNames = { "ID", "姓名", "年龄"};
+            String fileName = "学生信息表";
+            ExportExcelWrapperUtil<Student> util = new ExportExcelWrapperUtil<>();
+            util.exportExcel(fileName, fileName, columnNames, list, response, ExportExcelUtil.EXCEl_FILE_2007);
+        testDownService.downExcel();
+    }
+  
+  
 }

@@ -1,12 +1,14 @@
 package com.qianlima.offline.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.formula.functions.T;
+import org.springframework.core.io.ClassPathResource;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 /**
  * Created by Administrator on 2021/1/15.
@@ -50,6 +52,25 @@ public class JsonUtil {
             }
             return listMap;
         }
+        return null;
+    }
+
+    public static JSONObject readJsonFile(String jsonFileName) throws Exception{
+        jsonFileName = "/file/"+jsonFileName +".json";
+        ClassPathResource resource = new ClassPathResource(jsonFileName);
+        File filePath = resource.getFile();
+
+        //读取文件
+        String input = FileUtils.readFileToString(filePath, "UTF-8");
+        //将读取的数据转换为JSONObject
+        JSONObject jsonObject = JSONObject.parseObject(input);
+
+        //返回整个json文件中的对象,对不同结构的数据进行解析
+        return jsonObject;
+    }
+
+    public static JSONObject createExcel(String src, JSONObject json) {
+
         return null;
     }
 }

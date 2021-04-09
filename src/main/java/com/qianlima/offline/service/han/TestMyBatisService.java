@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface TestMyBatisService {
     List testMyBatis();
+
+    void saveDatas();
 }

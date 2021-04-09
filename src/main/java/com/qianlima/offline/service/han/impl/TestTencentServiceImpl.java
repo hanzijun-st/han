@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
+import com.qianlima.offline.mapper.TestUserMapper;
 import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.han.CusDataNewService;
+import com.qianlima.offline.service.han.TestMyBatisService;
 import com.qianlima.offline.service.han.TestTencentService;
 import com.qianlima.offline.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +66,15 @@ public class TestTencentServiceImpl implements TestTencentService {
     @Autowired
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;
+
+    @Autowired
+    @Qualifier("djeJdbcTemplate")
+    private JdbcTemplate djeJdbcTemplate;
+
+
+
+    @Autowired
+    private TestUserMapper testUserMapper;
 
     //mysql数据库中插入数据
     public static final String INSERT_ZT_RESULT_TYPE = "INSERT INTO han_tencent (type,contentid,title) VALUES (?,?,?)";
@@ -183,10 +194,17 @@ public class TestTencentServiceImpl implements TestTencentService {
         }
     }
 
-    public String INSERT_ZT_RESULT_HXR = "INSERT INTO han_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+    public static final String INSERT_ZT_RESULT = "INSERT INTO han_new_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
+            " is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,,monitorUrl, pocDetailUrl) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    private static final String INSERT_ZT_DJE = "INSERT INTO han_new_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
+            "is_electronic,code2,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     @Override
     public void toIds() throws Exception{
         ExecutorService executorService1 = Executors.newFixedThreadPool(10);//开启线程池
@@ -207,7 +225,9 @@ public class TestTencentServiceImpl implements TestTencentService {
                 try {
                     Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
                     if (resultMap != null) {
-                        saveIntoMysql(resultMap,INSERT_ZT_RESULT_HXR);
+                        String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
+                        resultMap.put("content",content);
+                        saveIntoMysqlDje(resultMap);
                     }
                 }catch (Exception e) {
                     e.printStackTrace();
@@ -982,6 +1002,173 @@ public class TestTencentServiceImpl implements TestTencentService {
         }
     }
 
+    @Override
+    public void getKaisixuandaCs(String date, Integer type) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+        //关键词a
+        String[] a ={"CT机","CT定位穿刺","X射线头部CT机","全身CT机","螺旋CT机","螺旋扇扫CT机","数字减影","血管造影","CT影像处理","血管造影导管","血管造影X射线机","血管造影X射线设备","血管造影影像处理","正电子发射系统","磁共振成像设备","永磁型磁共振成像系统","常导型磁共振成像系统","超导型磁共振成像系统","医用磁共振成像系统","磁共振辅助设备","磁共振定位装置","磁共振辅助刺激系统","磁共振造影注射装置","磁共振高压注射器","磁共振造影剂","磁共振用高压注射连接管","磁共振高压造影注射系统","磁共振高压造影注射器","磁共振成像辅助刺激系统","磁共振乳腺线圈穿刺固定架","正电子发射断层扫描","正电子发射磁共振成像系统","磁共振影像处理","CT造影","X射线计算机体层摄影设备","胃肠道造影显像剂","X射线计算机断层成像系统","CT影像处理软件","X射线血管造影影像处理软件","数字化X射线影像处理软件","超声影像引导系统","磁共振成像系统"};
+
+        try {
+            for (String str : a) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND progid:[0 TO 3] AND allcontent:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            ArrayList<String> arrayList = new ArrayList<>();
+            //关键词a
+            for (String key : a) {
+                arrayList.add(key);
+            }
+
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : listAll) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (StringUtils.isNotBlank(keyword)){
+                        if (keyword.equals(str)) {
+                            total++;
+                        }
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                System.out.println(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1) {
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(60);
+                List<Future> futureList = new ArrayList<>();
+                List<Map<String,Object>> maps = new ArrayList<>();
+
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> maps.add(getZhongTaiDatasAndSaveCs(content))));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+
+                if (maps !=null && maps.size() >0){
+                    testUserMapper.saveList(maps);
+                }
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getDajinE() {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(10);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+        String cursorMark ="";
+        while (true){
+            List<Map<String, Object>> maps = getList(cursorMark);
+            if (maps !=null && maps.size() >0){
+                for (Map<String, Object> map : maps) {
+                    String infoId = map.get("info_id").toString();
+                    cursorMark = infoId;
+                    futureList1.add(executorService1.submit(() -> {
+
+                        //由于大金额处理的特殊性，只能用null进行判断
+                        String winnerAmount = map.get("winner_amount") != null ? map.get("winner_amount").toString() : null;
+                        String budget = map.get("budget") != null ? map.get("budget").toString() : null;
+
+                        boolean b = cusDataFieldService.checkStatus(infoId);//范围 例如:全国
+                        if (!b) {
+                            log.info("contentid:{} 对应的数据状态不是99, 丢弃", infoId);
+                            return;
+                        }
+                        NoticeMQ noticeMQ = new NoticeMQ();
+                        noticeMQ.setContentid(Long.valueOf(infoId));
+                        //全部自提，不需要正文
+                        try {
+                            Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+                            if (resultMap != null) {
+                                //进行大金额替换操作
+                                if (winnerAmount != null){
+                                    resultMap.put("baiLian_amount_unit", winnerAmount);
+                                }
+                                if (budget != null){
+                                    resultMap.put("baiLian_budget", budget);
+                                }
+                                resultMap.put("code2", QianlimaZTUtil.getFromUrl("http://datafetcher.intra.qianlima.com/dc/bidding/fromurl",String.valueOf(infoId)));
+                                saveIntoMysqlDje(resultMap);
+                            }
+                        }catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }));
+                }
+            }else {
+                break;
+            }
+        }
+        log.info("--------该接口运行结束--------");
+    }
+    public List<Map<String,Object>> getList(String cursorMark) {
+        if (StringUtils.isNotBlank(cursorMark)) {
+            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id > ? ORDER BY info_id limit 5000",cursorMark);
+            return maps;
+        }else {
+            return djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code ORDER BY info_id limit 5000");
+        }
+    }
+
+
+
+
     private void getZhongTaiDatasAndSave(NoticeMQ noticeMQ) throws Exception{
 
         List<String> aa = LogUtils.readRule("keyWordsA");
@@ -1122,8 +1309,21 @@ public class TestTencentServiceImpl implements TestTencentService {
         bdJdbcTemplate.update(table, map.get("contentid"),map.get("areaProvince"), map.get("areaCity"), map.get("areaCountry"));
         log.info("存mysql数据库进度--->{}",map.get("contentid"));
     }
-    public void saveIntoMysql(Map<String, Object> map ,String table){
-        bdJdbcTemplate.update(table,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+    public void saveIntoMysql(Map<String, Object> map){
+            bdJdbcTemplate.update(INSERT_ZT_DJE,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                    map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                    map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                    map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                    map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                    map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                    map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                    map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                    map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"),map.get("monitorUrl"), map.get("pocDetailUrl"));
+        log.info("存mysql数据库进度--->{}",map.get("content_id"));
+    }
+
+    public void saveIntoMysqlDje(Map<String, Object> map){
+        bdJdbcTemplate.update(INSERT_ZT_DJE,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
                 map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
                 map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
                 map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
@@ -1131,9 +1331,9 @@ public class TestTencentServiceImpl implements TestTencentService {
                 map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
-                map.get("code"), map.get("isfile"), map.get("keyword_term"));
-        log.info("存mysql数据库进度--->{}",map.get("content_id"));
+                map.get("code2"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"), map.get("monitorUrl"), map.get("pocDetailUrl"));
     }
+
     public void saveIntoMysqlTenxun(Map<String, Object> map ,String table){
         bdJdbcTemplate.update(table,map.get("code2"), map.get("content_id"));
         log.info("存mysql数据库进度--->{}",map.get("content_id"));
@@ -1150,6 +1350,22 @@ public class TestTencentServiceImpl implements TestTencentService {
         //全部自提，不需要正文
         Map<String, Object> resultMap = cusDataNewService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
+            String contentId = resultMap.get("content_id").toString();
+            //进行大金额替换操作
+                List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+            if (maps != null && maps.size() > 0){
+                // 由于大金额处理的特殊性，只能用null进行判断
+                String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+                if (winnerAmount != null){
+                    resultMap.put("baiLian_amount_unit", winnerAmount);
+                }
+                String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+                if (budget != null){
+                    resultMap.put("baiLian_budget", budget);
+                }
+            }
+
+
             //String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
             //先去链接
             //content =processAboutContent(content);
@@ -1159,6 +1375,21 @@ public class TestTencentServiceImpl implements TestTencentService {
             cusDataNewService.saveIntoMysql(resultMap);//插入数据库操作
 
         }
+    }
+    //只是测试
+    private Map<String, Object> getZhongTaiDatasAndSaveCs(NoticeMQ noticeMQ) {
+
+        boolean b = cusDataNewService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
+        if (!b) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return null;
+        }
+        //全部自提，不需要正文
+        Map<String, Object> resultMap = cusDataNewService.getAllFieldsWithZiTi(noticeMQ, false);
+        if (resultMap != null) {
+            return resultMap;
+        }
+        return null;
     }
 
 

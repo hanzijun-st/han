@@ -31,6 +31,11 @@ public class HanMongoController {
         return "-----   000123456----";
     }
 
-
+    @GetMapping("/getTestMo")
+    @ApiOperation("ces")
+    public String getTestMo(){
+        testMongoService.getTestMo();
+        return "-----getTestMo is ok----";
+    }
 
 }

@@ -13,4 +13,9 @@ public class TestDownServiceImpl implements TestDownService {
     public ResponseEntity<byte[]> downFile() {
         return FileHelperUtil.downloadFile("a.xml", "E:\\a.xml");
     }
+
+    @Override
+    public void downExcel() {
+
+    }
 }

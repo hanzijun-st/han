@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import com.qianlima.offline.bean.Area;
+import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
@@ -78,8 +79,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Autowired
     private CleanUtils cleanUtils;
 
-    @Autowired
-    private MyRuleUtils myRuleUtils;
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
 
@@ -223,9 +222,10 @@ public class CurrencyServiceImpl implements CurrencyService {
                 arrayList.add(key);
             }
 
+            List<String> listStr = new ArrayList<>();
             for (String str : arrayList) {
                 int total = 0;
-                for (NoticeMQ noticeMQ : list) {
+                for (NoticeMQ noticeMQ : listAll) {
                     String keyword = noticeMQ.getKeyword();
                     if (keyword.equals(str)) {
                         total++;
@@ -234,11 +234,14 @@ public class CurrencyServiceImpl implements CurrencyService {
                 if (total == 0) {
                     continue;
                 }
-                System.out.println(str + ": " + total);
+                //System.out.println(str + ": " + total);
+               listStr.add(str + ": " + total);
             }
-            System.out.println("全部数据量：" + listAll.size());
-            System.out.println("去重之后的数据量：" + list.size());
-
+            //System.out.println("全部数据量：" + listAll.size());
+            //System.out.println("去重之后的数据量：" + list.size());
+            listStr.add("全部数据量：" + listAll.size());
+            listStr.add("去重之后的数据量：" + list.size());
+            readFileByNameBd("oneFile",listStr);
             //如果参数为1,则进行存表
             if (params.getIsSave() !=null && params.getIsSave().intValue() == 1){
                 if (list != null && list.size() > 0) {
@@ -458,10 +461,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     public void getPpeiJy() {
         //读取到mysql数据
         List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT * FROM zt_data_result_poc_table");
-        // task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
-        //"xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way," +
-        //  " agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone
-
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
         List<Future> futureList1 = new ArrayList<>();
 
@@ -593,15 +592,6 @@ public class CurrencyServiceImpl implements CurrencyService {
         return null;
     }
 
-    /**
-     * 获取标的物通用方法
-     * @param contentId
-     * @throws Exception
-     */
-    @Override
-    public void getTongYongBdw(String contentId) throws Exception{
-
-    }
 
     @Override
     public void saveTyInto(Map<String, Object> map, String sql) {
@@ -687,6 +677,15 @@ public class CurrencyServiceImpl implements CurrencyService {
             e.getMessage();
         }
         log.info("------追加行业标签成功，运行结束-------");
+    }
+
+    @Override
+    public void readFileByName(String name,List<String> list) {
+        ReadFileUtil.readFile(ConstantBean.FILL_URL,name+".txt",list);
+    }
+    @Override
+    public void readFileByNameBd(String name,List<String> list) {
+        ReadFileUtil.readFile(ConstantBean.FILL_URL_BD,name+".txt",list);
     }
 
     private void getHangYeBy(String contentId,String zhaobiaounit) {

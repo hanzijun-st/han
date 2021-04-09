@@ -48,4 +48,11 @@ public interface TestTencentService {
      * @param type
      */
     void getTongfangWeiShi2(String date, Integer type);
+
+    void getKaisixuandaCs(String date, Integer type);
+
+    /**
+     *  大金额-输出常用字段
+     */
+    void getDajinE();
 }

@@ -4,4 +4,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface TestDownService {
     ResponseEntity<byte[]> downFile();
+
+    void downExcel();
 }

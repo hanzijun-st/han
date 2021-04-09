@@ -88,4 +88,35 @@ public interface Test39Service {
      * @param progidStr
      */
     void getShanXiXingBaoLai2_1(Integer type, String date, String progidStr);
+
+    /**
+     * 北京三月雨文化传播有限责任公司
+     * @param type
+     * @param date
+     */
+    void getBeiJingSanYue(Integer type, String date,String s);
+
+    /**
+     * 卫卫阿尔-石家庄
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getWwAer(Integer type, String date, String s);
+
+    /**
+     * 卡瓦盛邦
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getKaWaSb(Integer type, String date, String s);
+
+    /**
+     * 卫卫阿尔2-石家庄-第二回合
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getWwAer2(Integer type, String date, String s);
 }

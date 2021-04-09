@@ -1,6 +1,7 @@
 package com.qianlima.offline.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import org.apache.catalina.User;
 import org.springframework.cglib.beans.BeanMap;
@@ -80,5 +81,17 @@ public class MapUtil {
             }
         }
         return list;
+    }
+
+    public static Map<String, Object> getJsonObjToMap(JSONObject obj){
+        //map对象
+        Map<String, Object> data =new HashMap<>();
+        //循环转换
+        Iterator it =obj.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
+            data.put(entry.getKey(), entry.getValue());
+        }
+        return data;
     }
 }

@@ -70,6 +70,10 @@ public class TestServiceImpl implements TestService{
     @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
 
+    @Autowired
+    @Qualifier("djeJdbcTemplate")
+    private JdbcTemplate djeJdbcTemplate;
+
     private static final String INSERT_HAN_ALL = "INSERT INTO han_tab_all (id,json_id,contentid,content_source,sum,sumUnit,serialNumber,name," +
             "brand,model,number,numberUnit,price,priceUnit,totalPrice,totalPriceUnit,configuration_key,configuration_value,appendix_suffix) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -78,19 +82,6 @@ public class TestServiceImpl implements TestService{
 
     //mysql数据库中插入数据
     public String INSERT_ZT_RESULT_HXR = "INSERT INTO han_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
-            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    public String INSERT_ZT_DATA_1 = "INSERT INTO han_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
-            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    //存储全文检索关键词b
-    public String INSERT_ZT_1 = "INSERT INTO han_data_copy1 (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
-            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    public String INSERT_ZT_RESULT_HXR_COPY = "INSERT INTO han_data_copy (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -209,7 +200,7 @@ public class TestServiceImpl implements TestService{
         ExecutorService executorService1 = Executors.newFixedThreadPool(32);
         List<Future> futureList = new ArrayList<>();
         try {
-            ExcelUtil2<MdlInfo> util = new ExcelUtil2<MdlInfo>();
+            ExportExcelUtil<MdlInfo> util = new ExportExcelUtil<MdlInfo>();
             // 准备数据
             List<MdlInfo> list = new ArrayList<>();
             List<Map<String, Object>> maps = bdJdbcTemplate.queryForList("SELECT id,contentid,data FROM han_tab");
@@ -1337,6 +1328,20 @@ public class TestServiceImpl implements TestService{
         //全部自提，不需要正文
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
+            String contentId = resultMap.get("content_id").toString();
+            //进行大金额替换操作
+            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+            if (maps != null && maps.size() > 0){
+                // 由于大金额处理的特殊性，只能用null进行判断
+                String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+                if (winnerAmount != null){
+                    resultMap.put("baiLian_amount_unit", winnerAmount);
+                }
+                String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+                if (budget != null){
+                    resultMap.put("baiLian_budget", budget);
+                }
+            }
             //判断中标单位联系方式是不是手机号
             //boolean link_phone = NumberUtil.validateMobilePhone(resultMap.get("link_phone").toString());
             //if (link_phone){
@@ -1410,6 +1415,20 @@ public class TestServiceImpl implements TestService{
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
            try {
+               String contentId = resultMap.get("content_id").toString();
+               //进行大金额替换操作
+               List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+               if (maps != null && maps.size() > 0){
+                   // 由于大金额处理的特殊性，只能用null进行判断
+                   String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+                   if (winnerAmount != null){
+                       resultMap.put("baiLian_amount_unit", winnerAmount);
+                   }
+                   String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+                   if (budget != null){
+                       resultMap.put("baiLian_budget", budget);
+                   }
+               }
                saveIntoMysqlBd(resultMap,INSERT_ZT_BEI_DENG2);
                 log.info("数据库存储--->{}",noticeMQ.getContentid());
             }catch (Exception e) {
@@ -1427,6 +1446,20 @@ public class TestServiceImpl implements TestService{
         Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithHunHe(noticeMQ, false);
         if (resultMap != null) {
            try {
+               String contentId = resultMap.get("content_id").toString();
+               //进行大金额替换操作
+               List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+               if (maps != null && maps.size() > 0){
+                   // 由于大金额处理的特殊性，只能用null进行判断
+                   String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+                   if (winnerAmount != null){
+                       resultMap.put("baiLian_amount_unit", winnerAmount);
+                   }
+                   String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+                   if (budget != null){
+                       resultMap.put("baiLian_budget", budget);
+                   }
+               }
                saveIntoMysql(resultMap,INSERT_ZT_JIAOFU);
                log.info("数据库存储--->{}",noticeMQ.getContentid());
             }catch (Exception e) {

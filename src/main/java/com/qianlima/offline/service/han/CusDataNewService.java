@@ -52,8 +52,10 @@ public class CusDataNewService {
     // 数据入库操作
     public static final String INSERT_ZT_RESULT_HXR = "INSERT INTO han_new_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords," +
+            " infoTypeSegment,monitorUrl, pocDetailUrl) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
 
     //获取数据的status,判断是否为99
     private static final String SELECT_PHPCMS_CONTENT_BY_CONTENTID = "SELECT status FROM phpcms_content where contentid = ? ";
@@ -86,7 +88,7 @@ public class CusDataNewService {
                 map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
-                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"));
+                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"),map.get("monitorUrl"), map.get("pocDetailUrl"));
     }
     public void saveIntoMysqlToAli(NoticeMQ noticeMQ){
         bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR,null, noticeMQ.getKeyword(), noticeMQ.getContentid(), noticeMQ.getTitle(),
@@ -138,6 +140,8 @@ public class CusDataNewService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
+            hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+            hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         }
         return hashMap;
     }
@@ -818,29 +822,29 @@ public class CusDataNewService {
             httpGet.setConfig(requestConfig);
             CloseableHttpResponse response = client.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                log.info("=====调用分支机构接口====");
+                log.info("=====调用中台接口====infoId：{}",infoId);
                 String result = EntityUtils.toString(response.getEntity(), "UTF-8");
                 if (StringUtils.isNotBlank(result)){
                     jsonObject = JSON.parseObject(result);
                 }
             } else {
-                log.info("infoId:{} 调用数据详情接口异常, 返回状态不是 200 ", infoId);
-                throw new RuntimeException("调用数据详情接口异常，请联系管理员， 返回状态不是 200 ");
+                log.info("infoId:{} 调用中台接口异常, 返回状态不是 200 ", infoId);
+                throw new RuntimeException("调用中台接口异常，请联系管理员， 返回状态不是 200 ");
             }
         } catch (Exception e){
-            log.error("调用数据详情接口异常:{}, 获取不到详情数据", e);
+            log.error("调用中台接口异常:{}, 获取不到详情数据", e);
         }
         if (jsonObject == null){
-            log.error("调用数据详情接口异常", infoId);
-            throw new RuntimeException("调用数据详情接口异常， 获取到的数据为 空 ");
+            log.error("调用中台接口异常", infoId);
+            throw new RuntimeException("调用中台接口异常， 获取到的数据为 空 ");
         }
         String code = jsonObject.getString("code");
         if ("-1".equals(code) || "1".equals(code) || "2".equals(code)) {
             if ("1".equals(code)){
-                bdJdbcTemplate.update("INSERT INTO table_code (content_id,code) VALUES (?,?)",infoId,code);
+                //bdJdbcTemplate.update("INSERT INTO table_code (content_id,code) VALUES (?,?)",infoId,code);
             }
-            log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
-            throw new RuntimeException("调用数据详情接口异常");
+            log.error("infoId:{} 调用中台接口异常, 对应的状态码 code ：{} ", infoId, code);
+            //throw new RuntimeException("调用中台接口异常");
         }
         JSONObject data = jsonObject.getJSONObject("data");
         Map<String,Object> map = JSONObject.parseObject(data.toString(), Map.class);

@@ -121,4 +121,42 @@ public class HanTest39Controller {
         log.info("===============================数据运行结束===================================");
         return "---陕西星宝莱厨房设备有限公司-第二回合 接口运行结束---";
     }
+
+    /**
+     *  三月雨
+     * @param type 是否存库
+     * @param date 日期
+     * @param str  是否打印日志
+     * @return
+     */
+    @ApiOperation("北京三月雨文化传播有限责任公司")
+    @PostMapping(value = "/getBeiJingSanYue",produces = "text/plain;charset=utf-8")
+    public String getBeiJingSanYue(Integer type,String date,String str) {
+        test39Service.getBeiJingSanYue(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---北京三月雨文化传播有限责任公司 接口运行结束---";
+    }
+
+    @ApiOperation("卫卫阿尔-石家庄")
+    @PostMapping(value = "/getWwAer",produces = "text/plain;charset=utf-8")
+    public String getWwAer(Integer type,String date,String str) {
+        test39Service.getWwAer(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---卫卫阿尔-石家庄 接口运行结束---";
+    }
+    @ApiOperation("卫卫阿尔2-石家庄-第二回合")
+    @PostMapping(value = "/getWwAer2",produces = "text/plain;charset=utf-8")
+    public String getWwAer2(Integer type,String date,String s) {
+        test39Service.getWwAer2(type, date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---卫卫阿尔2-石家庄-第二回合 接口运行结束---";
+    }
+
+    @ApiOperation("卡瓦盛邦")
+    @PostMapping(value = "/getKaWaSb",produces = "text/plain;charset=utf-8")
+    public String getKaWaSb(Integer type,String date,String str) {
+        test39Service.getKaWaSb(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---卡瓦盛邦 接口运行结束---";
+    }
 }

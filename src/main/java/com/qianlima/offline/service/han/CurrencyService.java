@@ -47,10 +47,7 @@ public interface CurrencyService {
      */
     String getHttpGet(String contentId);
 
-    /**
-     * 通用方法 ---获取标的物
-     */
-    void getTongYongBdw(String contentId) throws Exception;
+
 
     /**
      * 通用插入中台数据库的操作
@@ -78,4 +75,18 @@ public interface CurrencyService {
     void saveData1(List<Map> maps);
 
     void getPiPeiHangYeBiaoQian();
+
+    /**
+     *  本地
+     * @param name
+     * @param list
+     */
+    void readFileByNameBd(String name,List<String> list);
+
+    /**
+     * 测试服务器
+     * @param name
+     * @param list
+     */
+    void readFileByName(String name,List<String> list);
 }

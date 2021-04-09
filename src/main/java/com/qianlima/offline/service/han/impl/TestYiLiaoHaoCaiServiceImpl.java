@@ -137,8 +137,8 @@ public class TestYiLiaoHaoCaiServiceImpl implements TestYiLiaoHaoCaiService {
     // 数据入库操作
     public static final String INSERT_ZT_RESULT_YILIAO = "INSERT INTO han_new_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
-            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     public void saveIntoMysql(Map<String, Object> map){
         bdJdbcTemplate.update(INSERT_ZT_RESULT_YILIAO,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
@@ -149,6 +149,6 @@ public class TestYiLiaoHaoCaiServiceImpl implements TestYiLiaoHaoCaiService {
                 map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
-                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"));
+                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"),map.get("monitorUrl"),map.get("pocDetailUrl"));
     }
 }

@@ -1,3 +1,10 @@
+import org.apache.commons.lang3.time.DateFormatUtils;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 /**
  * 对时间进行处理
  */
@@ -87,11 +94,33 @@ public class TestTime {
             time += oneDay;
         }
         System.out.println(dayss);*/
+
+        List<String> dayss = new ArrayList<>();
+        Calendar start = Calendar.getInstance();
+        start.setTime(getDateAdd(14));
+        Long startTIme = start.getTimeInMillis();
+        Calendar end = Calendar.getInstance();
+        end.setTime(new Date());
+        Long endTime = end.getTimeInMillis();
+        Long oneDay = 1000 * 60 * 60 * 24l;
+        Long time = startTIme;
+        while (time < endTime) {
+            dayss.add(String.valueOf(time));
+            time += oneDay;
+        }
+
+        System.out.println(dayss);
+
+
+
+
+
     }
-    /*private static  Date getDateAdd(int days){
+    private static  Date getDateAdd(int days){
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -days);
         return c.getTime();
-    }*/
+    }
+
 
 }

@@ -4,13 +4,13 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-import com.qianlima.offline.bean.AreaAlias;
-import com.qianlima.offline.bean.AuthorizeCusdataInfo;
-import com.qianlima.offline.bean.NewareaToOldarea;
-import com.qianlima.offline.bean.NoticeMQ;
+import com.qianlima.offline.bean.*;
 import com.qianlima.offline.entity.Enterprise;
+import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestMongoService;
 import com.qianlima.offline.util.MongoDBUtil;
+import com.qianlima.offline.util.ReadFileUtil;
+import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -50,6 +50,10 @@ public class TestMongoServiceImpl implements TestMongoService {
     @Resource
     @Qualifier("qlyMongoTemplate")
     private MongoTemplate qlyMongoTemplate;
+
+    @Autowired
+    private CurrencyService currencyService;
+
 
     public static final String UPDATE_ZT_RESULT_TYPE = "UPDATE han_unit SET actualCapital=?,estiblishTime=?,regLocation=?,industry=?,base=?,top01=?,top02=? WHERE unit_name =?";
 
@@ -135,6 +139,35 @@ public class TestMongoServiceImpl implements TestMongoService {
         }
     }
 
+    @Override
+    public void getTestMo() {
+        String idParam ="";
+        List<String> listAll = new ArrayList<>();
+        while (true){
+            List<NewareaToOldarea> list = getList(idParam);
+            if (list !=null && list.size()>0){
+                for (NewareaToOldarea newareaToOldarea : list) {
+                    idParam = newareaToOldarea.get_id();
+                    //处理对应的业务逻辑
+                    listAll.add(newareaToOldarea.getNewName());
+                }
+            }else{
+                break;
+            }
+        }
+        //本地
+        currencyService.readFileByNameBd("aaa",listAll);
+    }
+
+    private List<NewareaToOldarea> getList(String idParam){
+        Query query = new Query();
+        if (StrUtil.isNotEmpty(idParam)){
+            query.addCriteria(Criteria.where("_id").gt(new ObjectId(idParam)));
+        }
+        query.with(new Sort(Sort.Direction.ASC,"_id")).limit(1000);
+        List<NewareaToOldarea> newareaToOldareas = mongoTemplate.find(query, NewareaToOldarea.class);
+        return newareaToOldareas;
+    }
     private Enterprise queryForName(String zhongbiaounit) {
         if (StringUtils.isBlank(zhongbiaounit)){
             return null;

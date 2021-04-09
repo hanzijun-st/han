@@ -22,4 +22,64 @@
       SELECT * FROM han_test_user
   </select>
 
+  <insert id="saveDatas" parameterType="java.util.List">
+      INSERT INTO han_test_my(content_id)
+      VALUES
+    <foreach collection="list" item="item" separator=",">
+      (#{item.contentId,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
+
+  <insert id="saveList" parameterType="java.util.List">
+      INSERT INTO han_new_data_my(task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit,xmNumber,
+          bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man,
+          link_phone,registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,
+          bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment)
+      VALUES
+    <foreach collection="list" item="item" separator=",">
+      (
+        #{item.task_id,jdbcType=VARCHAR},
+        #{item.keyword,jdbcType=VARCHAR},
+        #{item.content_id,jdbcType=VARCHAR},
+        #{item.title,jdbcType=VARCHAR},
+        #{item.content,jdbcType=VARCHAR},
+        #{item.province,jdbcType=VARCHAR},
+        #{item.city,jdbcType=VARCHAR},
+        #{item.country,jdbcType=VARCHAR},
+        #{item.url,jdbcType=VARCHAR},
+        #{item.baiLian_budget,jdbcType=VARCHAR},
+        #{item.baiLian_amount_unit,jdbcType=VARCHAR},
+        #{item.xmNumber,jdbcType=VARCHAR},
+        #{item.bidding_type,jdbcType=VARCHAR},
+        #{item.progid,jdbcType=VARCHAR},
+        #{item.zhao_biao_unit,jdbcType=VARCHAR},
+        #{item.relation_name,jdbcType=VARCHAR},
+        #{item.relation_way,jdbcType=VARCHAR},
+        #{item.agent_unit,jdbcType=VARCHAR},
+        #{item.agent_relation_ame,jdbcType=VARCHAR},
+        #{item.agent_relation_way,jdbcType=VARCHAR},
+        #{item.zhong_biao_unit,jdbcType=VARCHAR},
+        #{item.link_man,jdbcType=VARCHAR},
+        #{item.link_phone,jdbcType=VARCHAR},
+        #{item.registration_begin_time,jdbcType=VARCHAR},
+        #{item.registration_end_time,jdbcType=VARCHAR},
+        #{item.biding_acquire_time,jdbcType=VARCHAR},
+        #{item.biding_end_time,jdbcType=VARCHAR},
+        #{item.tender_begin_time,jdbcType=VARCHAR},
+        #{item.tender_end_time,jdbcType=VARCHAR},
+        #{item.update_time,jdbcType=VARCHAR},
+        #{item.type,jdbcType=VARCHAR},
+        #{item.bidder,jdbcType=VARCHAR},
+        #{item.notice_types,jdbcType=VARCHAR},
+        #{item.open_biding_time,jdbcType=VARCHAR},
+        #{item.is_electronic,jdbcType=VARCHAR},
+        #{item.code,jdbcType=VARCHAR},
+        #{item.isfile,jdbcType=VARCHAR},
+        #{item.keyword_term,jdbcType=VARCHAR},
+        #{item.keywords,jdbcType=VARCHAR},
+        #{item.infoTypeSegment,jdbcType=VARCHAR}
+      )
+    </foreach>
+  </insert>
+
 </mapper>

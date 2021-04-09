@@ -1,7 +1,9 @@
 server:
-  port: 9003
+  port: 9988
 logging:
   config: classpath:log/logback-spring-dev.xml
+  level:
+    com.qianlima.offline.mapper: debug
 #通用数据源
 #数据源1
 spring:
@@ -131,6 +133,37 @@ spring:
       removeAbandoned: true
       removeAbandonedTimeout: 300
       logAbandoned: false
+    dje:
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://118.190.158.164:3309/ka_monitor?useUnicode=true&characterEncoding=utf8
+      username: monitorReader
+      password: yj1jaOtS3x7y
+      type: com.alibaba.druid.pool.DruidDataSource
+      # 初始化大小，最小，最大
+      initialSize: 3
+      minIdle: 3
+      maxActive: 5
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      #         配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filters: stat,wall
+      # 合并多个DruidDataSource的监控数据
+      useGlobalDataSourceStat: true
+      #druid recycle
+      removeAbandoned: true
+      removeAbandonedTimeout: 300
+      logAbandoned: false
   redis:
     host: localhost
     port: 6379
@@ -169,3 +202,6 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
+    #开启MyBatis的二级缓存
+    cache-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

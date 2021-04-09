@@ -138,5 +138,17 @@ public class HanPocController {
         testTencentService.getTongfangWeiShi2(date,type);
         return "getTongfangWeiShi2 is ok";
     }
+    @ApiOperation("测试批量")
+    @PostMapping("/getCs")
+    public String getCs(String date,Integer type) throws Exception{
+        testTencentService.getKaisixuandaCs(date,type);
+        return "getKaisixuandaCs is ok";
+    }
 
+    @ApiOperation("大金额-输出常用字段")
+    @PostMapping("/getDajinE")
+    public String getDajinE() throws Exception{
+        testTencentService.getDajinE();
+        return "getDajinE is ok";
+    }
 }

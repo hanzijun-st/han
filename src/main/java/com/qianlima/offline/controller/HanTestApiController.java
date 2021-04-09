@@ -1,5 +1,6 @@
 package com.qianlima.offline.controller;
 
+import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestApiService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,7 +33,18 @@ public class HanTestApiController {
         return "data is get ok";
     }
 
-
+    @GetMapping("/testDaHua")
+    @ApiOperation("大华")
+    public String testDaHua() throws Exception {
+        testApiService.testDaHua();
+        return "dahua is get ok";
+    }
+    @GetMapping("/jsonToData")
+    @ApiOperation("解析json文件")
+    public String jsonToData() throws Exception {
+        testApiService.jsonToData2();
+        return "dahua is get ok";
+    }
 
 
 }

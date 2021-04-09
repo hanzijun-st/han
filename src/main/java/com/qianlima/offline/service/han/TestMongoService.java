@@ -8,4 +8,8 @@ public interface TestMongoService {
 
     void getTest();
 
+    /**
+     *  获取mongo数据
+     */
+    void getTestMo();
 }

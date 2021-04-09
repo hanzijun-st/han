@@ -70,6 +70,25 @@ public class DataSourceConfig implements EnvironmentAware {
         return new JdbcTemplate(dataSource);
     }
 
+    /**
+     * 大金额数据
+     * @return
+     */
+    @Bean(name = "djeDataSource")
+    @Qualifier("djeDataSource")
+    @ConfigurationProperties(prefix="spring.datasource.dje")
+    public DataSource djePrimaryDataSource() {
+        return DruidDataSourceBuilder.create().build();
+    }
+
+    /**
+     * jdbcs数据源JdbcTemplet-大金额
+     */
+    @Bean(name = "djeJdbcTemplate")
+    public JdbcTemplate djePrimaryJdbcTemplate(@Qualifier("djeDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
 
     /**
      * 数据源连接数据库

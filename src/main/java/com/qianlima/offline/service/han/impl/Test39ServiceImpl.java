@@ -13,6 +13,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -38,6 +40,10 @@ public class Test39ServiceImpl implements Test39Service {
 
     @Autowired
     private CusDataNewService cusDataNewService;//调用中台接口
+
+    @Autowired
+    @Qualifier("djeJdbcTemplate")
+    private JdbcTemplate djeJdbcTemplate;
 
 
     @Override
@@ -1249,6 +1255,472 @@ public class Test39ServiceImpl implements Test39Service {
         System.out.println("--------------------------------本次任务结束---------------------------------------");
     }
 
+    @Override
+    public void getBeiJingSanYue(Integer type, String date,String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        try {
+            String[] a ={"廉政警示教育","党建","党性","法治教育","青少年教育","理想信念教育","文化建设","军队文化","传统文化","企业文化","税务文化","红色文化","校史馆","史馆"};
+            for (String str : a) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:3 OR progid:5) AND title:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            ArrayList<String> arrayList = new ArrayList<>();
+            //关键词a
+            for(String k : a){
+                arrayList.add(k);
+            }
+            List<String> l = new ArrayList<>();
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : listAll) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (StringUtils.isNotBlank(keyword)){
+                        if (keyword.equals(str)) {
+                            total++;
+                        }
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                //System.out.println(str + ": " + total);
+                l.add(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+            l.add("全部数据量：" + listAll.size());
+            l.add("去重之后的数据量：" + list.size());
+            if ("1".equals(s)){
+                currencyService.readFileByName("sanyue",l);
+            }else if ("2".equals(s)){
+                currencyService.readFileByNameBd("sanyue",l);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    /**
+     * 卫卫阿尔-石家庄
+     * @param type
+     * @param date
+     * @param s
+     */
+    @Override
+    public void getWwAer(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        try {
+            String[] a ={"道路停车","道路泊车","路边停车","路边泊车","路内停车","路内泊车"};
+            for (String str : a) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:[0 TO 3] OR progid:5) AND allcontent:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            ArrayList<String> arrayList = new ArrayList<>();
+            //关键词a
+            for(String k : a){
+                arrayList.add(k);
+            }
+            List<String> l = new ArrayList<>();
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : listAll) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (StringUtils.isNotBlank(keyword)){
+                        if (keyword.equals(str)) {
+                            total++;
+                        }
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                //System.out.println(str + ": " + total);
+                l.add(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+            l.add("全部数据量：" + listAll.size());
+            l.add("去重之后的数据量：" + list.size());
+            if ("1".equals(s)){
+                currencyService.readFileByName("sanyue",l);
+            }else if ("2".equals(s)){
+                currencyService.readFileByNameBd("sanyue",l);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------wwaer本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getKaWaSb(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        try {
+            String[] aa ={"CBCT"};
+            String[] bb ={"口腔CT","口腔CBCT","锥形束计算机体层摄影设备","口腔颌面锥形束计算机体层摄影设备","锥形束CT","口腔X射线数字化体层摄影设备","牙科CT","口腔X射线机","口腔数字化影像系统","口腔颌面锥形束计算机体层摄影系统","口腔影像设备","口腔X射线数字化体层摄影系统","大视野CBCT","牙科CBCT","口腔摄影系统","锥形束影像CT","口腔三合一CBCT","口腔影像设备","口腔数字化体层摄影设备"};
+            for (String a : aa) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:3 OR progid:5) AND title:\"" + a + "\"", "", 1);
+                    log.info(a+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(a);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (String b : bb) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:3 OR progid:5) AND allcontent:\"" + b + "\"", "", 1);
+                    log.info(b+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(b);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            ArrayList<String> arrayList = new ArrayList<>();
+            //关键词a
+            for(String k : aa){
+                arrayList.add(k);
+            }
+            for (String b : bb) {
+                arrayList.add(b);
+            }
+            List<String> l = new ArrayList<>();
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : listAll) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (StringUtils.isNotBlank(keyword)){
+                        if (keyword.equals(str)) {
+                            total++;
+                        }
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                //System.out.println(str + ": " + total);
+                l.add(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+            l.add("全部数据量：" + listAll.size());
+            l.add("去重之后的数据量：" + list.size());
+            if ("1".equals(s)){
+                currencyService.readFileByName("卡瓦",l);
+            }else if ("2".equals(s)){
+                currencyService.readFileByNameBd("卡瓦",l);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------kawa本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getWwAer2(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        try {
+            String[] aa ={"道路停车","路边停车","道路泊车","路边泊车","路内停车","路内泊车","停车管理","泊车管理","咪表","停车缴费终端","泊车缴费终端","停车终端","泊车终端","停车技术","泊车技术","停车收费","泊车收费","停车支付","泊车支付","智慧停车解决方案","智慧泊车解决方案","市政停车","市政泊车","停车引导系统","泊车引导系统","停车压力","泊车压力","可用停车位","可用泊车位","停车占用","泊车占用","停车场特许","泊车场特许","停车门户","泊车门户","停车手机应用程序","停车手机app","泊车手机应用程序","泊车手机app","车辆计数","停车数据中心","泊车数据中心","实时停车","实时泊车","停车传感器","泊车传感器","停车管理平台","泊车管理平台","在线注册","线上注册","车牌号付费","停车执法","泊车执法","停车许可","泊车许可","停车预约","泊车预约","停车权","泊车权"};
+            for (String a : aa) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:3 OR progid:5) AND title:\"" + a + "\"", "", 1);
+                    log.info(a+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(a);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            ArrayList<String> arrayList = new ArrayList<>();
+            //关键词a
+            for(String k : aa){
+                arrayList.add(k);
+            }
+
+            List<String> l = new ArrayList<>();
+            for (String str : arrayList) {
+                int total = 0;
+                for (NoticeMQ noticeMQ : listAll) {
+                    String keyword = noticeMQ.getKeyword();
+                    if (StringUtils.isNotBlank(keyword)){
+                        if (keyword.equals(str)) {
+                            total++;
+                        }
+                    }
+                }
+                if (total == 0) {
+                    continue;
+                }
+                //System.out.println(str + ": " + total);
+                l.add(str + ": " + total);
+            }
+            System.out.println("全部数据量：" + listAll.size());
+            System.out.println("去重之后的数据量：" + list.size());
+            l.add("全部数据量：" + listAll.size());
+            l.add("去重之后的数据量：" + list.size());
+            if ("1".equals(s)){
+                currencyService.readFileByName("卡瓦",l);
+            }else if ("2".equals(s)){
+                currencyService.readFileByNameBd("卡瓦",l);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------kawa本次任务结束---------------------------------------");
+    }
+
 
     /**
      * 调用中台数据，进行处理
@@ -1263,12 +1735,26 @@ public class Test39ServiceImpl implements Test39Service {
         //全部自提，不需要正文
         Map<String, Object> resultMap = cusDataNewService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
-            //String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
+            String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
             //先去链接
             //content =processAboutContent(content);
             //再判断是否是字母
             //content = checkString(content);
-
+            String contentId = resultMap.get("content_id").toString();
+            //进行大金额替换操作
+            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+            if (maps != null && maps.size() > 0){
+                // 由于大金额处理的特殊性，只能用null进行判断
+                String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+                if (winnerAmount != null){
+                    resultMap.put("baiLian_amount_unit", winnerAmount);
+                }
+                String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+                if (budget != null){
+                    resultMap.put("baiLian_budget", budget);
+                }
+            }
+            resultMap.put("content",content);
             cusDataNewService.saveIntoMysql(resultMap);//插入数据库操作
 
         }

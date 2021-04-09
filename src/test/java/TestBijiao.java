@@ -17,22 +17,14 @@ public class TestBijiao {
                 }
                 noHave.add(datadd);
             }
-            System.out.println(noHave.toString());
-
             readFile(noHave);
-            /*for (String datass : bjDatass) {
-                if (bjDatasD.contains(datass)){
-                    continue;
-                }
-                System.out.println("存在不同的数据："+no);
-            }*/
         } catch (IOException e) {
 
         }
     }
 
     public static void readFile(List<String> strList) {
-        File file = new File("C:/Users/Administrator/Desktop/wenjian/test.txt");
+        File file = new File("C:/Users/Administrator/Desktop/wenjian/noIds.txt");
 
         if(file.exists()) {
             System.err.println("如果已存在test.txt的文件，将更新文件内容");

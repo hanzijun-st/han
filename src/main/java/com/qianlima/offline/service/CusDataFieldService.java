@@ -106,6 +106,8 @@ public class CusDataFieldService {
             //hashMap.put("zhao_first_industry",noticeMQ.getZhaoFirstIndustry());
             //hashMap.put("zhao_second_industry",noticeMQ.getZhaoSecondIndustry());
             //hashMap.put("heici",noticeMQ.getHeici());
+            hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+            hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         }
         return hashMap;
     }
@@ -792,7 +794,7 @@ public class CusDataFieldService {
             httpGet.setConfig(requestConfig);
             CloseableHttpResponse response = client.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                log.info("=====调用分支机构接口====>{}",infoId);
+                log.info("=====调用中台api接口====>{}",infoId);
                 String result = EntityUtils.toString(response.getEntity(), "UTF-8");
                 if (StringUtils.isNotBlank(result)){
                     jsonObject = JSON.parseObject(result);
