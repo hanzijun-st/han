@@ -1,22 +1,18 @@
-package test.java;
-
-import com.qianlima.offline.util.OptionalBean;
-import lombok.Data;
-
+import com.qianlima.offline.bean.Student;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class TestOptionalBean {
     public static void main(String[] args) {
-        Person p = new Person("哈哈哈",29,"沙河");
-        Person p1 = new Person("嘎嘎嘎",29,"西二旗");
+        Student p = new Student(1,"哈哈哈",29);
+        Student p1 = new Student(2,"嘎嘎嘎",29);
 
-        List<Person> list1 = new ArrayList<>();
-        List<Person> list2 = new ArrayList<>();
+        List<Student> list1 = new ArrayList<>();
+        List<Student> list2 = new ArrayList<>();
         list1.add(p);
         list2.add(p1);
-        List<Person> l = list1.stream().map(
+        List<Student> l = list1.stream().map(
                                 pp -> list2.stream().filter(
                                         ppp -> pp.getAge().equals(ppp.getAge())).findFirst().map(girl -> {
                                             return pp;
@@ -27,6 +23,7 @@ public class TestOptionalBean {
     }
 }
 
+/*
 @Data
 class Person {
     private String name;
@@ -38,4 +35,4 @@ class Person {
         this.age = age;
         this.address = address;
     }
-}
+}*/

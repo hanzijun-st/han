@@ -64,5 +64,18 @@ public class CurrencyController {
         return "getNewBdw3请求成功---最新方式-获取标的物的数据";
     }
 
+    @GetMapping("/getCrmByUserId")
+    @ApiOperation("获取用户的指定字段-用户所有数据")
+    public String getCrmByUserId() throws Exception{
+        currencyService.getCrmByUserId();
+        return "getCrmByUserId---获取用户的指定字段";
+    }
 
+
+    @GetMapping("/getCrmByUserIdToMonth")
+    @ApiOperation("获取用户的指定字段-某个月")
+    public String getCrmByUserIdToMonth() throws Exception{
+        currencyService.getCrmByUserIdToMonth();
+        return "getCrmByUserId---获取用户的指定字段-某个月";
+    }
 }

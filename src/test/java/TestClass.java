@@ -1,3 +1,4 @@
+import com.qianlima.offline.bean.Student;
 import com.qianlima.offline.util.JsonUtil;
 import com.qianlima.offline.util.MapUtil;
 import lombok.Data;
@@ -14,18 +15,18 @@ public class TestClass {
 
         System.out.println(map.toString());*/
 
-        String json ="{'name':'hahaha','age':'10'}";
-        Abc abc = JsonUtil.jsonToBean(json, Abc.class);
-        System.out.println(abc.getName()+"---"+abc.getAge());
+        String json = "{'name':'hahaha','age':'10'}";
+        Student abc = JsonUtil.jsonToBean(json, Student.class);
+        System.out.println(abc.getName() + "---" + abc.getAge());
 
         String s = JsonUtil.objToJsonStr(abc);
         System.out.println(s);
 
-        Map<String,Object> map = new HashMap<>();
-        map.put("name","哈哈哈");
-        map.put("age","20");
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", "哈哈哈");
+        map.put("age", "20");
 
-        Abc abcClass = MapUtil.mapToBean(map,Abc.class);
+        Student abcClass = MapUtil.mapToBean(map, Student.class);
         //System.out.println(abcClass.getName()+"==="+abcClass.getAge());
 
 
@@ -33,9 +34,4 @@ public class TestClass {
         System.out.println(map1);
     }
 
-}
-@Data
-class Abc{
-    private String name;
-    private String age;
 }

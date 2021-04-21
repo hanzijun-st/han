@@ -11,6 +11,8 @@ public class Student {
     private String name;
     private Integer age;
 
+    public Student(){};
+
     public Student(int id, String name, int age) {
         this.id = id;
         this.name = name;

@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import com.qianlima.offline.bean.Area;
-import com.qianlima.offline.bean.ConstantBean;
-import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.bean.Params;
+import com.qianlima.offline.bean.*;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.rule02.BiaoDiWuRule;
 import com.qianlima.offline.rule02.MyRuleUtils;
@@ -15,8 +12,10 @@ import com.qianlima.offline.service.CusDataFieldService;
 import com.qianlima.offline.service.ZhongTaiBiaoDiWuService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.*;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -37,17 +36,21 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sun.reflect.generics.tree.Tree;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.qianlima.offline.util.HttpClientUtil.getHttpClient;
 
 /**
  * Created by Administrator on 2021/1/14.
@@ -74,10 +77,20 @@ public class CurrencyServiceImpl implements CurrencyService {
     private JdbcTemplate bdJdbcTemplate;
 
     @Autowired
+    @Qualifier("crmJdbcTemplate")
+    private JdbcTemplate crmJdbcTemplate;
+
+    @Autowired
     private CusDataFieldService cusDataFieldService;
 
     @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
     private CleanUtils cleanUtils;
+
+
+
 
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
@@ -683,9 +696,595 @@ public class CurrencyServiceImpl implements CurrencyService {
     public void readFileByName(String name,List<String> list) {
         ReadFileUtil.readFile(ConstantBean.FILL_URL,name+".txt",list);
     }
+
+    @Override
+    public void readFileByMap(String name, Map<String, Long> map) {
+        ReadFileUtil.readFileByMap(ConstantBean.FILL_URL,name+".txt",map);
+    }
+
+    @Override
+    public void soutKeywords(List<NoticeMQ> listAll, Integer listSize,String s,String name) {
+        Map<String, Long> mapCount = listAll.stream().collect(Collectors.groupingBy(NoticeMQ::getKeyword, Collectors.counting()));
+        Map<String, Long> linkedHashMap = new LinkedHashMap<>(mapCount);
+
+        linkedHashMap.put("全部数据量",Long.valueOf(listAll.size()));
+        linkedHashMap.put("去重数据量",Long.valueOf(listSize));
+
+        if ("1".equals(s)){
+            currencyService.readFileByMap(name,linkedHashMap);
+            log.info("");
+        }else if ("2".equals(s)){
+            currencyService.readFileByMapToBd(name,linkedHashMap);
+        }
+    }
+
+    @Override
+    public String getCrmByUserId() throws Exception{
+        String cursorMark = "*";
+        String format = "yyyy-MM-dd HH:mm:ss";
+        int count =0;
+        int tiaoShu =0;
+        List<String> list = new ArrayList<>();
+        //开始时间
+        Date startTime = new SimpleDateFormat(format).parse("2020-06-01 00:00:00");
+        //结束时间
+        Date endTime = new SimpleDateFormat(format).parse("2020-06-30 23:59:59");
+        while (true) {
+            String result = getMaiRui(cursorMark);
+            JSONObject data = JSON.parseObject(result);
+            if (null == data) {
+                log.error("异常++++++++++++++++++");
+                System.out.println("1");
+            }
+            JSONObject info = (JSONObject) data.get("data");
+            if (info == null) {
+                log.error("异常——————————————————————");
+                System.out.println("2");
+                log.info("数据跑完了");
+                log.info("一共：{}",tiaoShu);
+                log.info("3.19-5.19的有：{}",count);
+            }
+            cursorMark = info.getString("cursorMark");
+            JSONArray jsonArray = info.getJSONArray("list");
+            if(jsonArray == null || jsonArray.size() == 0){
+                log.info("数据跑完了");
+                log.info("一共：{}",tiaoShu);
+                log.info("3.19-5.19的有：{}",count);
+                return count+"";
+            }
+            for (Object o : jsonArray) {
+                tiaoShu = tiaoShu+1;
+                JSONObject object = (JSONObject) o;
+                //当前时间
+                Date nowTime = new SimpleDateFormat(format).parse(object.get("infoPublishTime").toString());
+                if(isEffectiveDate(nowTime, startTime, endTime)){
+                    String infoId = object.getString("infoId");
+                    //中标单位
+                    JSONArray zhongBiaoUnit = object.getJSONArray("zhongBiaoUnit");
+                    String zhongBiaoUnitStr = null;
+                    if (zhongBiaoUnit != null && zhongBiaoUnit.size() > 0) {
+                        zhongBiaoUnitStr = "";
+                        for (int i = 0; i < zhongBiaoUnit.size(); i++) {
+                            zhongBiaoUnitStr += zhongBiaoUnit.getString(i);
+                            zhongBiaoUnitStr += ",";
+                        }
+                        zhongBiaoUnitStr = zhongBiaoUnitStr.substring(0, zhongBiaoUnitStr.length() - 1);
+                    }
+                    //中标单位联系人
+                    JSONArray zhongRelationName = object.getJSONArray("zhongRelationName");
+                    String zhongRelationNameStr = null;
+                    if (zhongRelationName != null && zhongRelationName.size() > 0) {
+                        zhongRelationNameStr = "";
+                        for (int i = 0; i < zhongRelationName.size(); i++) {
+                            zhongRelationNameStr += zhongRelationName.getString(i);
+                            zhongRelationNameStr += ",";
+                        }
+                        zhongRelationNameStr = zhongRelationNameStr.substring(0, zhongRelationNameStr.length() - 1);
+                    }
+                    //中标单位联系电话
+                    JSONArray zhongRelationWay = object.getJSONArray("zhongRelationWay");
+                    String zhongRelationWayStr = null;
+                    if (zhongRelationWay != null && zhongRelationWay.size() > 0) {
+                        zhongRelationWayStr = "";
+                        for (int i = 0; i < zhongRelationWay.size(); i++) {
+                            zhongRelationWayStr += zhongRelationWay.getString(i);
+                            zhongRelationWayStr += ",";
+                        }
+                        zhongRelationWayStr = zhongRelationWayStr.substring(0, zhongRelationWayStr.length() - 1);
+                    }
+
+                    //招标单位
+                    JSONArray zhaoBiaoUnit = object.getJSONArray("zhaoBiaoUnit");
+                    String zhaoBiaoUnitStr = null;
+                    if (zhaoBiaoUnit != null && zhaoBiaoUnit.size() > 0) {
+                        zhaoBiaoUnitStr = "";
+                        for (int i = 0; i < zhaoBiaoUnit.size(); i++) {
+                            zhaoBiaoUnitStr += zhaoBiaoUnit.getString(i);
+                            zhaoBiaoUnitStr += ",";
+                        }
+                        zhaoBiaoUnitStr = zhaoBiaoUnitStr.substring(0, zhaoBiaoUnitStr.length() - 1);
+                    }
+                    //招标单位联系人
+                    JSONArray zhaoRelationName = object.getJSONArray("zhaoRelationName");
+                    String zhaoRelationNameStr = null;
+                    if (zhaoRelationName != null && zhaoRelationName.size() > 0) {
+                        zhaoRelationNameStr = "";
+                        for (int i = 0; i < zhaoRelationName.size(); i++) {
+                            zhaoRelationNameStr += zhaoRelationName.getString(i);
+                            zhaoRelationNameStr += ",";
+                        }
+                        zhaoRelationNameStr = zhaoRelationNameStr.substring(0, zhaoRelationNameStr.length() - 1);
+                    }
+                    //招标单位联系电话
+                    JSONArray zhaoRelationWay = object.getJSONArray("zhaoRelationWay");
+                    String zhaoRelationWayStr = null;
+                    if (zhaoRelationWay != null && zhaoRelationWay.size() > 0) {
+                        zhaoRelationWayStr = "";
+                        for (int i = 0; i < zhaoRelationWay.size(); i++) {
+                            zhaoRelationWayStr += zhaoRelationWay.getString(i);
+                            zhaoRelationWayStr += ",";
+                        }
+                        zhaoRelationWayStr = zhaoRelationWayStr.substring(0, zhaoRelationWayStr.length() - 1);
+                    }
+
+                    //代理单位
+                    JSONArray agentUnit = object.getJSONArray("agentUnit");
+                    String agentUnitStr = null;
+                    if (agentUnit != null && agentUnit.size() > 0) {
+                        agentUnitStr = "";
+                        for (int i = 0; i < agentUnit.size(); i++) {
+                            agentUnitStr += agentUnit.getString(i);
+                            agentUnitStr += ",";
+                        }
+                        agentUnitStr = agentUnitStr.substring(0, agentUnitStr.length() - 1);
+                    }
+                    //代理单位联系人
+                    JSONArray agentRelationName = object.getJSONArray("agentRelationName");
+                    String agentRelationNameStr = null;
+                    if (agentRelationName != null && agentRelationName.size() > 0) {
+                        agentRelationNameStr = "";
+                        for (int i = 0; i < agentRelationName.size(); i++) {
+                            agentRelationNameStr += agentRelationName.getString(i);
+                            agentRelationNameStr += ",";
+                        }
+                        agentRelationNameStr = agentRelationNameStr.substring(0, agentRelationNameStr.length() - 1);
+                    }
+                    //代理单位联系电话
+                    JSONArray agentRelationWay = object.getJSONArray("agentRelationWay");
+                    String agentRelationWayStr = null;
+                    if (agentRelationWay != null && agentRelationWay.size() > 0) {
+                        agentRelationWayStr = "";
+                        for (int i = 0; i < agentRelationWay.size(); i++) {
+                            agentRelationWayStr += agentRelationWay.getString(i);
+                            agentRelationWayStr += ",";
+                        }
+                        agentRelationWayStr = agentRelationWayStr.substring(0, agentRelationWayStr.length() - 1);
+                    }
+                    //预算
+                    JSONArray budget = object.getJSONArray("budget");
+                    String budgetStr = null;
+                    String budgetUnit = null;
+                    if (budget != null && budget.size() > 0) {
+                        budgetStr = "";
+                        budgetUnit = "";
+                        for (int i = 0; i < budget.size(); i++) {
+                            budgetStr += budget.getJSONObject(i).getString("amount");
+                            budgetStr += ",";
+                            budgetUnit += budget.getJSONObject(i).getString("unit");
+                            budgetUnit += ",";
+                        }
+                        budgetStr = budgetStr.substring(0, budgetStr.length() - 1);
+                        budgetUnit = budgetUnit.substring(0, budgetUnit.length() - 1);
+                    }
+                    //中标金额
+                    JSONArray winnerAmount = object.getJSONArray("winnerAmount");
+                    String winnerAmountStr = null;
+                    String winnerAmountUnit = null;
+                    if (winnerAmount != null && winnerAmount.size() > 0) {
+                        winnerAmountStr = "";
+                        winnerAmountUnit = "";
+                        for (int i = 0; i < winnerAmount.size(); i++) {
+                            winnerAmountStr += winnerAmount.getJSONObject(i).getString("amount");
+                            winnerAmountStr += ",";
+                            winnerAmountUnit += winnerAmount.getJSONObject(i).getString("unit");
+                            winnerAmountUnit += ",";
+                        }
+                        winnerAmountStr = winnerAmountStr.substring(0, winnerAmountStr.length() - 1);
+                        winnerAmountUnit = winnerAmountUnit.substring(0, winnerAmountUnit.length() - 1);
+                    }
+
+                    JSONArray infoFile = object.getJSONArray("infoFile");
+                    String infoFileStr = null;
+                    if (infoFile != null && infoFile.size() > 0) {
+                        infoFileStr = "";
+                        for (int i = 0; i < infoFile.size(); i++) {
+                            infoFileStr += infoFile.getString(i);
+                            infoFileStr += ",";
+                        }
+                        infoFileStr = infoFileStr.substring(0, infoFileStr.length() - 1);
+                    }
+
+                    String openBidingTime = object.getString("openBidingTime");
+                    String bidingAcquireTime = object.getString("bidingAcquireTime");
+                    String bidingEndTime = object.getString("bidingEndTime");
+                    String tenderBeginTime = object.getString("tenderBeginTime");
+                    String tenderEndTime = object.getString("tenderEndTime");
+                    String isElectronic = object.getString("isElectronic");
+                    String infoType = object.getString("infoType");
+
+                    String infoTitle = object.getString("infoTitle");
+                    String infoPublishTime = object.getString("infoPublishTime");
+                    String infoQianlimaUrl = object.getString("infoQianlimaUrl");
+                    String areaProvince = object.getString("areaProvince");
+                    String areaCity = object.getString("areaCity");
+                    String areaCountry = object.getString("areaCountry");
+                    String xmNumber = object.getString("xmNumber");
+                    String biddingType = object.getString("biddingType");
+                    String keywords = object.getString("keywords");
+                    String infoUrl = object.getString("keywordsCode");
+                    String xlfKeywords = object.getString("xlfKeywords");
+                    String infoWebsite = object.getString("target");
+
+                    //中国电信独有
+//                    String amountTag = object.getString("amountTag");
+//                    openBidingTime = amountTag;
+//
+//
+//                    String opportunityTag = object.getString("opportunityTag");
+//                    bidingAcquireTime = opportunityTag;
+//
+//                    String competorTag = object.getString("competorTag");
+//                    bidingEndTime = competorTag;
+//
+//                    String dataType = object.getString("dataType");
+//                    tenderBeginTime = dataType;
+//
+//                    String infoTypeSegment = object.getString("infoTypeSegment");
+//                    tenderEndTime = infoTypeSegment;
+
+                    // if(infoTitle.contains("...")){
+                    bdJdbcTemplate.update("insert into han_crm_user (" +
+                                    "taskid,infoId,infoTitle,infoType,infoPublishTime,infoQianlimaUrl," +
+                                    "areaProvince,areaCity,areaCountry,xmNumber," +
+                                    "zhongBiaoUnit,zhongRelationName,zhongRelationWay," +
+                                    "openBidingTime,bidingAcquireTime,bidingEndTime,tenderBeginTime,tenderEndTime,isElectronic," +
+                                    "biddingType,zhaoBiaoUnit,zhaoRelationName,zhaoRelationWay," +
+                                    "agentUnit,agentRelationName," +
+                                    "agentRelationWay,budget,budgetUnit,winnerAmount,winnerAmountUnit,infoFile,keywords, infoUrl, infoWebsite" +
+                                    ",xlfKeywords) " +
+                                    " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "21",infoId, infoTitle, infoType, infoPublishTime, infoQianlimaUrl,
+                            areaProvince, areaCity, areaCountry, xmNumber,
+                            zhongBiaoUnitStr, zhongRelationNameStr, zhongRelationWayStr,
+                            openBidingTime, bidingAcquireTime, bidingEndTime, tenderBeginTime, tenderEndTime, isElectronic,
+                            biddingType,zhaoBiaoUnitStr,zhaoRelationNameStr,zhaoRelationWayStr,agentUnitStr,agentRelationNameStr,
+                            agentRelationWayStr,budgetStr,budgetUnit,winnerAmountStr,winnerAmountUnit,
+                            infoFileStr,keywords,infoUrl, infoWebsite,xlfKeywords);
+
+                    count = count+1;
+                    list.add(infoId);
+                    //  }
+                }
+            }
+            log.info("第：{}条～～～～～～～～～～～～～～～～",tiaoShu);
+        }
+    }
+
+    @Override
+    public void getCrmByUserIdToMonth() {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(10);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+
+        List<Map<String, Object>> mapList = crmJdbcTemplate.queryForList("select infoId from t_bd_gw where infoPublishTime ='2020-06'");
+        if (mapList.size() >0){
+            for (Map<String, Object> map : mapList) {
+
+                String infoId = map.get("infoId").toString();
+                String dataByInfoId = getDataByInfoId(infoId);
+
+                JSONObject data = JSON.parseObject(dataByInfoId);
+                if (null == data) {
+                    log.error("异常++++++++++++++++++");
+                    System.out.println("1");
+                }
+                JSONObject info = (JSONObject) data.get("data");
+                if (info == null) {
+                    log.error("异常——————————————————————");
+                    continue;
+                }
+                JSONArray jsonArray = info.getJSONArray("list");
+                if(jsonArray == null || jsonArray.size() == 0){
+                    log.info("数据为空，以至于跑完了");
+                    continue;
+                }
+                futureList1.add(executorService1.submit(() -> {
+                for (Object o : jsonArray) {
+                    JSONObject object = (JSONObject) o;
+                    //中标单位
+                    JSONArray zhongBiaoUnit = object.getJSONArray("zhongBiaoUnit");
+                    String zhongBiaoUnitStr = null;
+                    if (zhongBiaoUnit != null && zhongBiaoUnit.size() > 0) {
+                        zhongBiaoUnitStr = "";
+                        for (int i = 0; i < zhongBiaoUnit.size(); i++) {
+                            zhongBiaoUnitStr += zhongBiaoUnit.getString(i);
+                            zhongBiaoUnitStr += ",";
+                        }
+                        zhongBiaoUnitStr = zhongBiaoUnitStr.substring(0, zhongBiaoUnitStr.length() - 1);
+                    }
+                    //中标单位联系人
+                    JSONArray zhongRelationName = object.getJSONArray("zhongRelationName");
+                    String zhongRelationNameStr = null;
+                    if (zhongRelationName != null && zhongRelationName.size() > 0) {
+                        zhongRelationNameStr = "";
+                        for (int i = 0; i < zhongRelationName.size(); i++) {
+                            zhongRelationNameStr += zhongRelationName.getString(i);
+                            zhongRelationNameStr += ",";
+                        }
+                        zhongRelationNameStr = zhongRelationNameStr.substring(0, zhongRelationNameStr.length() - 1);
+                    }
+                    //中标单位联系电话
+                    JSONArray zhongRelationWay = object.getJSONArray("zhongRelationWay");
+                    String zhongRelationWayStr = null;
+                    if (zhongRelationWay != null && zhongRelationWay.size() > 0) {
+                        zhongRelationWayStr = "";
+                        for (int i = 0; i < zhongRelationWay.size(); i++) {
+                            zhongRelationWayStr += zhongRelationWay.getString(i);
+                            zhongRelationWayStr += ",";
+                        }
+                        zhongRelationWayStr = zhongRelationWayStr.substring(0, zhongRelationWayStr.length() - 1);
+                    }
+
+                    //招标单位
+                    JSONArray zhaoBiaoUnit = object.getJSONArray("zhaoBiaoUnit");
+                    String zhaoBiaoUnitStr = null;
+                    if (zhaoBiaoUnit != null && zhaoBiaoUnit.size() > 0) {
+                        zhaoBiaoUnitStr = "";
+                        for (int i = 0; i < zhaoBiaoUnit.size(); i++) {
+                            zhaoBiaoUnitStr += zhaoBiaoUnit.getString(i);
+                            zhaoBiaoUnitStr += ",";
+                        }
+                        zhaoBiaoUnitStr = zhaoBiaoUnitStr.substring(0, zhaoBiaoUnitStr.length() - 1);
+                    }
+                    //招标单位联系人
+                    JSONArray zhaoRelationName = object.getJSONArray("zhaoRelationName");
+                    String zhaoRelationNameStr = null;
+                    if (zhaoRelationName != null && zhaoRelationName.size() > 0) {
+                        zhaoRelationNameStr = "";
+                        for (int i = 0; i < zhaoRelationName.size(); i++) {
+                            zhaoRelationNameStr += zhaoRelationName.getString(i);
+                            zhaoRelationNameStr += ",";
+                        }
+                        zhaoRelationNameStr = zhaoRelationNameStr.substring(0, zhaoRelationNameStr.length() - 1);
+                    }
+                    //招标单位联系电话
+                    JSONArray zhaoRelationWay = object.getJSONArray("zhaoRelationWay");
+                    String zhaoRelationWayStr = null;
+                    if (zhaoRelationWay != null && zhaoRelationWay.size() > 0) {
+                        zhaoRelationWayStr = "";
+                        for (int i = 0; i < zhaoRelationWay.size(); i++) {
+                            zhaoRelationWayStr += zhaoRelationWay.getString(i);
+                            zhaoRelationWayStr += ",";
+                        }
+                        zhaoRelationWayStr = zhaoRelationWayStr.substring(0, zhaoRelationWayStr.length() - 1);
+                    }
+
+                    //代理单位
+                    JSONArray agentUnit = object.getJSONArray("agentUnit");
+                    String agentUnitStr = null;
+                    if (agentUnit != null && agentUnit.size() > 0) {
+                        agentUnitStr = "";
+                        for (int i = 0; i < agentUnit.size(); i++) {
+                            agentUnitStr += agentUnit.getString(i);
+                            agentUnitStr += ",";
+                        }
+                        agentUnitStr = agentUnitStr.substring(0, agentUnitStr.length() - 1);
+                    }
+                    //代理单位联系人
+                    JSONArray agentRelationName = object.getJSONArray("agentRelationName");
+                    String agentRelationNameStr = null;
+                    if (agentRelationName != null && agentRelationName.size() > 0) {
+                        agentRelationNameStr = "";
+                        for (int i = 0; i < agentRelationName.size(); i++) {
+                            agentRelationNameStr += agentRelationName.getString(i);
+                            agentRelationNameStr += ",";
+                        }
+                        agentRelationNameStr = agentRelationNameStr.substring(0, agentRelationNameStr.length() - 1);
+                    }
+                    //代理单位联系电话
+                    JSONArray agentRelationWay = object.getJSONArray("agentRelationWay");
+                    String agentRelationWayStr = null;
+                    if (agentRelationWay != null && agentRelationWay.size() > 0) {
+                        agentRelationWayStr = "";
+                        for (int i = 0; i < agentRelationWay.size(); i++) {
+                            agentRelationWayStr += agentRelationWay.getString(i);
+                            agentRelationWayStr += ",";
+                        }
+                        agentRelationWayStr = agentRelationWayStr.substring(0, agentRelationWayStr.length() - 1);
+                    }
+                    //预算
+                    JSONArray budget = object.getJSONArray("budget");
+                    String budgetStr = null;
+                    String budgetUnit = null;
+                    if (budget != null && budget.size() > 0) {
+                        budgetStr = "";
+                        budgetUnit = "";
+                        for (int i = 0; i < budget.size(); i++) {
+                            budgetStr += budget.getJSONObject(i).getString("amount");
+                            budgetStr += ",";
+                            budgetUnit += budget.getJSONObject(i).getString("unit");
+                            budgetUnit += ",";
+                        }
+                        budgetStr = budgetStr.substring(0, budgetStr.length() - 1);
+                        budgetUnit = budgetUnit.substring(0, budgetUnit.length() - 1);
+                    }
+                    //中标金额
+                    JSONArray winnerAmount = object.getJSONArray("winnerAmount");
+                    String winnerAmountStr = null;
+                    String winnerAmountUnit = null;
+                    if (winnerAmount != null && winnerAmount.size() > 0) {
+                        winnerAmountStr = "";
+                        winnerAmountUnit = "";
+                        for (int i = 0; i < winnerAmount.size(); i++) {
+                            winnerAmountStr += winnerAmount.getJSONObject(i).getString("amount");
+                            winnerAmountStr += ",";
+                            winnerAmountUnit += winnerAmount.getJSONObject(i).getString("unit");
+                            winnerAmountUnit += ",";
+                        }
+                        winnerAmountStr = winnerAmountStr.substring(0, winnerAmountStr.length() - 1);
+                        winnerAmountUnit = winnerAmountUnit.substring(0, winnerAmountUnit.length() - 1);
+                    }
+
+                    JSONArray infoFile = object.getJSONArray("infoFile");
+                    String infoFileStr = null;
+                    if (infoFile != null && infoFile.size() > 0) {
+                        infoFileStr = "";
+                        for (int i = 0; i < infoFile.size(); i++) {
+                            infoFileStr += infoFile.getString(i);
+                            infoFileStr += ",";
+                        }
+                        infoFileStr = infoFileStr.substring(0, infoFileStr.length() - 1);
+                    }
+
+                    String openBidingTime = object.getString("openBidingTime");
+                    String bidingAcquireTime = object.getString("bidingAcquireTime");
+                    String bidingEndTime = object.getString("bidingEndTime");
+                    String tenderBeginTime = object.getString("tenderBeginTime");
+                    String tenderEndTime = object.getString("tenderEndTime");
+                    String isElectronic = object.getString("isElectronic");
+                    String infoType = object.getString("infoType");
+
+                    String infoTitle = object.getString("infoTitle");
+                    String infoPublishTime = object.getString("infoPublishTime");
+                    String infoQianlimaUrl = object.getString("infoQianlimaUrl");
+                    String areaProvince = object.getString("areaProvince");
+                    String areaCity = object.getString("areaCity");
+                    String areaCountry = object.getString("areaCountry");
+                    String xmNumber = object.getString("xmNumber");
+                    String biddingType = object.getString("biddingType");
+                    String keywords = object.getString("keywords");
+                    String infoUrl = object.getString("keywordsCode");
+                    String xlfKeywords = object.getString("xlfKeywords");
+                    String infoWebsite = object.getString("target");
+
+                    //中国电信独有
+//                    String amountTag = object.getString("amountTag");
+//                    openBidingTime = amountTag;
+//
+//
+//                    String opportunityTag = object.getString("opportunityTag");
+//                    bidingAcquireTime = opportunityTag;
+//
+//                    String competorTag = object.getString("competorTag");
+//                    bidingEndTime = competorTag;
+//
+//                    String dataType = object.getString("dataType");
+//                    tenderBeginTime = dataType;
+//
+//                    String infoTypeSegment = object.getString("infoTypeSegment");
+//                    tenderEndTime = infoTypeSegment;
+
+                    // if(infoTitle.contains("...")){
+                    bdJdbcTemplate.update("insert into han_crm_user (" +
+                                    "taskid,infoId,infoTitle,infoType,infoPublishTime,infoQianlimaUrl," +
+                                    "areaProvince,areaCity,areaCountry,xmNumber," +
+                                    "zhongBiaoUnit,zhongRelationName,zhongRelationWay," +
+                                    "openBidingTime,bidingAcquireTime,bidingEndTime,tenderBeginTime,tenderEndTime,isElectronic," +
+                                    "biddingType,zhaoBiaoUnit,zhaoRelationName,zhaoRelationWay," +
+                                    "agentUnit,agentRelationName," +
+                                    "agentRelationWay,budget,budgetUnit,winnerAmount,winnerAmountUnit,infoFile,keywords, infoUrl, infoWebsite" +
+                                    ",xlfKeywords) " +
+                                    " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "21",infoId, infoTitle, infoType, infoPublishTime, infoQianlimaUrl,
+                            areaProvince, areaCity, areaCountry, xmNumber,
+                            zhongBiaoUnitStr, zhongRelationNameStr, zhongRelationWayStr,
+                            openBidingTime, bidingAcquireTime, bidingEndTime, tenderBeginTime, tenderEndTime, isElectronic,
+                            biddingType,zhaoBiaoUnitStr,zhaoRelationNameStr,zhaoRelationWayStr,agentUnitStr,agentRelationNameStr,
+                            agentRelationWayStr,budgetStr,budgetUnit,winnerAmountStr,winnerAmountUnit,
+                            infoFileStr,keywords,infoUrl, infoWebsite,xlfKeywords);
+
+                    //  }
+                }
+                log.info("运行的infoId：{}～～～～～～～～～～～～～～～～",infoId);
+                }));
+
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+        }
+    }
+
+    @Override
+    public List<NoticeMQ> getNoticeMqList(List<NoticeMQ> listAll) {
+        List<NoticeMQ> resultList = listAll.stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toCollection(() -> new TreeSet<NoticeMQ>(Comparator.comparing(p -> p.getContentid()))),
+                        ArrayList::new));
+        return resultList;
+    }
+
+    public String getMaiRui(String cursorMark) {
+        String result = null;
+
+        //创建默认的httpClient实例
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            //用get方法发送http请求
+            HttpGet get = new HttpGet("http://cusdata.qianlima.com/crm/info/page" +
+                    "?userId=13&pageSize=200&cursorMark="+cursorMark);
+
+            CloseableHttpResponse httpResponse = null;
+            //发送get请求
+            httpResponse = httpClient.execute(get);
+            try {
+                //response实体
+                HttpEntity entity = httpResponse.getEntity();
+                if (null != entity) {
+                    log.info("获取迈瑞数据接口  响应状态码:" + httpResponse.getStatusLine());
+                    result = EntityUtils.toString(entity);
+                }
+            } finally {
+                httpResponse.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+
+    }
+
+    private boolean isEffectiveDate(Date nowTime, Date startTime, Date endTime) {
+        Calendar date = Calendar.getInstance();
+        date.setTime(nowTime);
+        Calendar begin = Calendar.getInstance();
+        begin.setTime(startTime);
+        Calendar end = Calendar.getInstance();
+        end.setTime(endTime);
+        if (date.after(begin) && date.before(end)) {
+            return true;
+        } else if (nowTime.compareTo(startTime) == 0 || nowTime.compareTo(endTime) == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public void readFileByNameBd(String name,List<String> list) {
         ReadFileUtil.readFile(ConstantBean.FILL_URL_BD,name+".txt",list);
+    }
+
+    @Override
+    public void readFileByMapToBd(String name, Map<String, Long> map) {
+        ReadFileUtil.readFileByMap(ConstantBean.FILL_URL_BD,name+".txt",map);
     }
 
     private void getHangYeBy(String contentId,String zhaobiaounit) {
@@ -699,8 +1298,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             post.setHeader("Content-Type", "application/json");
 
             response = client.execute(post);
-            String ret = null;
-            ret = EntityUtils.toString(response.getEntity(), "UTF-8");
+            String ret = EntityUtils.toString(response.getEntity(), "UTF-8");
 
             JSONObject parseObject= JSON.parseObject(ret);
             JSONObject data = parseObject.getJSONObject("data");
@@ -835,7 +1433,41 @@ public class CurrencyServiceImpl implements CurrencyService {
 
 
     /**
-     * 去除标签
+     * 判断是否是字母
+     * @param str 传入字符串
+     * @param keywords 英文的关键词
+     * @return 是字母返回true，否则返回false
+     */
+    public static String checkString(String str,String[] keywords) {
+        str = str.toUpperCase();
+        //英文的关键词 keywords
+        for (String Keyword : keywords) {
+            Keyword = Keyword.toUpperCase();
+            boolean flag = true;
+            int key = str.indexOf(Keyword);
+            if (key != -1) {
+                if (key != 0) {
+                    String substring1 = str.substring(key - 1, key);
+                    Pattern p = Pattern.compile("[A-Z]");
+                    Matcher m = p.matcher(substring1);
+                    if (m.find() == true) flag = false;
+                }
+                if (key + Keyword.length() < str.length()) {
+                    String substring1 = str.substring(key + Keyword.length(), key + Keyword.length() + 1);
+                    Pattern p = Pattern.compile("[A-Z]");
+                    Matcher m = p.matcher(substring1);
+                    if (m.find() == true) flag = false;
+                }
+            }
+            if (flag == false) {
+                str = str.replace(Keyword.toUpperCase(), "");
+            }
+        }
+        return str.toUpperCase();
+    }
+
+    /**
+     * 去链接
      * @param content
      * @return
      */
@@ -848,7 +1480,8 @@ public class CurrencyServiceImpl implements CurrencyService {
             if (element == null || document.select("a[href]") == null || document.select("a[href]").size() == 0) {
                 break;
             }
-            if (StringUtils.isNotBlank(element.attr("href"))) {
+            String elementStr = element.attr("href");
+            if (StringUtils.isNotBlank(elementStr) && elementStr.contains("www.qianlima.com")) {
                 if (element.is("a")) {
                     element.remove();
                 }
@@ -857,4 +1490,35 @@ public class CurrencyServiceImpl implements CurrencyService {
         return document.body().html();
     }
 
+    /**
+     * http://cusdata.qianlima.com/crm/info/detail?userId=?&infoId=
+     */
+    public String getDataByInfoId(String infoId) {
+        String result = null;
+
+        //创建默认的httpClient实例
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            //用get方法发送http请求
+            HttpGet get = new HttpGet("http://cusdata.qianlima.com/crm/info/field?userId=13&infoId="+infoId);
+
+            CloseableHttpResponse httpResponse = null;
+            //发送get请求
+            httpResponse = httpClient.execute(get);
+            try {
+                //response实体
+                HttpEntity entity = httpResponse.getEntity();
+                if (null != entity) {
+                    log.info("获取迈瑞数据接口  响应状态码:" + httpResponse.getStatusLine());
+                    result = EntityUtils.toString(entity);
+                }
+            } finally {
+                httpResponse.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+
+    }
 }

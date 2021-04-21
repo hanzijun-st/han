@@ -2,6 +2,7 @@ package com.qianlima.offline.controller;
 
 import com.qianlima.offline.bean.Student;
 import com.qianlima.offline.service.han.TestDownService;
+import com.qianlima.offline.util.DownLoadUtil;
 import com.qianlima.offline.util.ExportExcelUtil;
 import com.qianlima.offline.util.ExportExcelWrapperUtil;
 import io.swagger.annotations.Api;
@@ -14,13 +15,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * hanzijun 接口
@@ -41,12 +47,90 @@ public class HanDownController {
         return "---downFile---";
     }
 
-    @ApiOperation(notes = "文件下载", value = "文件下载")
+    @ApiOperation(notes = "文件下载-通过文件的路径", value = "文件下载")
     @GetMapping("/downloadfile")
     public ResponseEntity<byte[]> downloadFile(HttpServletResponse response) {
 
         return testDownService.downFile();
     }
+
+    /**
+     * TODO 下载文件到本地
+     * @author nadim
+     * @date Sep 11, 2015 11:45:31 AM
+     * @param fileUrl 远程地址
+     * @param fileLocal 本地路径
+     * @throws Exception
+     */
+    @ApiOperation(notes = "文件下载-通过链接", value = "文件下载")
+    @GetMapping("/downloadFileByUrl")
+    public void downloadFileByUrl(String fileUrl,String fileLocal,HttpServletResponse response) throws Exception {
+        fileLocal ="E:/downExcelFile/任务说明_file0.txt";
+        fileUrl="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fyouimg1.c-ctrip.com%2Ftarget%2Ftg%2F035%2F063%2F726%2F3ea4031f045945e1843ae5156749d64c.jpg&refer=http%3A%2F%2Fyouimg1.c-ctrip.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1621474400&t=cf398940aaf825a99e99a64b6879ba65";
+
+        String picUrl = fileUrl;
+        String fileName = "aq.jpeg";
+        try {
+            DownLoadUtil.downLoadFromUrl(picUrl,fileName,response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @ApiOperation("文件上传")
+    @RequestMapping(value="/upload/file",method=RequestMethod.POST,produces = "text/plain;charset=utf-8")
+    public String upload(MultipartFile[] uploadFiles, HttpServletRequest request) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
+        List list = new ArrayList();//存储生成的访问路径
+        if (uploadFiles.length > 0) {
+            for (int i = 0; i < uploadFiles.length; i++) {
+                MultipartFile uploadFile = uploadFiles[i];
+                //设置上传文件的位置在该项目目录下的uploadFile文件夹下，并根据上传的文件日期，进行分类保存
+                String realPath = "E:\\downExcelFile";
+                String format = sdf.format(new Date());
+                File folder = new File(realPath);
+                if (!folder.isDirectory()) {
+                    folder.mkdirs();
+                }
+
+                String oldName = uploadFile.getOriginalFilename();
+                String prefix=oldName.substring(oldName.lastIndexOf("."));//后缀
+                try {
+                    //保存文件
+                    //File file = new File(folder, oldName);
+                    boolean flag = true;
+                    while(flag){
+                        String name = oldName.replaceAll("[.][^.]+$", "");//获取没有后缀的文件名称
+                        if (name.contains("_file")){
+                            String[] names = name.split("_file");
+                            Integer num = Integer.valueOf(names[1].toString())+1;
+                            oldName = names[0] +"_file"+num;
+                        }else {
+                            oldName = name +"_file0";
+                        }
+                        File newFile = new File(folder,oldName+prefix);
+                        if (!newFile.exists()){
+                            flag = false;
+                        }
+                    }
+
+                    uploadFile.transferTo(new File(folder,oldName+prefix));
+
+                    //生成上传文件的访问路径
+                    //String filePath = request.getScheme() + "://" + request.getServerName() + ":"+ request.getServerPort() + "/uploadFile" + format + newName;
+                    String filePath = realPath+"\\"+oldName+prefix;
+                    list.add(filePath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return list.toString();
+        } else if (uploadFiles.length == 0) {
+            return "请选择文件";
+        }
+        return "上传失败";
+    }
+
 
     /**
      * 支持在线打开方式
@@ -96,8 +180,9 @@ public class HanDownController {
             list.add(new Student(3,"王五",23));
             String[] columnNames = { "ID", "姓名", "年龄"};
             String fileName = "学生信息表";
+            String title = "学生信息表";
             ExportExcelWrapperUtil<Student> util = new ExportExcelWrapperUtil<>();
-            util.exportExcel(fileName, fileName, columnNames, list, response, ExportExcelUtil.EXCEl_FILE_2007);
+            util.exportExcel(fileName, title, columnNames, list, response, ExportExcelUtil.EXCEl_FILE_2007);
         testDownService.downExcel();
     }
   

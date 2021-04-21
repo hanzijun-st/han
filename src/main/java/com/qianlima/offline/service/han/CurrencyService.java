@@ -1,5 +1,6 @@
 package com.qianlima.offline.service.han;
 
+import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.bean.Params;
 
 import java.util.List;
@@ -82,6 +83,12 @@ public interface CurrencyService {
      * @param list
      */
     void readFileByNameBd(String name,List<String> list);
+    /**
+     *  本地
+     * @param name
+     * @param map
+     */
+    void readFileByMapToBd(String name,Map<String,Long> map);
 
     /**
      * 测试服务器
@@ -89,4 +96,35 @@ public interface CurrencyService {
      * @param list
      */
     void readFileByName(String name,List<String> list);
+    /**
+     * 测试服务器
+     * @param name
+     * @param map
+     */
+    void readFileByMap(String name,Map<String,Long> map);
+
+
+    /**
+     *  将关键词统计-写成文件
+     * @param listAll 数据
+     * @param listSize 去重后的数据量
+     * @param s 判断是否本地
+     * @param name 文件名称
+     */
+    void soutKeywords(List<NoticeMQ> listAll, Integer listSize, String s, String name);
+
+    /**
+     * CRM-通过指定用户获取对应字段
+     */
+    String getCrmByUserId() throws Exception;
+
+    /**
+     * 获取用户的指定字段-某个月
+     */
+    void getCrmByUserIdToMonth();
+
+    /**
+     *  通过lambda表达式，去重通过某个属性去重celue
+     */
+    List<NoticeMQ> getNoticeMqList(List<NoticeMQ> listAll);
 }
