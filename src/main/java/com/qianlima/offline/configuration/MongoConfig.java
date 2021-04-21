@@ -31,6 +31,9 @@ public class MongoConfig {
     @Value("${spring.data.mongodb.qly}")
     private String qlyUri;
 
+    /*@Value("${spring.data.mongodb.qlmdb}")
+    private String qlmdb;*/
+
     @Primary
     @Bean(name = "testMongoDbFactory")
     public MongoDbFactory cusdataMongoDbFactory(){
@@ -48,6 +51,14 @@ public class MongoConfig {
         return  simpleMongoDbFactory;
     }
 
+   /* @Bean(name = "qlmdbMongoDbFactory")
+    public MongoDbFactory qlmdbMongoDbFactory(){
+        MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+        MongoClientURI mongoClientURI=new MongoClientURI(qlmdb,builder);
+        SimpleMongoDbFactory simpleMongoDbFactory=new SimpleMongoDbFactory(mongoClientURI);
+        return  simpleMongoDbFactory;
+    }*/
+
 
     @Primary
     @Bean(name = "testMongoTemplate") //创建方法 交给  spring 创建的名称 为 mainMongo
@@ -60,5 +71,10 @@ public class MongoConfig {
     public MongoTemplate qianliyanMongoTemplate(@Qualifier("qlyMongoDbFactory") MongoDbFactory mongoDbFactory) throws Exception {
         return new MongoTemplate(mongoDbFactory);
     }
+
+    /*@Bean(name = "qlmdbMongoTemplate") //线上读取监控mongo
+    public MongoTemplate qlmDbMongoTemplate(@Qualifier("qlmdbMongoDbFactory") MongoDbFactory mongoDbFactory) throws Exception {
+        return new MongoTemplate(mongoDbFactory);
+    }*/
 
 }

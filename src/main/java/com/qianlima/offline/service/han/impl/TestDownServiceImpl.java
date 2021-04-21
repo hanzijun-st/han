@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class TestDownServiceImpl implements TestDownService {
     @Override
     public ResponseEntity<byte[]> downFile() {
-        return FileHelperUtil.downloadFile("a.xml", "E:\\a.xml");
+        return FileHelperUtil.downloadFile("任务说明_file0.txt", "E:\\downExcelFile\\任务说明_file0.txt");
     }
 
     @Override

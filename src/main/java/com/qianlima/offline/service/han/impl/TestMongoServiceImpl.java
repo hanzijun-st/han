@@ -47,9 +47,9 @@ public class TestMongoServiceImpl implements TestMongoService {
     @Qualifier("testMongoTemplate")
     private MongoTemplate mongoTemplate;
 
-    @Resource
-    @Qualifier("qlyMongoTemplate")
-    private MongoTemplate qlyMongoTemplate;
+    /*@Resource
+    @Qualifier("qlmdbMongoTemplate")
+    private MongoTemplate qlmDbTemplate;*/
 
     @Autowired
     private CurrencyService currencyService;

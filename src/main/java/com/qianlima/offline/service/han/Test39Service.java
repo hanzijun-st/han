@@ -119,4 +119,6 @@ public interface Test39Service {
      * @param s
      */
     void getWwAer2(Integer type, String date, String s);
+
+    void getLinS(Integer type, String date, String str);
 }

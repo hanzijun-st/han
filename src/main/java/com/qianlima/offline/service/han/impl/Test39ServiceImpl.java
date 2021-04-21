@@ -1721,11 +1721,90 @@ public class Test39ServiceImpl implements Test39Service {
         System.out.println("--------------------------------kawa本次任务结束---------------------------------------");
     }
 
+    @Override
+    public void getLinS(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        try {
+            List<String> idsFile = LogUtils.readRule("idsFile");
+            for (String id : idsFile) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("id:\"" + id + "\"", "", 1);
+                    log.info(id+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    //data.setKeyword(id);
+                                    listAll.add(data);
+                                    if (!dataMap.containsKey(data.getContentid().toString())) {
+                                        list.add(data);
+                                        dataMap.put(data.getContentid().toString(), "0");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(80);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------kawa本次任务结束---------------------------------------");
+    }
+
 
     /**
      * 调用中台数据，进行处理
      */
     private void getZhongTaiDatasAndSave(NoticeMQ noticeMQ) {
+        //String[] aa ={"资金来源","资金来自","项目建设所需资金由","资金由","资金源于","政府性","财政","预算资金","政府资金","国有控股","国拨资金","中央财政","地方配套资金","业主拨款","经费","建设单位拨付","补助资金","政府投资","国有 修改为 国有资金","中央预算","上级拨款","财政配套","政府100%","上级补助","配套资金","上级项目资金","国资","项目工程款","中央资金","上级资金","市、区两级共同出资","上级下拨","街道办事处统筹","财政预算","政府预算","国有预算","省级项目资金","市级项目资金","县级项目资金","区级项目资金","省项目资金","市项目资金","县项目资金","区项目资金","区县级项目资金","拨付资金","国库资金","债券","发展资金","专项资金","专户资金","涉农整合资金","专项维修资金","福利费","补助资金","扶贫","搬迁","安置","帮扶资金","专项债","贷款","借贷","融资","：投资",":投资","省本级 投资","中央投资","政府投资","自筹","成本性支出","集体资金","筹集","企业资金","筹措","自有资金","企业自有","本级资金","外资","成本","高速公路通行费","预算","项目资金"};
+        //String[] aa ={"资金来源","资金来自","项目建设所需资金由"};
+        String[] aa ={"资金来源","资金来自","项目建设所需资金由","资金由","资金源于","政府性","财政","预算资金","政府资金","国有控股","国拨资金","中央财政","地方配套资金","业主拨款","经费","建设单位拨付","补助资金","政府投资","国有 修改为 国有资金","中央预算","上级拨款","财政配套","政府100%","上级补助","配套资金","上级项目资金","国资","项目工程款","中央资金","上级资金","市、区两级共同出资","上级下拨","街道办事处统筹","财政预算","政府预算","国有预算","省级项目资金","市级项目资金","县级项目资金","区级项目资金","省项目资金","市项目资金","县项目资金","区项目资金","区县级项目资金","拨付资金","国库资金","债券","发展资金","专项资金","专户资金","涉农整合资金","专项维修资金","福利费","补助资金","扶贫","搬迁","安置","帮扶资金","专项债","贷款","借贷","融资","：投资",":投资","省本级 投资","中央投资","政府投资","自筹","成本性支出","集体资金","筹集","企业资金","筹措","自有资金","企业自有","本级资金","外资","成本","高速公路通行费","预算","项目资金","计划下达","资金已落实"};//4-13
+        //String[] bb ={"政府性","财政","预算资金","政府资金","国有控股","国拨资金","中央财政","地方配套资金","业主拨款","经费","建设单位拨付","补助资金","政府投资","国有资金","中央预算","上级拨款","财政配套","政府100%","上级补助","配套资金","上级项目资金","预算","国资","项目资金","项目工程款","中央资金","上级资金","市、区两级共同出资","上级下拨","街道办事处统筹","债券","发展资金","专项资金","专户资金","涉农整合资金","专项维修资金","福利费","补助资金","扶贫","搬迁","安置","帮扶资金","贷款","借贷","融资","：投资",":投资","省本级 投资","中央投资","政府投资","自筹","成本性支出","集体资金","筹集","企业资金","筹措","自有资金","企业自有","本级资金","其它","其他","外资","成本","拨付资金","高速公路通行费"};
+        //String[] black ={"资金来源性质包括预算内资金、专户资金、其它、核算其它、预算内暂存、专户资金暂存、核算其它暂存等","国资 %","自筹 %","贷款 %","外资 %","□省级财政资金","□市本级财政资金","□县区级财政资金","□自筹资金","□其他","其他地区"};
+        String[] black ={"资金来源性质包括预算内资金、专户资金、其它、核算其它、预算内暂存、专户资金暂存、核算其它暂存等","国资 %","自筹 %","贷款 %","外资 %","□省级财政资金","□市本级财政资金","□县区级财政资金","□自筹资金","□其他","其他地区","财政性资金管理","预算金额：","预算金额:","中华人民共和国财政部"};
 
         boolean b = cusDataNewService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
         if (!b) {
@@ -1735,28 +1814,36 @@ public class Test39ServiceImpl implements Test39Service {
         //全部自提，不需要正文
         Map<String, Object> resultMap = cusDataNewService.getAllFieldsWithZiTi(noticeMQ, false);
         if (resultMap != null) {
+            String title = resultMap.get("title").toString();
             String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
-            //先去链接
-            //content =processAboutContent(content);
-            //再判断是否是字母
-            //content = checkString(content);
-            String contentId = resultMap.get("content_id").toString();
-            //进行大金额替换操作
-            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
-            if (maps != null && maps.size() > 0){
-                // 由于大金额处理的特殊性，只能用null进行判断
-                String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
-                if (winnerAmount != null){
-                    resultMap.put("baiLian_amount_unit", winnerAmount);
-                }
-                String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
-                if (budget != null){
-                    resultMap.put("baiLian_budget", budget);
+            String str = title+"&"+content;
+            boolean flag = true;
+            for (String s : black) {
+                if (str.contains(s)){
+                    flag =false;
+                    break;
                 }
             }
-            resultMap.put("content",content);
-            cusDataNewService.saveIntoMysql(resultMap);//插入数据库操作
-
+            if (flag){
+                boolean f =false;
+                String k ="";
+                for (String s : aa) {
+                   /* for (String s1 : bb) {
+                        if (content.contains(s) && content.contains(s1)){
+                            resultMap.put("keyword",s+"&"+s1);
+                            cusDataNewService.saveIntoMysql(resultMap);//插入数据库操作
+                        }
+                    }*/
+                    if (content.contains(s)){
+                        f = true;
+                        k +=s+"&";
+                    }
+                }
+                if (f){
+                    resultMap.put("keyword",k.substring(0,k.length()-1));
+                    cusDataNewService.saveIntoMysql(resultMap);//插入数据库操作
+                }
+            }
         }
     }
     private void getZhongTaiDatasAndSaveByPb(NoticeMQ noticeMQ,List<String> list,List<String> a) {

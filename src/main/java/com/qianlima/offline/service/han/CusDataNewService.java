@@ -18,6 +18,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
@@ -29,6 +33,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -41,6 +47,10 @@ public class CusDataNewService {
     @Autowired
     @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
+
+    @Autowired
+    @Qualifier("djeJdbcTemplate")
+    private JdbcTemplate djeJdbcTemplate;
 
     static String apiUrl = "http://datafetcher.intra.qianlima.com/dc/bidding/fields";
 
@@ -80,6 +90,20 @@ public class CusDataNewService {
      * 保存数据入库
      */
     public void saveIntoMysql(Map<String, Object> map){
+        String contentId = map.get("content_id").toString();
+        //进行大金额替换操作
+        List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+        if (maps != null && maps.size() > 0) {
+            // 由于大金额处理的特殊性，只能用null进行判断
+            String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+            if (winnerAmount != null) {
+                map.put("baiLian_amount_unit", winnerAmount);
+            }
+            String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+            if (budget != null) {
+                map.put("baiLian_budget", budget);
+            }
+        }
         bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
                 map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
                 map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
@@ -893,6 +917,64 @@ public class CusDataNewService {
             }
         }
         return resultMap;
+    }
+
+    /**
+     * 判断是否是字母
+     * @param str 传入字符串
+     * @param keywords 英文的关键词
+     * @return 是字母返回true，否则返回false
+     */
+    public static String checkString(String str,String[] keywords) {
+        str = str.toUpperCase();
+        //英文的关键词 keywords
+        for (String Keyword : keywords) {
+            Keyword = Keyword.toUpperCase();
+            boolean flag = true;
+            int key = str.indexOf(Keyword);
+            if (key != -1) {
+                if (key != 0) {
+                    String substring1 = str.substring(key - 1, key);
+                    Pattern p = Pattern.compile("[A-Z]");
+                    Matcher m = p.matcher(substring1);
+                    if (m.find() == true) flag = false;
+                }
+                if (key + Keyword.length() < str.length()) {
+                    String substring1 = str.substring(key + Keyword.length(), key + Keyword.length() + 1);
+                    Pattern p = Pattern.compile("[A-Z]");
+                    Matcher m = p.matcher(substring1);
+                    if (m.find() == true) flag = false;
+                }
+            }
+            if (flag == false) {
+                str = str.replace(Keyword.toUpperCase(), "");
+            }
+        }
+        return str.toUpperCase();
+    }
+
+    /**
+     * 去链接
+     * @param content
+     * @return
+     */
+    public static String processAboutContent(String content) {
+        Document document = Jsoup.parse(content);
+        Elements elements = document.select("a[href]");
+        Integer elementSize = elements.size();
+        for (Integer i = 0; i < elementSize; i++) {
+            Element element = elements.get(i);
+            if (element == null || document.select("a[href]") == null || document.select("a[href]").size() == 0) {
+                break;
+            }
+            String elementStr = element.attr("href");
+            if (StringUtils.isNotBlank(elementStr) && elementStr.contains("www.qianlima.com")) {
+                if (element.is("a")) {
+                    element.remove();
+                }
+            }
+        }
+        return document.body().html();
     }
 }
 

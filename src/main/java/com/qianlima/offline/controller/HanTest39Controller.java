@@ -159,4 +159,12 @@ public class HanTest39Controller {
         log.info("===============================数据运行结束===================================");
         return "---卡瓦盛邦 接口运行结束---";
     }
+
+    @ApiOperation("临时数据")
+    @PostMapping(value = "/getLinS",produces = "text/plain;charset=utf-8")
+    public String getLinS(Integer type,String date,String str) {
+        test39Service.getLinS(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "--- 接口运行结束---";
+    }
 }

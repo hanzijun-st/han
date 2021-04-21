@@ -1,8 +1,6 @@
 import com.qianlima.offline.bean.Student;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TestLambda {
@@ -35,5 +33,25 @@ public class TestLambda {
 
         long count1 = list.stream().count();
         System.out.println("集合数量："+count1);
+
+        List<Student> resultList=list.stream().collect(
+                Collectors.collectingAndThen(
+                    Collectors.toCollection(
+                            () -> new TreeSet<Student>(
+                                    Comparator.comparing(
+                                            p -> p.getAge()
+                                    )
+                            )
+                    ),ArrayList::new
+                )
+        );
+
+
+        //计算学生的平均年龄
+        Double avgAge = list.stream().collect(Collectors.collectingAndThen(Collectors.averagingDouble(Student::getAge), Double::doubleValue));
+        System.out.println("学生的平均年龄："+avgAge);
+
+        list.stream().mapToInt(Student::getAge).max();
+
     }
 }

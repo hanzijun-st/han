@@ -69,6 +69,23 @@ public class DataSourceConfig implements EnvironmentAware {
     public JdbcTemplate bdPrimaryJdbcTemplate(@Qualifier("bdDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
+    /**
+     * crm数据源
+     */
+    @Bean(name = "crmDataSource")
+    @Qualifier("crmDataSource")
+    @ConfigurationProperties(prefix="spring.datasource.crm")
+    public DataSource crmPrimaryDataSource() {
+        return DruidDataSourceBuilder.create().build();
+    }
+
+    /**
+     * crm-jdbcs数据源
+     */
+    @Bean(name = "crmJdbcTemplate")
+    public JdbcTemplate crmPrimaryJdbcTemplate(@Qualifier("crmDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
 
     /**
      * 大金额数据
@@ -94,7 +111,7 @@ public class DataSourceConfig implements EnvironmentAware {
      * 数据源连接数据库
      */
     @Bean(name = "myDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.my")
+    @ConfigurationProperties(prefix = "spring.datasource.zj")
     //@Primary // 这个注解是说明此是默认数据源，必须设定默认数据源。（即主数据源）
     public DataSource stockDataSource() {
         return new DruidDataSource();

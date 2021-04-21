@@ -4,7 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import com.qianlima.offline.bean.*;
+import com.qianlima.offline.bean.Area;
+import com.qianlima.offline.bean.ConstantBean;
+import com.qianlima.offline.bean.NoticeMQ;
+import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.rule02.BiaoDiWuRule;
 import com.qianlima.offline.rule02.MyRuleUtils;
@@ -248,7 +251,7 @@ public class CurrencyServiceImpl implements CurrencyService {
                     continue;
                 }
                 //System.out.println(str + ": " + total);
-               listStr.add(str + ": " + total);
+                listStr.add(str + ": " + total);
             }
             //System.out.println("全部数据量：" + listAll.size());
             //System.out.println("去重之后的数据量：" + list.size());
@@ -428,19 +431,19 @@ public class CurrencyServiceImpl implements CurrencyService {
                         //中台获取数据
                         Map<String, Object> allFieldsWithOther = cusDataFieldService.getAllFieldsWithOther(noticeMQ, false);
                         if (allFieldsWithOther != null && allFieldsWithOther.size() >0) {
-                                String contentInfo = allFieldsWithOther.get("content").toString();
-                                String content = processAboutContent(contentInfo);
-                                if (StringUtils.isNotBlank(content)) {
-                                    allFieldsWithOther.put("content", content);
-                                }
-                                String contentid = allFieldsWithOther.get("content_id").toString();
-                                String task_id = "";
-                                if (listIds.contains(contentid)) {
-                                    task_id = "1";
-                                } else {
-                                    task_id = "2";
-                                }
-                                allFieldsWithOther.put("task_id", task_id);
+                            String contentInfo = allFieldsWithOther.get("content").toString();
+                            String content = processAboutContent(contentInfo);
+                            if (StringUtils.isNotBlank(content)) {
+                                allFieldsWithOther.put("content", content);
+                            }
+                            String contentid = allFieldsWithOther.get("content_id").toString();
+                            String task_id = "";
+                            if (listIds.contains(contentid)) {
+                                task_id = "1";
+                            } else {
+                                task_id = "2";
+                            }
+                            allFieldsWithOther.put("task_id", task_id);
 
                                 /*if (listIds2.contains(contentid)){
                                     //resultList.add(contentid);
@@ -998,175 +1001,175 @@ public class CurrencyServiceImpl implements CurrencyService {
                     continue;
                 }
                 futureList1.add(executorService1.submit(() -> {
-                for (Object o : jsonArray) {
-                    JSONObject object = (JSONObject) o;
-                    //中标单位
-                    JSONArray zhongBiaoUnit = object.getJSONArray("zhongBiaoUnit");
-                    String zhongBiaoUnitStr = null;
-                    if (zhongBiaoUnit != null && zhongBiaoUnit.size() > 0) {
-                        zhongBiaoUnitStr = "";
-                        for (int i = 0; i < zhongBiaoUnit.size(); i++) {
-                            zhongBiaoUnitStr += zhongBiaoUnit.getString(i);
-                            zhongBiaoUnitStr += ",";
+                    for (Object o : jsonArray) {
+                        JSONObject object = (JSONObject) o;
+                        //中标单位
+                        JSONArray zhongBiaoUnit = object.getJSONArray("zhongBiaoUnit");
+                        String zhongBiaoUnitStr = null;
+                        if (zhongBiaoUnit != null && zhongBiaoUnit.size() > 0) {
+                            zhongBiaoUnitStr = "";
+                            for (int i = 0; i < zhongBiaoUnit.size(); i++) {
+                                zhongBiaoUnitStr += zhongBiaoUnit.getString(i);
+                                zhongBiaoUnitStr += ",";
+                            }
+                            zhongBiaoUnitStr = zhongBiaoUnitStr.substring(0, zhongBiaoUnitStr.length() - 1);
                         }
-                        zhongBiaoUnitStr = zhongBiaoUnitStr.substring(0, zhongBiaoUnitStr.length() - 1);
-                    }
-                    //中标单位联系人
-                    JSONArray zhongRelationName = object.getJSONArray("zhongRelationName");
-                    String zhongRelationNameStr = null;
-                    if (zhongRelationName != null && zhongRelationName.size() > 0) {
-                        zhongRelationNameStr = "";
-                        for (int i = 0; i < zhongRelationName.size(); i++) {
-                            zhongRelationNameStr += zhongRelationName.getString(i);
-                            zhongRelationNameStr += ",";
+                        //中标单位联系人
+                        JSONArray zhongRelationName = object.getJSONArray("zhongRelationName");
+                        String zhongRelationNameStr = null;
+                        if (zhongRelationName != null && zhongRelationName.size() > 0) {
+                            zhongRelationNameStr = "";
+                            for (int i = 0; i < zhongRelationName.size(); i++) {
+                                zhongRelationNameStr += zhongRelationName.getString(i);
+                                zhongRelationNameStr += ",";
+                            }
+                            zhongRelationNameStr = zhongRelationNameStr.substring(0, zhongRelationNameStr.length() - 1);
                         }
-                        zhongRelationNameStr = zhongRelationNameStr.substring(0, zhongRelationNameStr.length() - 1);
-                    }
-                    //中标单位联系电话
-                    JSONArray zhongRelationWay = object.getJSONArray("zhongRelationWay");
-                    String zhongRelationWayStr = null;
-                    if (zhongRelationWay != null && zhongRelationWay.size() > 0) {
-                        zhongRelationWayStr = "";
-                        for (int i = 0; i < zhongRelationWay.size(); i++) {
-                            zhongRelationWayStr += zhongRelationWay.getString(i);
-                            zhongRelationWayStr += ",";
+                        //中标单位联系电话
+                        JSONArray zhongRelationWay = object.getJSONArray("zhongRelationWay");
+                        String zhongRelationWayStr = null;
+                        if (zhongRelationWay != null && zhongRelationWay.size() > 0) {
+                            zhongRelationWayStr = "";
+                            for (int i = 0; i < zhongRelationWay.size(); i++) {
+                                zhongRelationWayStr += zhongRelationWay.getString(i);
+                                zhongRelationWayStr += ",";
+                            }
+                            zhongRelationWayStr = zhongRelationWayStr.substring(0, zhongRelationWayStr.length() - 1);
                         }
-                        zhongRelationWayStr = zhongRelationWayStr.substring(0, zhongRelationWayStr.length() - 1);
-                    }
 
-                    //招标单位
-                    JSONArray zhaoBiaoUnit = object.getJSONArray("zhaoBiaoUnit");
-                    String zhaoBiaoUnitStr = null;
-                    if (zhaoBiaoUnit != null && zhaoBiaoUnit.size() > 0) {
-                        zhaoBiaoUnitStr = "";
-                        for (int i = 0; i < zhaoBiaoUnit.size(); i++) {
-                            zhaoBiaoUnitStr += zhaoBiaoUnit.getString(i);
-                            zhaoBiaoUnitStr += ",";
+                        //招标单位
+                        JSONArray zhaoBiaoUnit = object.getJSONArray("zhaoBiaoUnit");
+                        String zhaoBiaoUnitStr = null;
+                        if (zhaoBiaoUnit != null && zhaoBiaoUnit.size() > 0) {
+                            zhaoBiaoUnitStr = "";
+                            for (int i = 0; i < zhaoBiaoUnit.size(); i++) {
+                                zhaoBiaoUnitStr += zhaoBiaoUnit.getString(i);
+                                zhaoBiaoUnitStr += ",";
+                            }
+                            zhaoBiaoUnitStr = zhaoBiaoUnitStr.substring(0, zhaoBiaoUnitStr.length() - 1);
                         }
-                        zhaoBiaoUnitStr = zhaoBiaoUnitStr.substring(0, zhaoBiaoUnitStr.length() - 1);
-                    }
-                    //招标单位联系人
-                    JSONArray zhaoRelationName = object.getJSONArray("zhaoRelationName");
-                    String zhaoRelationNameStr = null;
-                    if (zhaoRelationName != null && zhaoRelationName.size() > 0) {
-                        zhaoRelationNameStr = "";
-                        for (int i = 0; i < zhaoRelationName.size(); i++) {
-                            zhaoRelationNameStr += zhaoRelationName.getString(i);
-                            zhaoRelationNameStr += ",";
+                        //招标单位联系人
+                        JSONArray zhaoRelationName = object.getJSONArray("zhaoRelationName");
+                        String zhaoRelationNameStr = null;
+                        if (zhaoRelationName != null && zhaoRelationName.size() > 0) {
+                            zhaoRelationNameStr = "";
+                            for (int i = 0; i < zhaoRelationName.size(); i++) {
+                                zhaoRelationNameStr += zhaoRelationName.getString(i);
+                                zhaoRelationNameStr += ",";
+                            }
+                            zhaoRelationNameStr = zhaoRelationNameStr.substring(0, zhaoRelationNameStr.length() - 1);
                         }
-                        zhaoRelationNameStr = zhaoRelationNameStr.substring(0, zhaoRelationNameStr.length() - 1);
-                    }
-                    //招标单位联系电话
-                    JSONArray zhaoRelationWay = object.getJSONArray("zhaoRelationWay");
-                    String zhaoRelationWayStr = null;
-                    if (zhaoRelationWay != null && zhaoRelationWay.size() > 0) {
-                        zhaoRelationWayStr = "";
-                        for (int i = 0; i < zhaoRelationWay.size(); i++) {
-                            zhaoRelationWayStr += zhaoRelationWay.getString(i);
-                            zhaoRelationWayStr += ",";
+                        //招标单位联系电话
+                        JSONArray zhaoRelationWay = object.getJSONArray("zhaoRelationWay");
+                        String zhaoRelationWayStr = null;
+                        if (zhaoRelationWay != null && zhaoRelationWay.size() > 0) {
+                            zhaoRelationWayStr = "";
+                            for (int i = 0; i < zhaoRelationWay.size(); i++) {
+                                zhaoRelationWayStr += zhaoRelationWay.getString(i);
+                                zhaoRelationWayStr += ",";
+                            }
+                            zhaoRelationWayStr = zhaoRelationWayStr.substring(0, zhaoRelationWayStr.length() - 1);
                         }
-                        zhaoRelationWayStr = zhaoRelationWayStr.substring(0, zhaoRelationWayStr.length() - 1);
-                    }
 
-                    //代理单位
-                    JSONArray agentUnit = object.getJSONArray("agentUnit");
-                    String agentUnitStr = null;
-                    if (agentUnit != null && agentUnit.size() > 0) {
-                        agentUnitStr = "";
-                        for (int i = 0; i < agentUnit.size(); i++) {
-                            agentUnitStr += agentUnit.getString(i);
-                            agentUnitStr += ",";
+                        //代理单位
+                        JSONArray agentUnit = object.getJSONArray("agentUnit");
+                        String agentUnitStr = null;
+                        if (agentUnit != null && agentUnit.size() > 0) {
+                            agentUnitStr = "";
+                            for (int i = 0; i < agentUnit.size(); i++) {
+                                agentUnitStr += agentUnit.getString(i);
+                                agentUnitStr += ",";
+                            }
+                            agentUnitStr = agentUnitStr.substring(0, agentUnitStr.length() - 1);
                         }
-                        agentUnitStr = agentUnitStr.substring(0, agentUnitStr.length() - 1);
-                    }
-                    //代理单位联系人
-                    JSONArray agentRelationName = object.getJSONArray("agentRelationName");
-                    String agentRelationNameStr = null;
-                    if (agentRelationName != null && agentRelationName.size() > 0) {
-                        agentRelationNameStr = "";
-                        for (int i = 0; i < agentRelationName.size(); i++) {
-                            agentRelationNameStr += agentRelationName.getString(i);
-                            agentRelationNameStr += ",";
+                        //代理单位联系人
+                        JSONArray agentRelationName = object.getJSONArray("agentRelationName");
+                        String agentRelationNameStr = null;
+                        if (agentRelationName != null && agentRelationName.size() > 0) {
+                            agentRelationNameStr = "";
+                            for (int i = 0; i < agentRelationName.size(); i++) {
+                                agentRelationNameStr += agentRelationName.getString(i);
+                                agentRelationNameStr += ",";
+                            }
+                            agentRelationNameStr = agentRelationNameStr.substring(0, agentRelationNameStr.length() - 1);
                         }
-                        agentRelationNameStr = agentRelationNameStr.substring(0, agentRelationNameStr.length() - 1);
-                    }
-                    //代理单位联系电话
-                    JSONArray agentRelationWay = object.getJSONArray("agentRelationWay");
-                    String agentRelationWayStr = null;
-                    if (agentRelationWay != null && agentRelationWay.size() > 0) {
-                        agentRelationWayStr = "";
-                        for (int i = 0; i < agentRelationWay.size(); i++) {
-                            agentRelationWayStr += agentRelationWay.getString(i);
-                            agentRelationWayStr += ",";
+                        //代理单位联系电话
+                        JSONArray agentRelationWay = object.getJSONArray("agentRelationWay");
+                        String agentRelationWayStr = null;
+                        if (agentRelationWay != null && agentRelationWay.size() > 0) {
+                            agentRelationWayStr = "";
+                            for (int i = 0; i < agentRelationWay.size(); i++) {
+                                agentRelationWayStr += agentRelationWay.getString(i);
+                                agentRelationWayStr += ",";
+                            }
+                            agentRelationWayStr = agentRelationWayStr.substring(0, agentRelationWayStr.length() - 1);
                         }
-                        agentRelationWayStr = agentRelationWayStr.substring(0, agentRelationWayStr.length() - 1);
-                    }
-                    //预算
-                    JSONArray budget = object.getJSONArray("budget");
-                    String budgetStr = null;
-                    String budgetUnit = null;
-                    if (budget != null && budget.size() > 0) {
-                        budgetStr = "";
-                        budgetUnit = "";
-                        for (int i = 0; i < budget.size(); i++) {
-                            budgetStr += budget.getJSONObject(i).getString("amount");
-                            budgetStr += ",";
-                            budgetUnit += budget.getJSONObject(i).getString("unit");
-                            budgetUnit += ",";
+                        //预算
+                        JSONArray budget = object.getJSONArray("budget");
+                        String budgetStr = null;
+                        String budgetUnit = null;
+                        if (budget != null && budget.size() > 0) {
+                            budgetStr = "";
+                            budgetUnit = "";
+                            for (int i = 0; i < budget.size(); i++) {
+                                budgetStr += budget.getJSONObject(i).getString("amount");
+                                budgetStr += ",";
+                                budgetUnit += budget.getJSONObject(i).getString("unit");
+                                budgetUnit += ",";
+                            }
+                            budgetStr = budgetStr.substring(0, budgetStr.length() - 1);
+                            budgetUnit = budgetUnit.substring(0, budgetUnit.length() - 1);
                         }
-                        budgetStr = budgetStr.substring(0, budgetStr.length() - 1);
-                        budgetUnit = budgetUnit.substring(0, budgetUnit.length() - 1);
-                    }
-                    //中标金额
-                    JSONArray winnerAmount = object.getJSONArray("winnerAmount");
-                    String winnerAmountStr = null;
-                    String winnerAmountUnit = null;
-                    if (winnerAmount != null && winnerAmount.size() > 0) {
-                        winnerAmountStr = "";
-                        winnerAmountUnit = "";
-                        for (int i = 0; i < winnerAmount.size(); i++) {
-                            winnerAmountStr += winnerAmount.getJSONObject(i).getString("amount");
-                            winnerAmountStr += ",";
-                            winnerAmountUnit += winnerAmount.getJSONObject(i).getString("unit");
-                            winnerAmountUnit += ",";
+                        //中标金额
+                        JSONArray winnerAmount = object.getJSONArray("winnerAmount");
+                        String winnerAmountStr = null;
+                        String winnerAmountUnit = null;
+                        if (winnerAmount != null && winnerAmount.size() > 0) {
+                            winnerAmountStr = "";
+                            winnerAmountUnit = "";
+                            for (int i = 0; i < winnerAmount.size(); i++) {
+                                winnerAmountStr += winnerAmount.getJSONObject(i).getString("amount");
+                                winnerAmountStr += ",";
+                                winnerAmountUnit += winnerAmount.getJSONObject(i).getString("unit");
+                                winnerAmountUnit += ",";
+                            }
+                            winnerAmountStr = winnerAmountStr.substring(0, winnerAmountStr.length() - 1);
+                            winnerAmountUnit = winnerAmountUnit.substring(0, winnerAmountUnit.length() - 1);
                         }
-                        winnerAmountStr = winnerAmountStr.substring(0, winnerAmountStr.length() - 1);
-                        winnerAmountUnit = winnerAmountUnit.substring(0, winnerAmountUnit.length() - 1);
-                    }
 
-                    JSONArray infoFile = object.getJSONArray("infoFile");
-                    String infoFileStr = null;
-                    if (infoFile != null && infoFile.size() > 0) {
-                        infoFileStr = "";
-                        for (int i = 0; i < infoFile.size(); i++) {
-                            infoFileStr += infoFile.getString(i);
-                            infoFileStr += ",";
+                        JSONArray infoFile = object.getJSONArray("infoFile");
+                        String infoFileStr = null;
+                        if (infoFile != null && infoFile.size() > 0) {
+                            infoFileStr = "";
+                            for (int i = 0; i < infoFile.size(); i++) {
+                                infoFileStr += infoFile.getString(i);
+                                infoFileStr += ",";
+                            }
+                            infoFileStr = infoFileStr.substring(0, infoFileStr.length() - 1);
                         }
-                        infoFileStr = infoFileStr.substring(0, infoFileStr.length() - 1);
-                    }
 
-                    String openBidingTime = object.getString("openBidingTime");
-                    String bidingAcquireTime = object.getString("bidingAcquireTime");
-                    String bidingEndTime = object.getString("bidingEndTime");
-                    String tenderBeginTime = object.getString("tenderBeginTime");
-                    String tenderEndTime = object.getString("tenderEndTime");
-                    String isElectronic = object.getString("isElectronic");
-                    String infoType = object.getString("infoType");
+                        String openBidingTime = object.getString("openBidingTime");
+                        String bidingAcquireTime = object.getString("bidingAcquireTime");
+                        String bidingEndTime = object.getString("bidingEndTime");
+                        String tenderBeginTime = object.getString("tenderBeginTime");
+                        String tenderEndTime = object.getString("tenderEndTime");
+                        String isElectronic = object.getString("isElectronic");
+                        String infoType = object.getString("infoType");
 
-                    String infoTitle = object.getString("infoTitle");
-                    String infoPublishTime = object.getString("infoPublishTime");
-                    String infoQianlimaUrl = object.getString("infoQianlimaUrl");
-                    String areaProvince = object.getString("areaProvince");
-                    String areaCity = object.getString("areaCity");
-                    String areaCountry = object.getString("areaCountry");
-                    String xmNumber = object.getString("xmNumber");
-                    String biddingType = object.getString("biddingType");
-                    String keywords = object.getString("keywords");
-                    String infoUrl = object.getString("keywordsCode");
-                    String xlfKeywords = object.getString("xlfKeywords");
-                    String infoWebsite = object.getString("target");
+                        String infoTitle = object.getString("infoTitle");
+                        String infoPublishTime = object.getString("infoPublishTime");
+                        String infoQianlimaUrl = object.getString("infoQianlimaUrl");
+                        String areaProvince = object.getString("areaProvince");
+                        String areaCity = object.getString("areaCity");
+                        String areaCountry = object.getString("areaCountry");
+                        String xmNumber = object.getString("xmNumber");
+                        String biddingType = object.getString("biddingType");
+                        String keywords = object.getString("keywords");
+                        String infoUrl = object.getString("keywordsCode");
+                        String xlfKeywords = object.getString("xlfKeywords");
+                        String infoWebsite = object.getString("target");
 
-                    //中国电信独有
+                        //中国电信独有
 //                    String amountTag = object.getString("amountTag");
 //                    openBidingTime = amountTag;
 //
@@ -1183,28 +1186,28 @@ public class CurrencyServiceImpl implements CurrencyService {
 //                    String infoTypeSegment = object.getString("infoTypeSegment");
 //                    tenderEndTime = infoTypeSegment;
 
-                    // if(infoTitle.contains("...")){
-                    bdJdbcTemplate.update("insert into han_crm_user (" +
-                                    "taskid,infoId,infoTitle,infoType,infoPublishTime,infoQianlimaUrl," +
-                                    "areaProvince,areaCity,areaCountry,xmNumber," +
-                                    "zhongBiaoUnit,zhongRelationName,zhongRelationWay," +
-                                    "openBidingTime,bidingAcquireTime,bidingEndTime,tenderBeginTime,tenderEndTime,isElectronic," +
-                                    "biddingType,zhaoBiaoUnit,zhaoRelationName,zhaoRelationWay," +
-                                    "agentUnit,agentRelationName," +
-                                    "agentRelationWay,budget,budgetUnit,winnerAmount,winnerAmountUnit,infoFile,keywords, infoUrl, infoWebsite" +
-                                    ",xlfKeywords) " +
-                                    " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                            "21",infoId, infoTitle, infoType, infoPublishTime, infoQianlimaUrl,
-                            areaProvince, areaCity, areaCountry, xmNumber,
-                            zhongBiaoUnitStr, zhongRelationNameStr, zhongRelationWayStr,
-                            openBidingTime, bidingAcquireTime, bidingEndTime, tenderBeginTime, tenderEndTime, isElectronic,
-                            biddingType,zhaoBiaoUnitStr,zhaoRelationNameStr,zhaoRelationWayStr,agentUnitStr,agentRelationNameStr,
-                            agentRelationWayStr,budgetStr,budgetUnit,winnerAmountStr,winnerAmountUnit,
-                            infoFileStr,keywords,infoUrl, infoWebsite,xlfKeywords);
+                        // if(infoTitle.contains("...")){
+                        bdJdbcTemplate.update("insert into han_crm_user (" +
+                                        "taskid,infoId,infoTitle,infoType,infoPublishTime,infoQianlimaUrl," +
+                                        "areaProvince,areaCity,areaCountry,xmNumber," +
+                                        "zhongBiaoUnit,zhongRelationName,zhongRelationWay," +
+                                        "openBidingTime,bidingAcquireTime,bidingEndTime,tenderBeginTime,tenderEndTime,isElectronic," +
+                                        "biddingType,zhaoBiaoUnit,zhaoRelationName,zhaoRelationWay," +
+                                        "agentUnit,agentRelationName," +
+                                        "agentRelationWay,budget,budgetUnit,winnerAmount,winnerAmountUnit,infoFile,keywords, infoUrl, infoWebsite" +
+                                        ",xlfKeywords) " +
+                                        " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                                "21",infoId, infoTitle, infoType, infoPublishTime, infoQianlimaUrl,
+                                areaProvince, areaCity, areaCountry, xmNumber,
+                                zhongBiaoUnitStr, zhongRelationNameStr, zhongRelationWayStr,
+                                openBidingTime, bidingAcquireTime, bidingEndTime, tenderBeginTime, tenderEndTime, isElectronic,
+                                biddingType,zhaoBiaoUnitStr,zhaoRelationNameStr,zhaoRelationWayStr,agentUnitStr,agentRelationNameStr,
+                                agentRelationWayStr,budgetStr,budgetUnit,winnerAmountStr,winnerAmountUnit,
+                                infoFileStr,keywords,infoUrl, infoWebsite,xlfKeywords);
 
-                    //  }
-                }
-                log.info("运行的infoId：{}～～～～～～～～～～～～～～～～",infoId);
+                        //  }
+                    }
+                    log.info("运行的infoId：{}～～～～～～～～～～～～～～～～",infoId);
                 }));
 
             }
@@ -1224,11 +1227,12 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public List<NoticeMQ> getNoticeMqList(List<NoticeMQ> listAll) {
-        List<NoticeMQ> resultList = listAll.stream()
+
+        List<NoticeMQ> result = listAll.stream()
                 .collect(Collectors.collectingAndThen(
                         Collectors.toCollection(() -> new TreeSet<NoticeMQ>(Comparator.comparing(p -> p.getContentid()))),
                         ArrayList::new));
-        return resultList;
+        return result;
     }
 
     public String getMaiRui(String cursorMark) {
@@ -1520,5 +1524,280 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
         return result;
 
+    }
+
+    /**
+     * 临时数据-通过某个用户输出某些字段
+     * @return
+     * @throws Exception
+     */
+    private String getCrmByUserIdLs() throws Exception{
+        String cursorMark = "*";
+        String format = "yyyy-MM-dd HH:mm:ss";
+        int count =0;
+        int tiaoShu =0;
+        List<String> list = new ArrayList<>();
+        //开始时间
+        //Date startTime = new SimpleDateFormat(format).parse("2020-06-01 00:00:00");
+        //结束时间
+        //Date endTime = new SimpleDateFormat(format).parse("2020-06-30 23:59:59");
+        while (true) {
+            String result = getMaiRui(cursorMark);
+            JSONObject data = JSON.parseObject(result);
+            if (null == data) {
+                log.error("异常++++++++++++++++++");
+                System.out.println("1");
+            }
+            JSONObject info = (JSONObject) data.get("data");
+            if (info == null) {
+                log.error("异常——————————————————————");
+                System.out.println("2");
+                log.info("数据跑完了");
+                log.info("一共：{}",tiaoShu);
+                log.info("3.19-5.19的有：{}",count);
+            }
+            cursorMark = info.getString("cursorMark");
+            JSONArray jsonArray = info.getJSONArray("list");
+            if(jsonArray == null || jsonArray.size() == 0){
+                log.info("数据跑完了");
+                log.info("一共：{}",tiaoShu);
+                log.info("3.19-5.19的有：{}",count);
+                return count+"";
+            }
+            for (Object o : jsonArray) {
+                tiaoShu = tiaoShu+1;
+                JSONObject object = (JSONObject) o;
+                //当前时间
+                //Date nowTime = new SimpleDateFormat(format).parse(object.get("infoPublishTime").toString());
+                //if(isEffectiveDate(nowTime, startTime, endTime)){
+                String infoId = object.getString("infoId");
+                //中标单位
+                    /*JSONArray zhongBiaoUnit = object.getJSONArray("zhongBiaoUnit");
+                    String zhongBiaoUnitStr = null;
+                    if (zhongBiaoUnit != null && zhongBiaoUnit.size() > 0) {
+                        zhongBiaoUnitStr = "";
+                        for (int i = 0; i < zhongBiaoUnit.size(); i++) {
+                            zhongBiaoUnitStr += zhongBiaoUnit.getString(i);
+                            zhongBiaoUnitStr += ",";
+                        }
+                        zhongBiaoUnitStr = zhongBiaoUnitStr.substring(0, zhongBiaoUnitStr.length() - 1);
+                    }
+                    //中标单位联系人
+                    JSONArray zhongRelationName = object.getJSONArray("zhongRelationName");
+                    String zhongRelationNameStr = null;
+                    if (zhongRelationName != null && zhongRelationName.size() > 0) {
+                        zhongRelationNameStr = "";
+                        for (int i = 0; i < zhongRelationName.size(); i++) {
+                            zhongRelationNameStr += zhongRelationName.getString(i);
+                            zhongRelationNameStr += ",";
+                        }
+                        zhongRelationNameStr = zhongRelationNameStr.substring(0, zhongRelationNameStr.length() - 1);
+                    }
+                    //中标单位联系电话
+                    JSONArray zhongRelationWay = object.getJSONArray("zhongRelationWay");
+                    String zhongRelationWayStr = null;
+                    if (zhongRelationWay != null && zhongRelationWay.size() > 0) {
+                        zhongRelationWayStr = "";
+                        for (int i = 0; i < zhongRelationWay.size(); i++) {
+                            zhongRelationWayStr += zhongRelationWay.getString(i);
+                            zhongRelationWayStr += ",";
+                        }
+                        zhongRelationWayStr = zhongRelationWayStr.substring(0, zhongRelationWayStr.length() - 1);
+                    }
+
+                    //招标单位
+                    JSONArray zhaoBiaoUnit = object.getJSONArray("zhaoBiaoUnit");
+                    String zhaoBiaoUnitStr = null;
+                    if (zhaoBiaoUnit != null && zhaoBiaoUnit.size() > 0) {
+                        zhaoBiaoUnitStr = "";
+                        for (int i = 0; i < zhaoBiaoUnit.size(); i++) {
+                            zhaoBiaoUnitStr += zhaoBiaoUnit.getString(i);
+                            zhaoBiaoUnitStr += ",";
+                        }
+                        zhaoBiaoUnitStr = zhaoBiaoUnitStr.substring(0, zhaoBiaoUnitStr.length() - 1);
+                    }
+                    //招标单位联系人
+                    JSONArray zhaoRelationName = object.getJSONArray("zhaoRelationName");
+                    String zhaoRelationNameStr = null;
+                    if (zhaoRelationName != null && zhaoRelationName.size() > 0) {
+                        zhaoRelationNameStr = "";
+                        for (int i = 0; i < zhaoRelationName.size(); i++) {
+                            zhaoRelationNameStr += zhaoRelationName.getString(i);
+                            zhaoRelationNameStr += ",";
+                        }
+                        zhaoRelationNameStr = zhaoRelationNameStr.substring(0, zhaoRelationNameStr.length() - 1);
+                    }
+                    //招标单位联系电话
+                    JSONArray zhaoRelationWay = object.getJSONArray("zhaoRelationWay");
+                    String zhaoRelationWayStr = null;
+                    if (zhaoRelationWay != null && zhaoRelationWay.size() > 0) {
+                        zhaoRelationWayStr = "";
+                        for (int i = 0; i < zhaoRelationWay.size(); i++) {
+                            zhaoRelationWayStr += zhaoRelationWay.getString(i);
+                            zhaoRelationWayStr += ",";
+                        }
+                        zhaoRelationWayStr = zhaoRelationWayStr.substring(0, zhaoRelationWayStr.length() - 1);
+                    }
+
+                    //代理单位
+                    JSONArray agentUnit = object.getJSONArray("agentUnit");
+                    String agentUnitStr = null;
+                    if (agentUnit != null && agentUnit.size() > 0) {
+                        agentUnitStr = "";
+                        for (int i = 0; i < agentUnit.size(); i++) {
+                            agentUnitStr += agentUnit.getString(i);
+                            agentUnitStr += ",";
+                        }
+                        agentUnitStr = agentUnitStr.substring(0, agentUnitStr.length() - 1);
+                    }
+                    //代理单位联系人
+                    JSONArray agentRelationName = object.getJSONArray("agentRelationName");
+                    String agentRelationNameStr = null;
+                    if (agentRelationName != null && agentRelationName.size() > 0) {
+                        agentRelationNameStr = "";
+                        for (int i = 0; i < agentRelationName.size(); i++) {
+                            agentRelationNameStr += agentRelationName.getString(i);
+                            agentRelationNameStr += ",";
+                        }
+                        agentRelationNameStr = agentRelationNameStr.substring(0, agentRelationNameStr.length() - 1);
+                    }
+                    //代理单位联系电话
+                    JSONArray agentRelationWay = object.getJSONArray("agentRelationWay");
+                    String agentRelationWayStr = null;
+                    if (agentRelationWay != null && agentRelationWay.size() > 0) {
+                        agentRelationWayStr = "";
+                        for (int i = 0; i < agentRelationWay.size(); i++) {
+                            agentRelationWayStr += agentRelationWay.getString(i);
+                            agentRelationWayStr += ",";
+                        }
+                        agentRelationWayStr = agentRelationWayStr.substring(0, agentRelationWayStr.length() - 1);
+                    }
+                    //预算
+                    JSONArray budget = object.getJSONArray("budget");
+                    String budgetStr = null;
+                    String budgetUnit = null;
+                    if (budget != null && budget.size() > 0) {
+                        budgetStr = "";
+                        budgetUnit = "";
+                        for (int i = 0; i < budget.size(); i++) {
+                            budgetStr += budget.getJSONObject(i).getString("amount");
+                            budgetStr += ",";
+                            budgetUnit += budget.getJSONObject(i).getString("unit");
+                            budgetUnit += ",";
+                        }
+                        budgetStr = budgetStr.substring(0, budgetStr.length() - 1);
+                        budgetUnit = budgetUnit.substring(0, budgetUnit.length() - 1);
+                    }
+                    //中标金额
+                    JSONArray winnerAmount = object.getJSONArray("winnerAmount");
+                    String winnerAmountStr = null;
+                    String winnerAmountUnit = null;
+                    if (winnerAmount != null && winnerAmount.size() > 0) {
+                        winnerAmountStr = "";
+                        winnerAmountUnit = "";
+                        for (int i = 0; i < winnerAmount.size(); i++) {
+                            winnerAmountStr += winnerAmount.getJSONObject(i).getString("amount");
+                            winnerAmountStr += ",";
+                            winnerAmountUnit += winnerAmount.getJSONObject(i).getString("unit");
+                            winnerAmountUnit += ",";
+                        }
+                        winnerAmountStr = winnerAmountStr.substring(0, winnerAmountStr.length() - 1);
+                        winnerAmountUnit = winnerAmountUnit.substring(0, winnerAmountUnit.length() - 1);
+                    }
+
+                    JSONArray infoFile = object.getJSONArray("infoFile");
+                    String infoFileStr = null;
+                    if (infoFile != null && infoFile.size() > 0) {
+                        infoFileStr = "";
+                        for (int i = 0; i < infoFile.size(); i++) {
+                            infoFileStr += infoFile.getString(i);
+                            infoFileStr += ",";
+                        }
+                        infoFileStr = infoFileStr.substring(0, infoFileStr.length() - 1);
+                    }*/
+
+                String openBidingTime = object.getString("openBidingTime");
+                String bidingAcquireTime = object.getString("bidingAcquireTime");
+                String bidingEndTime = object.getString("bidingEndTime");
+                String tenderBeginTime = object.getString("tenderBeginTime");
+                String tenderEndTime = object.getString("tenderEndTime");
+                String isElectronic = object.getString("isElectronic");
+                String infoType = object.getString("infoType");
+
+                String infoTitle = object.getString("infoTitle");
+                String infoPublishTime = object.getString("infoPublishTime");
+                String infoQianlimaUrl = object.getString("infoQianlimaUrl");
+                String areaProvince = object.getString("areaProvince");
+                String areaCity = object.getString("areaCity");
+                String areaCountry = object.getString("areaCountry");
+                String xmNumber = object.getString("xmNumber");
+                String biddingType = object.getString("biddingType");
+                String keywords = object.getString("keywords");
+                String infoUrl = object.getString("keywordsCode");
+                String xlfKeywords = object.getString("xlfKeywords");
+                String infoWebsite = object.getString("target");
+
+                //中国电信独有
+//                    String amountTag = object.getString("amountTag");
+//                    openBidingTime = amountTag;
+//
+//
+//                    String opportunityTag = object.getString("opportunityTag");
+//                    bidingAcquireTime = opportunityTag;
+//
+//                    String competorTag = object.getString("competorTag");
+//                    bidingEndTime = competorTag;
+//
+//                    String dataType = object.getString("dataType");
+//                    tenderBeginTime = dataType;
+//
+//                    String infoTypeSegment = object.getString("infoTypeSegment");
+//                    tenderEndTime = infoTypeSegment;
+
+                // if(infoTitle.contains("...")){
+                bdJdbcTemplate.update("insert into han_crm_user (" +
+                                "taskid,infoId,infoTitle,infoType,infoPublishTime,infoQianlimaUrl," +
+                                "areaProvince,areaCity,areaCountry,xmNumber," +
+                                "zhongBiaoUnit,zhongRelationName,zhongRelationWay," +
+                                "openBidingTime,bidingAcquireTime,bidingEndTime,tenderBeginTime,tenderEndTime,isElectronic," +
+                                "biddingType,zhaoBiaoUnit,zhaoRelationName,zhaoRelationWay," +
+                                "agentUnit,agentRelationName," +
+                                "agentRelationWay,budget,budgetUnit,winnerAmount,winnerAmountUnit,infoFile,keywords, infoUrl, infoWebsite" +
+                                ",xlfKeywords) " +
+                                " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "21",infoId, infoTitle, infoType, infoPublishTime, infoQianlimaUrl,
+                        areaProvince, areaCity, areaCountry, xmNumber,
+                        "", "", "",
+                        openBidingTime, bidingAcquireTime, bidingEndTime, tenderBeginTime, tenderEndTime, isElectronic,
+                        biddingType,"","","","","",
+                        "","","","","",
+                        "",keywords,infoUrl, infoWebsite,xlfKeywords);
+/*
+                    bdJdbcTemplate.update("insert into han_crm_user (" +
+                                    "taskid,infoId,infoTitle,infoType,infoPublishTime,infoQianlimaUrl," +
+                                    "areaProvince,areaCity,areaCountry,xmNumber," +
+                                    "zhongBiaoUnit,zhongRelationName,zhongRelationWay," +
+                                    "openBidingTime,bidingAcquireTime,bidingEndTime,tenderBeginTime,tenderEndTime,isElectronic," +
+                                    "biddingType,zhaoBiaoUnit,zhaoRelationName,zhaoRelationWay," +
+                                    "agentUnit,agentRelationName," +
+                                    "agentRelationWay,budget,budgetUnit,winnerAmount,winnerAmountUnit,infoFile,keywords, infoUrl, infoWebsite" +
+                                    ",xlfKeywords) " +
+                                    " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            "21",infoId, infoTitle, infoType, infoPublishTime, infoQianlimaUrl,
+                            areaProvince, areaCity, areaCountry, xmNumber,
+                            zhongBiaoUnitStr, zhongRelationNameStr, zhongRelationWayStr,
+                            openBidingTime, bidingAcquireTime, bidingEndTime, tenderBeginTime, tenderEndTime, isElectronic,
+                            biddingType,zhaoBiaoUnitStr,zhaoRelationNameStr,zhaoRelationWayStr,agentUnitStr,agentRelationNameStr,
+                            agentRelationWayStr,budgetStr,budgetUnit,winnerAmountStr,winnerAmountUnit,
+                            infoFileStr,keywords,infoUrl, infoWebsite,xlfKeywords);
+*/
+
+                count = count+1;
+                list.add(infoId);
+                //  }
+            }
+            //}
+            log.info("第：{}条～～～～～～～～～～～～～～～～",tiaoShu);
+        }
     }
 }

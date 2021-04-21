@@ -76,10 +76,10 @@ public class HanPocController {
         return "json is ok";
     }
     @ApiOperation("通过单独contentid/id 走默认的自提获取数据")
-    @GetMapping("/ids")
-    @ResponseBody
+    @GetMapping(value="/ids",produces = "text/plain;charset=utf-8")
     public String toIds() throws Exception{
         testTencentService.toIds();
+        log.info("---通过id获取基础字段接口运行结束---");
         return "ids is ok";
     }
 

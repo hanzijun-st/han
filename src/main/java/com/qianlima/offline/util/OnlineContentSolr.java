@@ -29,7 +29,7 @@ import java.util.Map;
 public class OnlineContentSolr {
 
     @Autowired
-    //@Qualifier("normalsolr")
+    //@Qualifier("onlineSolr")
     private SolrClient solrClient;
 
     public List<NoticeMQ> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {

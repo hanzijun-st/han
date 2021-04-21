@@ -89,7 +89,7 @@ public class TestTencentServiceImpl implements TestTencentService {
         Set<Map.Entry<String, String>> entries = simpleAreaMap.entrySet();//将map的key和value 进行映射成 集合*/
         List<Map<String, Object>> mapList = bdJdbcTemplate.queryForList("SELECT content_id,title FROM han_new_data_tf");
 
-        String url ="http://cusdata.qianlima.com/api/infoType";
+        String url ="http://monitor.ka.qianlima.com/api/infoType";
         if (mapList !=null && mapList.size() >0){
             for (Map<String, Object> map : mapList) {
                 String contentid = map.get("content_id").toString();
@@ -205,9 +205,18 @@ public class TestTencentServiceImpl implements TestTencentService {
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
             "is_electronic,code2,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    /**
+     * 大金额专用
+     */
+    private static final String INSERT_ZT_DJE_ZHUANYONG = "INSERT INTO han_new_dajine (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
+            "is_electronic,code2,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl,old_winner_amount,new_winner_amount,old_budget,new_budget) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     @Override
     public void toIds() throws Exception{
-        ExecutorService executorService1 = Executors.newFixedThreadPool(10);//开启线程池
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
         List<Future> futureList1 = new ArrayList<>();
         List<String> idsFile = LogUtils.readRule("idsFile");
 
@@ -225,9 +234,10 @@ public class TestTencentServiceImpl implements TestTencentService {
                 try {
                     Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
                     if (resultMap != null) {
-                        String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
-                        resultMap.put("content",content);
-                        saveIntoMysqlDje(resultMap);
+                        //String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
+                        //resultMap.put("content",content);
+                        //saveIntoMysqlDje(resultMap);
+                        cusDataNewService.saveIntoMysql(resultMap);
                     }
                 }catch (Exception e) {
                     e.printStackTrace();
@@ -1113,17 +1123,17 @@ public class TestTencentServiceImpl implements TestTencentService {
         ExecutorService executorService1 = Executors.newFixedThreadPool(10);//开启线程池
         List<Future> futureList1 = new ArrayList<>();
         String cursorMark ="";
-        while (true){
-            List<Map<String, Object>> maps = getList(cursorMark);
+        //while (true){
+            List<Map<String, Object>> maps = getList2(cursorMark);
             if (maps !=null && maps.size() >0){
                 for (Map<String, Object> map : maps) {
                     String infoId = map.get("info_id").toString();
                     cursorMark = infoId;
                     futureList1.add(executorService1.submit(() -> {
-
+                        //new_winner_amount,old_winner_amount, new_budget,old_budget
                         //由于大金额处理的特殊性，只能用null进行判断
-                        String winnerAmount = map.get("winner_amount") != null ? map.get("winner_amount").toString() : null;
-                        String budget = map.get("budget") != null ? map.get("budget").toString() : null;
+                        String winnerAmount = map.get("new_winner_amount") != null ? map.get("new_winner_amount").toString() : null;
+                        String budget = map.get("new_budget") != null ? map.get("new_budget").toString() : null;
 
                         boolean b = cusDataFieldService.checkStatus(infoId);//范围 例如:全国
                         if (!b) {
@@ -1144,26 +1154,36 @@ public class TestTencentServiceImpl implements TestTencentService {
                                     resultMap.put("baiLian_budget", budget);
                                 }
                                 resultMap.put("code2", QianlimaZTUtil.getFromUrl("http://datafetcher.intra.qianlima.com/dc/bidding/fromurl",String.valueOf(infoId)));
-                                saveIntoMysqlDje(resultMap);
+                                resultMap.put("old_winner_amount",map.get("old_winner_amount"));
+                                resultMap.put("old_budget",map.get("old_budget"));
+                                resultMap.put("new_winner_amount",map.get("new_winner_amount"));
+                                resultMap.put("new_budget",map.get("new_budget"));
+                                saveIntoMysqlDaJine(resultMap);
                             }
                         }catch (Exception e) {
                             e.printStackTrace();
                         }
                     }));
                 }
-            }else {
+          /*  }else {
                 break;
-            }
+            }*/
         }
         log.info("--------该接口运行结束--------");
     }
     public List<Map<String,Object>> getList(String cursorMark) {
         if (StringUtils.isNotBlank(cursorMark)) {
-            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id > ? ORDER BY info_id limit 5000",cursorMark);
+            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, new_winner_amount,old_winner_amount, new_budget,old_budget from amount_for_handle where info_id > ? ORDER BY info_id limit 5000",cursorMark);
             return maps;
         }else {
-            return djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code ORDER BY info_id limit 5000");
+            return djeJdbcTemplate.queryForList("select info_id, new_winner_amount,old_winner_amount, new_budget,old_budget from amount_for_handle ORDER BY info_id limit 5000");
         }
+    }
+
+    public List<Map<String,Object>> getList2(String cursorMark) {
+            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("SELECT * FROM amount_for_handle where states =1 AND DATE_FORMAT(FROM_UNIXTIME(update_time /1000),'%Y-%m-%d') BETWEEN '2021-04-12' AND '2021-04-20'");
+            return maps;
+
     }
 
 
@@ -1332,6 +1352,23 @@ public class TestTencentServiceImpl implements TestTencentService {
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
                 map.get("code2"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"), map.get("monitorUrl"), map.get("pocDetailUrl"));
+    }
+
+    /**
+     * 大金额专用
+     * @param map
+     */
+    public void saveIntoMysqlDaJine(Map<String, Object> map){
+        bdJdbcTemplate.update(INSERT_ZT_DJE_ZHUANYONG,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                map.get("code2"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"), map.get("monitorUrl"), map.get("pocDetailUrl"),
+                map.get("old_winner_amount"),map.get("new_winner_amount"),map.get("old_budget"),map.get("new_budget"));
     }
 
     public void saveIntoMysqlTenxun(Map<String, Object> map ,String table){
