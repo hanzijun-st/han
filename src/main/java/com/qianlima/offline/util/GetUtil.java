@@ -23,7 +23,7 @@ public class GetUtil {
         httpResponse = httpClient.execute(get);
         //response实体
         HttpEntity entity = httpResponse.getEntity();
-        //http://cusdata.qianlima.com/crm/info/page?userId=38&cursorMark=*&pageSize=200
+        //http://monitor.ka.qianlima.com/crm/info/page?userId=38&cursorMark=*&pageSize=200
 
         JSONObject jsonObject = JSON.parseObject(EntityUtils.toString(entity));
         return jsonObject;

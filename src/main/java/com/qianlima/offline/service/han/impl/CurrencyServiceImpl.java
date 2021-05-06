@@ -1242,7 +1242,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         CloseableHttpClient httpClient = getHttpClient();
         try {
             //用get方法发送http请求
-            HttpGet get = new HttpGet("http://cusdata.qianlima.com/crm/info/page" +
+            HttpGet get = new HttpGet("http://monitor.ka.qianlima.com/crm/info/page" +
                     "?userId=13&pageSize=200&cursorMark="+cursorMark);
 
             CloseableHttpResponse httpResponse = null;
@@ -1296,8 +1296,8 @@ public class CurrencyServiceImpl implements CurrencyService {
             HttpClient client = new DefaultHttpClient();
             HttpResponse response = null;
             // --KA自用行业
-            // http://cusdata.qianlima.com/api/ka/industry?unit=上海市公安局国际机场分局
-            String url = "http://cusdata.qianlima.com/api/ka/industry?unit="+zhaobiaounit+"";
+            // http://monitor.ka.qianlima.com/api/ka/industry?unit=上海市公安局国际机场分局
+            String url = "http://monitor.ka.qianlima.com/api/ka/industry?unit="+zhaobiaounit+"";
             HttpPost post = new HttpPost(url);
             post.setHeader("Content-Type", "application/json");
 
@@ -1495,7 +1495,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     /**
-     * http://cusdata.qianlima.com/crm/info/detail?userId=?&infoId=
+     * http://monitor.ka.qianlima.com/crm/info/detail?userId=?&infoId=
      */
     public String getDataByInfoId(String infoId) {
         String result = null;
@@ -1504,7 +1504,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         CloseableHttpClient httpClient = getHttpClient();
         try {
             //用get方法发送http请求
-            HttpGet get = new HttpGet("http://cusdata.qianlima.com/crm/info/field?userId=13&infoId="+infoId);
+            HttpGet get = new HttpGet("http://monitor.ka.qianlima.com/crm/info/field?userId=13&infoId="+infoId);
 
             CloseableHttpResponse httpResponse = null;
             //发送get请求

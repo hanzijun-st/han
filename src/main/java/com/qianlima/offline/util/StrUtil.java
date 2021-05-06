@@ -1,6 +1,9 @@
 package com.qianlima.offline.util;
 
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by Administrator on 2021/1/19.
  */
@@ -116,5 +119,26 @@ public class StrUtil {
         return t;
     }
 
+    /**
+     * 包含特殊字符
+     * @param str
+     * @return
+     */
+    public static boolean contentStr(String str){
+        String regEx = "[ _`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\n|\r|\t";
+        Pattern p = Pattern.compile(regEx);
+        Matcher m = p.matcher(str);
+        boolean b = m.find();
+        return b;
+    }
 
+    /**
+     * 判断是否是邮箱
+     * @param str
+     * @return
+     */
+    public static boolean isEmail(String str){
+        String regex = "\\w+@\\w+\\.(com|net.cn)";
+        return str.matches(regex);
+    }
 }

@@ -78,4 +78,37 @@ public interface TestFourService {
      */
     void getYilongYiLiao(Integer type, String date, String s);
 
+    /**
+     *  中节能（山东）
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getZhongJieNeng(Integer type, String date, String s);
+
+    /**
+     *  中节能-2
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getZhongJieNeng2(Integer type, String date, String s);
+
+    /**
+     *  江苏百瑞赢证券咨询有限公司
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getJiangSuBaiRui(Integer type, String date, String s);
+
+    /**
+     *
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getPoc(Integer type, String date, String s);
+
+    void getPoc2(Integer type, String date, String s) throws Exception;
 }

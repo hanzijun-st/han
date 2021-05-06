@@ -49,7 +49,7 @@ public class SolrClientConfig {
     }*/
 
     /**
-     * 线上的solr，单独配置
+     * 线上的solr，单独配置（已废除不再使用线上）
      * @return
      */
     /*@Bean(name = "onlineSolr")

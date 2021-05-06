@@ -109,5 +109,44 @@ public class HanFourController {
         return "---熠隆医疗设备(上海)接口运行结束---";
     }
 
+    @ApiOperation("中节能（山东）")
+    @PostMapping(value = "/getZhongJieNeng",produces = "text/plain;charset=utf-8")
+    public String getZhongJieNeng(Integer type,String date,String s) {
+        testFourService.getZhongJieNeng(type,date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---中节能（山东）接口运行结束---";
+    }
+    @ApiOperation("中节能（山东）-2")
+    @PostMapping(value = "/getZhongJieNeng2",produces = "text/plain;charset=utf-8")
+    public String getZhongJieNeng2(Integer type,String date,String s) {
+        testFourService.getZhongJieNeng2(type,date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---中节能（山东）-2接口运行结束---";
+    }
+
+    @ApiOperation("江苏百瑞赢证券咨询有限公司")
+    @PostMapping(value = "/getJiangSuBaiRui",produces = "text/plain;charset=utf-8")
+    public String getJiangSuBaiRui(Integer type,String date,String s) {
+        testFourService.getJiangSuBaiRui(type,date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---江苏百瑞赢证券咨询有限公司-接口运行结束---";
+    }
+
+    @ApiOperation("临时数据-20210430")
+    @PostMapping(value = "/getPoc",produces = "text/plain;charset=utf-8")
+    public String getPoc(Integer type,String date,String s) {
+        testFourService.getPoc(type,date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---临时数据-接口运行结束---";
+    }
+
+    @ApiOperation("临时数据-20210430")
+    @PostMapping(value = "/getPoc2",produces = "text/plain;charset=utf-8")
+    public String getPoc2(Integer type,String date,String s) throws Exception{
+        testFourService.getPoc2(type,date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---临时数据2-接口运行结束---";
+    }
+
 
 }

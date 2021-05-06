@@ -3708,7 +3708,7 @@ public class TestServiceImpl implements TestService{
 
         HttpClient client = new DefaultHttpClient();
         HttpResponse response = null;
-        String url = "http://cusdata.qianlima.com/api/ka/industry?unit="+zhaobiaounit+"";
+        String url = "http://monitor.ka.qianlima.com/api/ka/industry?unit="+zhaobiaounit+"";
         HttpPost post = new HttpPost(url);
         post.setHeader("Content-Type", "application/json");
 

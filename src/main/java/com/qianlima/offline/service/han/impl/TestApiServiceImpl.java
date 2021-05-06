@@ -4,22 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.entity.HanJsonBean;
-import com.qianlima.offline.entity.HanNewData;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestApiService;
-import com.qianlima.offline.util.*;
+import com.qianlima.offline.util.DateUtils;
+import com.qianlima.offline.util.LogUtils;
+import com.qianlima.offline.util.MapUtil;
+import com.qianlima.offline.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.solr.common.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
@@ -29,8 +28,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import static com.qianlima.offline.util.HttpClientUtil.getHttpClient;
 
 /**
  * Created by Administrator on 2021/1/12.

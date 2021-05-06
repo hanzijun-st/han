@@ -95,7 +95,7 @@ public class TestTime {
         }
         System.out.println(dayss);*/
 
-        List<String> dayss = new ArrayList<>();
+       /* List<String> dayss = new ArrayList<>();
         Calendar start = Calendar.getInstance();
         start.setTime(getDateAdd(14));
         Long startTIme = start.getTimeInMillis();
@@ -109,7 +109,7 @@ public class TestTime {
             time += oneDay;
         }
 
-        System.out.println(dayss);
+        System.out.println(dayss);*/
 
 
 

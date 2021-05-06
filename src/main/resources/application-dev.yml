@@ -244,7 +244,7 @@ qlm:
     #    http://172.18.30.12:8984/solr/qianlima_all_in_shard1_replica1
     #    http://172.18.30.12:8984/solr/search_normal_shard3_replica1
 
-    #线上solr 查全量
+    #线上solr 查全量（已废除，不再使用线上）
     onlineSolr: http://47.104.20.30:8984/solr/ka_info_shard1_replica1
 
     ictsolr: http://172.18.30.12:8984/solr/qianlima_ict_shard2_replica1
