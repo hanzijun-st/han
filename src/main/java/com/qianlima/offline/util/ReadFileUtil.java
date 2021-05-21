@@ -34,7 +34,7 @@ public class ReadFileUtil {
             }
         }
     }
-    public static void readFileByMap(String url, String fileName, Map<String, Long> map) {
+    public static void readFileByMap(String url, String fileName, Map<String, Long> map,String date) {
 
         File file = new File(url+"/"+fileName);
 
@@ -47,6 +47,7 @@ public class ReadFileUtil {
                 file.createNewFile();
                 OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file),"GB2312");
                 BufferedWriter bw = new BufferedWriter(osw);
+                bw.write("----"+date+"\r\n");
                 for (Map.Entry<String, Long> strLongEntry : map.entrySet()) {
                     String s = strLongEntry.getKey()+":"+strLongEntry.getValue();
                     bw.write(s+"\r\n");

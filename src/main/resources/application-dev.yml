@@ -1,5 +1,5 @@
 server:
-  port: 9988
+  port: 9888
 logging:
   config: classpath:log/logback-spring-dev.xml
   level:
@@ -141,7 +141,7 @@ spring:
       logAbandoned: false
     dje:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://118.190.158.164:3309/ka_monitor?useUnicode=true&characterEncoding=utf8
+      url: jdbc:mysql://118.190.158.164:3309/ka_monitor?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
       username: monitorReader
       password: yj1jaOtS3x7y
       type: com.alibaba.druid.pool.DruidDataSource
@@ -229,10 +229,22 @@ spring:
       # 合并多个DruidDataSource的监控数据
       useGlobalDataSourceStat: true
   redis:
-    host: localhost
+    host: 127.0.0.1
     port: 6379
     database: 0
     password:
+  freemarker:
+    allow-request-override: false
+    cache: true
+    check-template-location: true
+    charset: UTF-8
+    suffix: .html
+    templateEncoding: UTF-8
+    templateLoaderPath: classpath:/templates/
+    content-type: text/html
+    expose-request-attributes: false
+    expose-session-attributes: false
+    expose-spring-macro-helpers: false
 qlm:
   data:
     lasttimeFile: /usr/local/ka/producer/lasttime.txt
@@ -253,6 +265,8 @@ qlm:
     solr:
       host: solr1:2181,solr2:2181,solr3:2181
       defaultCollection: ka_info
+
+    testsolr: 127.0.0.1:8099/solr/collection1
 data:
   contentid: C:\Users\Dell\Desktop\qianlima\ka_for_poc\src\main\resources\rule\contentid.txt
 zt:

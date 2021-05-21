@@ -114,6 +114,8 @@ public class NoticeMQ implements Serializable {
 
     private String biddingType;//招标方式
 
+    private String blackWord;//黑词
+
 
 
 

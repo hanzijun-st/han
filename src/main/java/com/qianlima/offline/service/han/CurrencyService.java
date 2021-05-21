@@ -88,7 +88,7 @@ public interface CurrencyService {
      * @param name
      * @param map
      */
-    void readFileByMapToBd(String name,Map<String,Long> map);
+    void readFileByMapToBd(String name,Map<String,Long> map,String date);
 
     /**
      * 测试服务器
@@ -101,7 +101,7 @@ public interface CurrencyService {
      * @param name
      * @param map
      */
-    void readFileByMap(String name,Map<String,Long> map);
+    void readFileByMap(String name,Map<String,Long> map,String date);
 
 
     /**
@@ -111,7 +111,7 @@ public interface CurrencyService {
      * @param s 判断是否本地
      * @param name 文件名称
      */
-    void soutKeywords(List<NoticeMQ> listAll, Integer listSize, String s, String name);
+    void soutKeywords(List<NoticeMQ> listAll, Integer listSize, String s, String name,String date);
 
     /**
      * CRM-通过指定用户获取对应字段
@@ -127,4 +127,21 @@ public interface CurrencyService {
      *  通过lambda表达式，去重通过某个属性去重celue
      */
     List<NoticeMQ> getNoticeMqList(List<NoticeMQ> listAll);
+
+    /**
+     * 资金来源
+     * @param infoId
+     * @return
+     */
+    Map<String,Object> getExtractFundsSource(String infoId);
+
+    /**
+     * 获取线上大金额需要修改的所有
+     */
+    void getDaJinEdatas();
+
+    /**
+     * 通过id 获取项目名称
+     */
+    void getProName() throws Exception;
 }

@@ -4,6 +4,7 @@ package com.qianlima.offline.util;
 import org.apache.commons.lang3.time.DateFormatUtils;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -266,5 +267,49 @@ public class DateUtils {
         calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH)-1,23,59,59);
         return calendar.getTime().getTime();
     }
+    /**
+     * 判断是否是当月
+     * @param time
+     * @param pattern
+     * @return
+     */
+    public static boolean isThisMon(String time, String pattern) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = sdf.parse(time);
+            String param = DateFormatUtils.format(date,pattern);//参数时间
+            String now = DateFormatUtils.format(new Date(),pattern);//当前时间
+            if (param.equals(now)) {
+                return true;
+            }
+        } catch (ParseException e) {
+            e.getMessage();
+        }
+        return false;
+    }
 
+    /**
+     *  判断是否是下月
+     * @param time
+     * @param pattern
+     * @return
+     */
+    public static boolean isNextMon(String time, String pattern) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = null;
+        try {
+            date = sdf.parse(time);
+        } catch (ParseException e) {
+
+        }
+        String param = DateFormatUtils.format(date,pattern);//参数时间
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, 1);
+        String format = DateFormatUtils.format(calendar.getTime(), pattern);
+        if (param.equals(format)){
+            return true;
+        }
+        return false;
+    }
 }

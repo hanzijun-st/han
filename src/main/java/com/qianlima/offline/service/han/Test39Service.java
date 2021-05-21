@@ -121,4 +121,6 @@ public interface Test39Service {
     void getWwAer2(Integer type, String date, String s);
 
     void getLinS(Integer type, String date, String str);
+
+
 }

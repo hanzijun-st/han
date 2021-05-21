@@ -35,10 +35,10 @@ public class TestMyBatisController {
     }*/
 
     @ApiOperation("测试")
-    @PostMapping(value = "/testLc",produces = "text/plain;charset=utf-8")
-    public String testLc(@RequestBody LcDto lcDto) {
-        testMyBatisService.testLc(lcDto);
-        log.info("===============================数据运行结束===================================");
-        return "---广州盗梦信息科技有限公司 接口运行结束---";
+    @PostMapping(value = "/testLc")
+    @ResponseBody
+    public List testLc(@RequestBody LcDto lcDto) {
+        List list = testMyBatisService.testLc(lcDto);
+        return list;
     }
 }

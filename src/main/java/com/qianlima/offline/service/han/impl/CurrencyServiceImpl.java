@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import com.qianlima.offline.bean.Area;
-import com.qianlima.offline.bean.ConstantBean;
-import com.qianlima.offline.bean.NoticeMQ;
-import com.qianlima.offline.bean.Params;
+import com.qianlima.offline.bean.*;
 import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.rule02.BiaoDiWuRule;
 import com.qianlima.offline.rule02.MyRuleUtils;
@@ -39,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springfox.documentation.spring.web.json.Json;
 import sun.reflect.generics.tree.Tree;
 
 import javax.annotation.PostConstruct;
@@ -64,6 +62,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private UpdateContentSolr updateSolr;
+
+    @Autowired
+    private OnlineNewContentSolr onlineContentSolr;
 
     @Autowired
     @Qualifier("gwJdbcTemplate")
@@ -92,7 +93,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Autowired
     private CleanUtils cleanUtils;
 
-
+    @Autowired
+    @Qualifier("djeJdbcTemplate")
+    private JdbcTemplate djeJdbcTemplate;
 
 
 
@@ -701,12 +704,12 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void readFileByMap(String name, Map<String, Long> map) {
-        ReadFileUtil.readFileByMap(ConstantBean.FILL_URL,name+".txt",map);
+    public void readFileByMap(String name, Map<String, Long> map,String date) {
+        ReadFileUtil.readFileByMap(ConstantBean.FILL_URL,name+".txt",map,date);
     }
 
     @Override
-    public void soutKeywords(List<NoticeMQ> listAll, Integer listSize,String s,String name) {
+    public void soutKeywords(List<NoticeMQ> listAll, Integer listSize,String s,String name,String date) {
         Map<String, Long> mapCount = listAll.stream().collect(Collectors.groupingBy(NoticeMQ::getKeyword, Collectors.counting()));
         Map<String, Long> linkedHashMap = new LinkedHashMap<>(mapCount);
 
@@ -714,10 +717,10 @@ public class CurrencyServiceImpl implements CurrencyService {
         linkedHashMap.put("去重数据量",Long.valueOf(listSize));
 
         if ("1".equals(s)){
-            currencyService.readFileByMap(name,linkedHashMap);
+            currencyService.readFileByMap(name,linkedHashMap,date);
             log.info("");
         }else if ("2".equals(s)){
-            currencyService.readFileByMapToBd(name,linkedHashMap);
+            currencyService.readFileByMapToBd(name,linkedHashMap,date);
         }
     }
 
@@ -1235,6 +1238,87 @@ public class CurrencyServiceImpl implements CurrencyService {
         return result;
     }
 
+    /**
+     * 资金来源
+     * @param infoId
+     * @return
+     */
+    @Override
+    public Map<String,Object> getExtractFundsSource(String infoId) {
+        Map<String, Object> map = QianlimaZTUtil.getFields("http://datafetcher.intra.qianlima.com/dc/bidding/fields", infoId, "extract_funds_source", null);
+        if (map !=null){
+            if ("0".equals(map.get("returnCode").toString())) {
+                if (map.get("data") !=null) {
+                    JSONObject json = (JSONObject) JSON.toJSON(map.get("data"));
+                    JSONArray fields = json.getJSONArray("fields");
+                    if (fields !=null && fields.size() >0){
+                        JSONObject jsonObject = (JSONObject) fields.get(0);
+                        if (jsonObject.get("extract_funds_source") !=null){
+                            JSONArray jsonArray = JSONArray.parseArray(jsonObject.get("extract_funds_source").toString());
+                            if (jsonArray !=null && jsonArray.size() >0){
+                                JSONObject obj = (JSONObject) jsonArray.get(0);
+                                Map<String,Object> m = new HashMap<>();
+                                m.put("proportion",obj.get("proportion"));
+                                m.put("source",obj.get("source"));
+                                return m;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    public String INSERT_HAN_DJE = "INSERT INTO han_xs_dje (info_id,old_winner_amount,old_budget,url) " +
+            "VALUES (?,?,?,?)";
+    @Override
+    public void getDaJinEdatas() {
+        List<Map<String, Object>> mapList = djeJdbcTemplate.queryForList("select info_id, old_winner_amount, old_budget from amount_for_handle where states = 0 group by info_id order by info_id asc");
+        if (mapList !=null && mapList.size() > 0){
+            for (Map<String, Object> map : mapList) {
+                String url ="http://monitor.ka.qianlima.com/#/checkDetails?pushId=/"+map.get("info_id");
+                bdJdbcTemplate.update(INSERT_HAN_DJE,map.get("info_id"), map.get("old_winner_amount"), map.get("old_budget"),url);
+            }
+        }
+    }
+    /**
+     * 通过infoId获取项目名称
+     */
+    public String INSERT_PRO_NAME = "INSERT INTO han_new_proname (infoId,proName) VALUES (?,?)";
+    @Override
+    public void getProName() throws Exception{
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        List<String> keywords = LogUtils.readRule("idsFile");
+        for (String str : keywords) {
+            futureList1.add(executorService1.submit(() -> {
+                List<NoticeAllField> mqEntities = onlineContentSolr.companyResultsBaoXian("id:\"" + str + "\"", "", 1);
+                log.info("infoId:{}",str);
+                if (!mqEntities.isEmpty()) {
+                    for (NoticeAllField field : mqEntities) {
+                        String projName = field.getProjName();
+                        if (StringUtils.isNotBlank(projName)){
+                            bdJdbcTemplate.update(INSERT_PRO_NAME,str,projName);
+                        }
+                    }
+                }
+            }));
+        }
+        for (Future future1 : futureList1) {
+            try {
+                future1.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                executorService1.shutdown();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
     public String getMaiRui(String cursorMark) {
         String result = null;
 
@@ -1287,8 +1371,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void readFileByMapToBd(String name, Map<String, Long> map) {
-        ReadFileUtil.readFileByMap(ConstantBean.FILL_URL_BD,name+".txt",map);
+    public void readFileByMapToBd(String name, Map<String, Long> map,String date) {
+        ReadFileUtil.readFileByMap(ConstantBean.FILL_URL_BD,name+".txt",map,date);
     }
 
     private void getHangYeBy(String contentId,String zhaobiaounit) {

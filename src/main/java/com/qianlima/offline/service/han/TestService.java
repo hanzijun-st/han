@@ -171,4 +171,9 @@ public interface TestService {
      * @param date
      */
     void getYuNanMaoShao(Integer type, String date) throws Exception;
+
+    /**
+     * 通过模板导出excel
+     */
+    void downByModel();
 }

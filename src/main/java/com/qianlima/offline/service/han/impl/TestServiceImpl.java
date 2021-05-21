@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -3698,6 +3699,29 @@ public class TestServiceImpl implements TestService{
                 executorService.shutdown();
             }
         }
+    }
+
+    @Override
+    public void downByModel() {
+        Student s = new Student();
+
+        // 模板注意 用{} 来表示你要用的变量 如果本来就有"{","}" 特殊字符 用"\{","\}"代替
+        String templateFileName = FileUtil.getPath() + "demo" + File.separator + "fill" + File.separator + "simple.xlsx";
+
+        // 方案1 根据对象填充
+        String fileName = FileUtil.getPath() + "simpleFill" + System.currentTimeMillis() + ".xlsx";
+        // 这里 会填充到第一个sheet， 然后文件流会自动关闭
+        s.setName("张三");
+        s.setAge(20);
+        //EasyExcel.write(fileName).withTemplate(templateFileName).sheet().doFill(s);
+
+        // 方案2 根据Map填充
+        fileName = FileUtil.getPath() + "simpleFill" + System.currentTimeMillis() + ".xlsx";
+        // 这里 会填充到第一个sheet， 然后文件流会自动关闭
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("name", "张三");
+        map.put("number", 5.2);
+        //EasyExcel.write(fileName).withTemplate(templateFileName).sheet().doFill(map);
     }
 
 

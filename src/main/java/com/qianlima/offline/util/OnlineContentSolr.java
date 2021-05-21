@@ -58,8 +58,9 @@ public class OnlineContentSolr {
                             toMQEntity.setContentid(Long.valueOf(doc.get("id").toString()));
                             toMQEntity.setTitle(doc.get("title") != null ? doc.get("title").toString() : null);//标题
                             toMQEntity.setZhaoBiaoUnit(doc.get("zhaoBiaoUnit") != null ? doc.get("zhaoBiaoUnit").toString() : null);//招标单位
-                            toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);//百炼招标单位
                             toMQEntity.setZhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);//中标单位
+
+                          /*   toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);//百炼招标单位
                             toMQEntity.setUpdatetime(doc.get("updatetime") != null ? doc.get("updatetime").toString() : null);//发布时间
                             //toMQEntity.setTags(doc.get("tags") != null ? doc.get("tags").toString() : null);//
                             //toMQEntity.setTags(doc.get("tagids") != null ? doc.get("tagids").toString() : null);//
@@ -84,8 +85,7 @@ public class OnlineContentSolr {
                             toMQEntity.setAgentRelationName(doc.get("agentRelationName") != null ? doc.get("agentRelationName").toString() : null);//代理机构联系人
                             toMQEntity.setAgentRelationWay(doc.get("agentRelationWay") != null ? doc.get("agentRelationWay").toString() : null);//代理机构联系方式
                             toMQEntity.setZhongRelationName(doc.get("zhongRelationName") != null ? doc.get("zhongRelationName").toString() : null);//自提中标单位联系人
-                            toMQEntity.setZhongRelationWay(doc.get("zhongRelationWay") != null ? doc.get("zhongRelationWay").toString() : null);//自提中标单位联系方式
-
+                            toMQEntity.setZhongRelationWay(doc.get("zhongRelationWay") != null ? doc.get("zhongRelationWay").toString() : null);//自提中标单位联系方式*/
                             resultMap.add(toMQEntity);
                         }
                     }

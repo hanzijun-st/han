@@ -175,9 +175,9 @@ public class HanDownController {
        public void getExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
            // 准备数据
             List<Student> list = new ArrayList<>();
-            list.add(new Student(1,"张三asdf",22));
-            list.add(new Student(2,"李四asd",33));
-            list.add(new Student(3,"王五",23));
+           // list.add(new Student(1,"张三asdf",22));
+           // list.add(new Student(2,"李四asd",33));
+           // list.add(new Student(3,"王五",23));
             String[] columnNames = { "ID", "姓名", "年龄"};
             String fileName = "学生信息表";
             String title = "学生信息表";

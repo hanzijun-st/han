@@ -12,9 +12,18 @@ import com.qianlima.offline.util.OnlineContentSolr;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +34,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,8 +78,8 @@ public class TestFourServiceImpl implements TestFourService {
     public static final String INSERT_ZT_FOUR = "INSERT INTO han_new_data (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time,is_electronic,code,isfile,keyword_term,keywords," +
-            " infoTypeSegment,monitorUrl, pocDetailUrl) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            " infoTypeSegment,monitorUrl, pocDetailUrl,first,second) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     /**
      * 入库操作语句
@@ -98,7 +108,9 @@ public class TestFourServiceImpl implements TestFourService {
                 map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
-                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"),map.get("monitorUrl"), map.get("pocDetailUrl"));
+                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"),map.get("monitorUrl"), map.get("pocDetailUrl"),
+                map.get("first"), map.get("second")
+        );
     }
 
 
@@ -157,7 +169,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"ceshuju");
+            currencyService.soutKeywords(listAll,list.size(),s,"ceshuju",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -259,7 +271,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"济南富利通-标的物");
+            currencyService.soutKeywords(listAll,list.size(),s,"济南富利通-标的物",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,7 +350,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"新疆");
+            currencyService.soutKeywords(listAll,list.size(),s,"新疆",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -417,7 +429,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"新疆");
+            currencyService.soutKeywords(listAll,list.size(),s,"新疆",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -496,7 +508,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"顺丰科技");
+            currencyService.soutKeywords(listAll,list.size(),s,"顺丰科技",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -579,7 +591,7 @@ public class TestFourServiceImpl implements TestFourService {
 
         log.info("全部数据量：" + list1.size());
         log.info("去重之后的数据量：" + list.size());
-        currencyService.soutKeywords(list1,list.size(),s,"荣安物业");
+        currencyService.soutKeywords(list1,list.size(),s,"荣安物业",date);
 
         if (type.intValue() ==1){
             if (list != null && list.size() > 0) {
@@ -677,7 +689,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"广州欧科");
+            currencyService.soutKeywords(listAll,list.size(),s,"广州欧科",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -756,7 +768,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"广州盗梦信息");
+            currencyService.soutKeywords(listAll,list.size(),s,"广州盗梦信息",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -835,7 +847,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"简单测试数据");
+            currencyService.soutKeywords(listAll,list.size(),s,"简单测试数据",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -939,7 +951,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"熠隆医疗设备");
+            currencyService.soutKeywords(listAll,list.size(),s,"熠隆医疗设备",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -948,7 +960,7 @@ public class TestFourServiceImpl implements TestFourService {
         //如果参数为1,则进行存表
         if (type.intValue() ==1){
             if (list != null && list.size() > 0) {
-                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
                 List<Future> futureList = new ArrayList<>();
                 for (NoticeMQ content : list) {
                     futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
@@ -1021,7 +1033,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"中节能");
+            currencyService.soutKeywords(listAll,list.size(),s,"中节能",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1030,7 +1042,7 @@ public class TestFourServiceImpl implements TestFourService {
         //如果参数为1,则进行存表
         if (type.intValue() ==1){
             if (list != null && list.size() > 0) {
-                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
                 List<Future> futureList = new ArrayList<>();
                 for (NoticeMQ content : list) {
                     futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
@@ -1104,7 +1116,7 @@ public class TestFourServiceImpl implements TestFourService {
             log.info("全部数据量：" + listAll.size());
             log.info("去重数据量：" + list.size());
 
-            currencyService.soutKeywords(listAll,list.size(),s,"中节能2");
+            currencyService.soutKeywords(listAll,list.size(),s,"中节能2",date);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1113,7 +1125,7 @@ public class TestFourServiceImpl implements TestFourService {
         //如果参数为1,则进行存表
         if (type.intValue() ==1){
             if (list != null && list.size() > 0) {
-                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
                 List<Future> futureList = new ArrayList<>();
                 for (NoticeMQ content : list) {
                     futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
@@ -1173,7 +1185,7 @@ public class TestFourServiceImpl implements TestFourService {
         //如果参数为1,则进行存表
         if (type.intValue() ==1){
             if (list != null && list.size() > 0) {
-                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
                 List<Future> futureList = new ArrayList<>();
                 for (NoticeMQ content : list) {
                     futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
@@ -1231,7 +1243,7 @@ public class TestFourServiceImpl implements TestFourService {
         //如果参数为1,则进行存表
         if (type.intValue() ==1){
             if (list != null && list.size() > 0) {
-                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
                 List<Future> futureList = new ArrayList<>();
                 for (NoticeMQ content : list) {
                     futureList.add(executorService.submit(() -> getZhongTaiDatasAndSaveMongo(content)));
@@ -1275,9 +1287,450 @@ public class TestFourServiceImpl implements TestFourService {
 
     }
 
+    @Override
+    public void getHangzhouHongXu(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        try {
+            String[] bb ={"中国电建集团中南勘测设计研究院有限公司","中国电建集团贵州勘测设计研究院有限公司","中国电建集团成都勘测设计研究院有限公司","中国电建集团昆明勘测设计研究院有限公司","中国电建集团西北勘测设计研究院有限公司","中国电建集团北京勘测设计研究院有限公司","上海市政工程设计研究总院（集团）有限公司","中国市政工程华北设计研究总院有限公司","中国市政工程中南设计研究总院有限公司","中国市政工程西北设计研究院有限公司","长江勘测规划设计研究有限责任公司","黄河勘测规划设计有限公司","华设设计集团股份有限公司","中设设计集团股份有限公司","苏交科集团股份有限公司","浙江省水利水电勘测设计研究院","浙江省水利水电勘测设计院","上海市水利工程设计研究院有限公司","中水珠江规划勘测设计有限公司","中水北方勘测设计研究有限责任公司","中国联合工程有限公司","中国联合工程公司","上海市城市建设设计研究总院（集团）有限公司","上海市城市建设设计研究总院","浙江大学建筑设计研究院有限公司","浙江省建筑设计研究院","浙江工业大学工程设计集团有限公司","中南建筑设计院股份有限公司","悉地（苏州）勘察设计顾问有限公司","悉地国际","华汇工程设计集团股份有限公司","中国能源建设集团江苏省电力设计院有限公司","中国能源建设集团浙江省电力设计院有限公司","中国能源建设集团广东省电力设计研究院有限公司"};
+
+            for (String str : bb) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:[0 TO 3] OR progid:5) AND newZhongBiaoUnit:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+            if (listAll.size() >0){
+                list.addAll(currencyService.getNoticeMqList(listAll));
+            }
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            currencyService.soutKeywords(listAll,list.size(),s,"杭州宏旭建设",date);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSaveHunHe(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getZhongXinChanYe(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        try {
+            List<String> keyWords = LogUtils.readRule("keyWords");
+            for (String str : keyWords) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:3 OR progid:5) AND zhaoBiaoUnit:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+            if (listAll.size() >0){
+                list.addAll(currencyService.getNoticeMqList(listAll));
+            }
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            //currencyService.soutKeywords(listAll,list.size(),s,"杭州宏旭建设");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getHeNanMaoQian(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        try {
+            List<String> keyWords = LogUtils.readRule("keyWords");
+            for (String str : keyWords) {
+                futureList1.add(executorService1.submit(() -> {
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid:3 OR progid:5) AND zhongRelationWay:*  AND newProvince:\"" + "河南省" + "\" AND allcontent:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+            if (listAll.size() >0){
+                list.addAll(currencyService.getNoticeMqList(listAll));
+            }
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            currencyService.soutKeywords(listAll,list.size(),s,"河南茂乾电子科技有限公司",date);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(10);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    /**
+     * 中国光大银行股份有限公司
+     * @param type
+     * @param date
+     * @param s
+     */
+    @Override
+    public void getGuangDaYinHang(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<Future> futureList1 = new ArrayList<>();
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+
+        try {
+            String[] bb ={"资金来源","资金来自","项目建设所需资金由","资金由","资金源于"};
+
+            List<String> aa = LogUtils.readRule("keyWords");
+            for (String a : aa) {
+                for (String b : bb) {
+                    futureList1.add(executorService1.submit(() -> {
+                        List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:["+date+"] AND progid:[0 TO 2] AND allcontent:\"" + a + "\"  AND allcontent:\"" + b + "\"", a+"&"+b, 2);
+                        log.info(a.trim()+"&"+b + "————" + mqEntities.size());
+                        if (!mqEntities.isEmpty()) {
+                            for (NoticeMQ data : mqEntities) {
+                                if (data.getTitle() != null) {
+                                    boolean flag = true;
+                                    if (flag){
+                                        data.setKeyword(a+"&"+b);
+                                        listAll.add(data);
+                                    }
+                                }
+                            }
+                        }
+                    }));
+                }
+            }
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+            if (listAll.size() >0){
+                list.addAll(currencyService.getNoticeMqList(listAll));
+            }
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            currencyService.soutKeywords(listAll,list.size(),s,"中国光大银行股份有限公司",date);
+
+        } catch (IOException e) {
+            e.getMessage();
+        }
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
+    @Override
+    public void getGuangZhouOuKe2(Integer type, String date, String s) {
+        ExecutorService executorService1 = Executors.newFixedThreadPool(80);//开启线程池
+        List<NoticeMQ> list = new ArrayList<>();//去重后的数据
+        List<NoticeMQ> listAll = new ArrayList<>();//得到所以数据
+        HashMap<String, String> dataMap = new HashMap<>();
+        List<Future> futureList1 = new ArrayList<>();
+
+        //关键词a
+        try {
+            String[] aa ={"测绘","不动产","双评价","地形图","城市更新","档案整理","房地一体","拆旧复垦","土地规划","城乡规划","村庄规划","技术服务","技术审查"};
+            String[] bb ={"垦造水田","权属调查","生态修复","林权调查","土地调查","权籍调查","测绘系统","用地预审","地名普查","勘测定界","多测合一","不动产平台","报批技术服务","林权数据建库","地理信息系统","测绘信息平台","城市更新研究","生态修复研究","土地规划研究","复垦咨询服务","不动产数据整合","不动产数据建库","不动产数据整合","一张图信息平台","建设用地增减挂钩","全域土地综合整治","城市更新数据调查","城乡规划信息系统","垦造水田研究报告","生态修复咨询服务","城乡规划咨询服务","城市更新咨询服务","垦造水田咨询服务","国土规划数据治理"};
+            for (String str : aa) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid: 3 OR progid:5) AND (newProvince:\""+"广东省"+"\" OR newProvince:\"" + "广西壮族自治区" + "\" OR newProvince:\"" + "湖南省" + "\" )AND title:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+            for (String str : bb) {
+                futureList1.add(executorService1.submit(() -> {
+                    //自提招标单位
+                    List<NoticeMQ> mqEntities = onlineContentSolr.companyResultsBaoXian("yyyymmdd:[" + date + "] AND (progid: 3 OR progid:5) AND (newProvince:\""+"广东省"+"\" OR newProvince:\"" + "广西壮族自治区" + "\" OR newProvince:\"" + "湖南省" + "\" )AND allcontent:\"" + str + "\"", "", 1);
+                    log.info(str+"————" + mqEntities.size());
+                    if (!mqEntities.isEmpty()) {
+                        for (NoticeMQ data : mqEntities) {
+                            if (data.getTitle() != null) {
+                                boolean flag = true;
+                                if (flag) {
+                                    data.setKeyword(str);
+                                    listAll.add(data);
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            for (Future future1 : futureList1) {
+                try {
+                    future1.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService1.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService1.shutdown();
+
+            if (listAll.size() >0){
+                list.addAll(currencyService.getNoticeMqList(listAll));
+            }
+
+            log.info("全部数据量：" + listAll.size());
+            log.info("去重数据量：" + list.size());
+
+            currencyService.soutKeywords(listAll,list.size(),s,"广州欧科第二回合",date);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //如果参数为1,则进行存表
+        if (type.intValue() ==1){
+            if (list != null && list.size() > 0) {
+                ExecutorService executorService = Executors.newFixedThreadPool(16);
+                List<Future> futureList = new ArrayList<>();
+                for (NoticeMQ content : list) {
+                    futureList.add(executorService.submit(() -> getZhongTaiDatasAndSave(content)));
+                }
+                for (Future future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+                executorService.shutdown();
+            }
+        }
+        System.out.println("--------------------------------本次任务结束---------------------------------------");
+    }
+
 
     /**
      * 存储数据接口
+     */
+    private void getZhongTaiDatasAndSaveHunHe(NoticeMQ noticeMQ) {
+        boolean b = cusDataNewService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
+        if (!b) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        //String[] aa ={};
+        //调用字段库接口，混合
+        Map<String, Object> resultMap = cusDataNewService.getAllFieldsWithHunHe(noticeMQ, false);//混合
+        if (resultMap != null) {
+            //String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
+            //content =cusDataNewService.processAboutContent(content);//去除链接
+            //String[] keywords ={""};//英文的关键词
+            //content =cusDataNewService.checkString(content,keywords);//再判断是否是字母
+
+            /**
+             *  通用方法-插入数据库操作
+             *  //cusDataNewService.saveIntoMysql(resultMap);
+             */
+
+           /*String title = resultMap.get("title").toString();
+           if (aa !=null && aa.length >0){
+
+                for (String s : aa) {
+                    if (title.contains(s)){
+                        resultMap.put("keyword",s);
+                        break;
+                    }
+                }
+            }*/
+
+            /**
+             * 自行封装方法
+             */
+            saveIntoMysql(resultMap);
+            log.info("进行入库操作，contentId:{}",resultMap.get("content_id").toString());
+        }
+    }
+    /**
+     * 存储数据接口-自提（默认）
      */
     private void getZhongTaiDatasAndSave(NoticeMQ noticeMQ) {
         boolean b = cusDataNewService.checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
@@ -1310,6 +1763,20 @@ public class TestFourServiceImpl implements TestFourService {
                 }
             }*/
 
+          /* //追加资金来源
+            String infoId = noticeMQ.getContentid().toString();
+            Map<String, Object> extractFundsSource = currencyService.getExtractFundsSource(infoId);
+            if (extractFundsSource !=null){
+                resultMap.put("first",extractFundsSource.get("proportion"));
+                resultMap.put("second",extractFundsSource.get("source"));
+            }
+
+            if (resultMap.get("zhao_biao_unit") !=null) {
+                String zhao_biao_unit = searchKAIndustry(resultMap.get("zhao_biao_unit").toString());
+                if (StringUtils.isNotBlank(zhao_biao_unit)){
+                    resultMap.put("keywords",zhao_biao_unit);
+                }
+            }*/
             /**
              * 自行封装方法
              */
@@ -1401,6 +1868,55 @@ public class TestFourServiceImpl implements TestFourService {
         }
         return result;
 
+    }
+
+    /**
+     * 通过单位名称匹配KA-自用行业（一级行业、二级行业）
+     *
+     */
+    public String searchKAIndustry(String company) {
+        try {
+            if (StringUtils.isBlank(company)) {
+                return null;
+            }
+            //删除特殊字符
+            company = company.replaceAll("\\\\", "");
+            company = company.replaceAll("\\/", "");
+            String kaIndustryUrl = "http://cusdata.qianlima.com/api/ka/industry?unit="+company+"";
+            HttpPost request = new HttpPost(kaIndustryUrl);
+            List<NameValuePair> list = new ArrayList<NameValuePair>();
+            list.add(new BasicNameValuePair("unit", company));
+            request.setEntity(new UrlEncodedFormEntity(list, "UTF-8"));
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
+                    .setSocketTimeout(60000).setConnectTimeout(60000).build();
+            request.setConfig(requestConfig);
+            HttpClient httpClient = HttpClients.createDefault();
+            // 通过请求对象获取响应对象
+            HttpResponse response = httpClient.execute(request);
+            // 判断网络连接状态码是否正常(0--200都数正常)
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String industry = "";
+                String entity = EntityUtils.toString(response.getEntity(), "utf-8");
+                if (StringUtils.isNotBlank(entity)) {
+                    JSONObject object = JSON.parseObject(entity);
+                    JSONObject data = object.getJSONObject("data");
+                    if (data != null){
+                        String firstLevel = data.getString("firstLevel");
+                        if ("行业待分类".equals(firstLevel)){
+                            industry = firstLevel;
+                        } else {
+                            industry = firstLevel + "-" + data.getString("secondLevel");
+                        }
+                    }
+                }
+                return industry;
+            } else {
+                log.error("单位名称匹配KA行业报错 company:{}, 返回httpcode: {}", company, response.getStatusLine().getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("单位名称匹配KA行业（一级、二级行业），异常原因： {} ", e);
+        }
+        return null;
     }
 
 }

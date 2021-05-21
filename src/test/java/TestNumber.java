@@ -1,3 +1,12 @@
+import jxl.write.DateTime;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 //数字相关的
 public class TestNumber {
    /*public static void main(String[] args){
@@ -14,7 +23,7 @@ public class TestNumber {
        return i + s;
    }*/
 
-    public static void main(String[] args) {
+   /* public static void main(String[] args) {
         for (int i = 1; i <= 20; i++) {
             System.out.println("第" + i + "个月的总数为:" + f(i));
         }
@@ -25,6 +34,39 @@ public class TestNumber {
         } else {
             return f(x - 1) + f(x - 2);
         }
+    }*/
+
+
+
+    public static void main(String[] args) {
+        //boolean thisTime = isThisTime("2021-05-01", "yyyy-MM");
+        //System.out.println(thisTime);
+        getFormat();
     }
+    public static boolean isThisTime(String time, String pattern) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = sdf.parse(time);
+            String param = DateFormatUtils.format(date,pattern);//参数时间
+            String now = DateFormatUtils.format(new Date(),pattern);//当前时间
+            if (param.equals(now)) {
+                return true;
+            }
+        } catch (ParseException e) {
+            e.getMessage();
+        }
+
+
+        return false;
+    }
+
+    public static String getFormat() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, 1);
+        String format = DateFormatUtils.format(calendar.getTime(), "yyyy-MM");
+        System.out.println(format);
+        return format;
+    }
+
 
 }

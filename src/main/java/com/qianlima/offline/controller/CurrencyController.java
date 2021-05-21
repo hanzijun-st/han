@@ -78,4 +78,11 @@ public class CurrencyController {
         currencyService.getCrmByUserIdToMonth();
         return "getCrmByUserId---获取用户的指定字段-某个月";
     }
+
+    @GetMapping("/getProName")
+    @ApiOperation("通过id获取项目名称")
+    public String getProName() throws Exception{
+        currencyService.getProName();
+        return "通过id获取项目名称 is ok";
+    }
 }

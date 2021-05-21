@@ -2,6 +2,8 @@ package com.qianlima.offline.bean;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Created by Administrator on 2021/1/13.
  */
@@ -10,13 +12,6 @@ public class Student {
     private Integer id;
     private String name;
     private Integer age;
-
-    public Student(){};
-
-    public Student(int id, String name, int age) {
-        this.id = id;
-        this.name = name;
-        this.age = age;
-    }
+    private List<Student> children;
 
 }

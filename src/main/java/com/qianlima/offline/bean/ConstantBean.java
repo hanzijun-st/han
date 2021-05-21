@@ -25,6 +25,7 @@ public class ConstantBean {
      */
     public static final String RULE_SEPARATOR = "、";
     public static final String RULE_SEPARATOR_01 = "&";
+    public static final String RULE_SEPARATOR_02 = "、";
 
 //    public static final String SELECT_ITEM_CONTENT_BY_CONTENTID = "SELECT content FROM phpcms_c_zb where contentid = ? ";
 
@@ -42,4 +43,6 @@ public class ConstantBean {
 
 
     public static final String FILL_URL ="/usr/local/ka/hzj";
+
+
 }

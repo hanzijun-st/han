@@ -111,4 +111,44 @@ public interface TestFourService {
     void getPoc(Integer type, String date, String s);
 
     void getPoc2(Integer type, String date, String s) throws Exception;
+
+    /**
+     * 杭州宏旭建设有限公司
+     * @param type
+     * @param date
+     * @param str
+     */
+    void getHangzhouHongXu(Integer type, String date, String str);
+
+    /**
+     * 中信产业基金
+     * @param type
+     * @param date
+     * @param str
+     */
+    void getZhongXinChanYe(Integer type, String date, String str);
+
+    /**
+     * 河南茂乾电子科技有限公司
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getHeNanMaoQian(Integer type, String date, String s);
+
+    /**
+     * 中国光大银行股份有限公司
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getGuangDaYinHang(Integer type, String date, String s);
+
+    /**
+     * 广州欧科信息技术股份有限公司
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getGuangZhouOuKe2(Integer type, String date, String s);
 }

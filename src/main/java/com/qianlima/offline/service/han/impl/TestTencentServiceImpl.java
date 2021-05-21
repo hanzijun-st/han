@@ -1181,7 +1181,8 @@ public class TestTencentServiceImpl implements TestTencentService {
     }
 
     public List<Map<String,Object>> getList2(String cursorMark) {
-            List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("SELECT * FROM amount_for_handle where states =1 AND DATE_FORMAT(FROM_UNIXTIME(update_time /1000),'%Y-%m-%d') BETWEEN '2021-04-12' AND '2021-04-20'");
+            //List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("SELECT * FROM amount_for_handle where states =1 AND DATE_FORMAT(FROM_UNIXTIME(update_time /1000),'%Y-%m-%d') BETWEEN '2021-04-12' AND '2021-04-20'");
+              List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, old_winner_amount, old_budget from amount_for_handle where states = 0 group by info_id order by info_id asc");
             return maps;
 
     }

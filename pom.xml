@@ -175,6 +175,7 @@
             <artifactId>poi-ooxml</artifactId>
             <version>3.14</version>
         </dependency>
+
         <!-- 处理excel和上面功能是一样的-->
         <dependency>
             <groupId>net.sourceforge.jexcelapi</groupId>
@@ -226,7 +227,7 @@
         <dependency>
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
-            <version>1.3.2</version>
+            <version>1.3.5</version>
         </dependency>
 
         <!-- 标的物依赖jar包 -->
@@ -250,20 +251,27 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.23</version>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>han</finalName>
         <plugins>
-            <!--<plugin>
+            <plugin>
                 <groupId>org.mybatis.generator</groupId>
                 <artifactId>mybatis-generator-maven-plugin</artifactId>
-                <version>1.3.2</version>
+                <version>1.3.5</version>
                 <configuration>
-                    <verbose>true</verbose>
+                    <!--配置文件的位置-->
+                    <configurationFile>src/main/resources/generatorConfig.xml</configurationFile>
                     <overwrite>true</overwrite>
+                    <verbose>true</verbose>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
@@ -306,7 +314,7 @@
         </plugins>
         <resources>
            <resource>
-                <directory>src/main/webapp</directory>
+                <directory>src/main</directory>
                 <targetPath>META-INF/resources</targetPath>
                 <includes>
                     <include>**/**</include>

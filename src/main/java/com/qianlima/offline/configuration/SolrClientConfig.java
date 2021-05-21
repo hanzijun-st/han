@@ -66,5 +66,8 @@ public class SolrClientConfig {
         solrClient.setDefaultCollection(environment.getRequiredProperty("qlm.data.solr.defaultCollection"));
         return solrClient;
     }
-
+    /*@Bean(name = "testsolr")
+    public SolrClient ictContentSolr() {
+        return new HttpSolrClient(environment.getRequiredProperty("qlm.data.testsolr"));
+    }*/
 }

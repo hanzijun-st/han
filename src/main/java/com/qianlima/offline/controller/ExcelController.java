@@ -31,5 +31,10 @@ public class ExcelController {
         return testService.downLoad();
     }
 
+    @RequestMapping(value = "/downByModel",method = RequestMethod.GET)
+    public void downByModel(){
+        testService.downByModel();
+    }
+
 
 }

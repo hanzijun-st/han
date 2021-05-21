@@ -409,7 +409,8 @@ public class NewZhongTaiService {
         Long contentid = Long.valueOf(noticeMQ.getContentid());
         String segmentType = null;
         try {
-            Map<String, Object> map = QianlimaZTUtil.getFields( String.valueOf(contentid), "notice_segment_type", "notice_segment_type");
+            Map<String, Object> map = null;
+                    //QianlimaZTUtil.getFields( String.valueOf(contentid), "notice_segment_type", "notice_segment_type");
             if (map == null) {
                 throw new RuntimeException("调取中台失败");
             }

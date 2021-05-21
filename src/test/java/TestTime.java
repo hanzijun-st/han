@@ -1,9 +1,9 @@
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * 对时间进行处理
@@ -111,16 +111,28 @@ public class TestTime {
 
         System.out.println(dayss);*/
 
-
-
+        String str ="2021-05-14";
+        Date nowdate = new Date();
+        //String date = DateUtils.(nowdate, "yyyy-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA);
+        Date d;
+        try {
+            d = sdf.parse(str);
+            int flag = d.compareTo(DateUtils.parseDate(sdf.format(nowdate),"yyyy-MM-dd"));
+            if (flag < 0) {//当天及当天之后，<0就是在日期之前
+                System.out.println("true");
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
 
     }
-    private static  Date getDateAdd(int days){
+    /*private static  Date getDateAdd(int days){
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -days);
         return c.getTime();
-    }
+    }*/
 
 
 }

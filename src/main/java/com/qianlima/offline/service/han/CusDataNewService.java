@@ -12,11 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -164,7 +168,7 @@ public class CusDataNewService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
-            hashMap.put("monitorUrl", "http://cusdata.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+            hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
             hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         }
         return hashMap;
@@ -186,6 +190,8 @@ public class CusDataNewService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
+            hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+            hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         }
         if (hashMap.get("title") == null){
             return null;
@@ -213,6 +219,8 @@ public class CusDataNewService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
+            hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+            hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         }
 
         return hashMap;
@@ -236,6 +244,8 @@ public class CusDataNewService {
             hashMap.put("keyword", noticeMQ.getKeyword());
             hashMap.put("content_id", noticeMQ.getContentid().toString()); // contentId
             hashMap.put("code", noticeMQ.getF()); //F词
+            hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+            hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         }
 
         return hashMap;
@@ -353,9 +363,9 @@ public class CusDataNewService {
             if (StringUtils.isBlank(blZhongBiaoUnit) && null != object.get("extract_zhongBiaoUnit")){
                 blZhongBiaoUnit.append(object.getString("extract_zhongBiaoUnit"));
             }
-            if (StringUtils.isBlank(blAgents) && null != object.get("extract_agentUnit")){
+            /*if (StringUtils.isBlank(blAgents) && null != object.get("extract_agentUnit")){
                 blAgents.append(object.getString("extract_agentUnit"));
-            }
+            }*/
         }
         resultMap.put("baiLian_budget", blBudget); //获取预算金额
         resultMap.put("baiLian_amount_unit", blZhongbiaoAmount);//获取中标金额
@@ -976,5 +986,41 @@ public class CusDataNewService {
         }
         return document.body().html();
     }
+
+    public String getHttpNewArea(Map<String,Object> map) {
+        try {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
+                    .setSocketTimeout(60000).setConnectTimeout(60000).build();
+            HttpPost post = new HttpPost("http://cusdata.qianlima.com/api/ka/address");
+            //创建参数列表
+            List<NameValuePair> list = new ArrayList<NameValuePair>();
+            list.add(new BasicNameValuePair("contentid", String.valueOf(map.get("contentid"))));
+            list.add(new BasicNameValuePair("title", String.valueOf(map.get("title"))));
+            list.add(new BasicNameValuePair("zhaoBiaoUnit", String.valueOf(map.get("zhaoBiaoUnit"))));
+            list.add(new BasicNameValuePair("content", String.valueOf(map.get("content"))));
+            list.add(new BasicNameValuePair("ztProvince", String.valueOf(map.get("ztProvince"))));
+            list.add(new BasicNameValuePair("ztCity", String.valueOf(map.get("ztCity"))));
+            list.add(new BasicNameValuePair("ztCountry", String.valueOf(map.get("ztCountry"))));
+            list.add(new BasicNameValuePair("ztAreaid", String.valueOf(map.get("ztAreaid"))));
+            post.setEntity(new UrlEncodedFormEntity(list, "UTF-8"));
+            //url格式编码
+            post.setHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+            //设置超时时间为60秒
+            post.setConfig(requestConfig);
+            //执行请求
+            CloseableHttpResponse httpResponse = httpClient.execute(post);
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String entity = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+                return entity;
+            }
+        } catch (Exception e) {
+            log.error("结果细分判断出错:{}", e);
+            throw new RuntimeException("乙方宝标的物出错");
+        }
+        return null;
+    }
+
+
 }
 

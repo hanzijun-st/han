@@ -158,7 +158,8 @@ public class BiaoDiWuQuKuaiService {
             return;
         }
         //入库成功后通知中台组装标的物
-        Map<String, Object> stringObjectMap = QianlimaZTUtil.saveContentId(saveContentIdUrl, contentid);
+        Map<String, Object> stringObjectMap = null;
+                //QianlimaZTUtil.saveContentId(saveContentIdUrl, contentid);
         if ("0".equals(stringObjectMap.get("returnCode"))) {
             log.info("通知中台组装标的物成功，成功infoId:{}", contentid);
         } else {
@@ -175,7 +176,7 @@ public class BiaoDiWuQuKuaiService {
         if (checkPHPContent(contentid) == false){
             return;
         }
-        Map<String, Object> targetMap = QianlimaZTUtil.getSingleField(singleFieldUrl, contentid, "target");
+        Map<String, Object> targetMap = null;//QianlimaZTUtil.getSingleField(singleFieldUrl, contentid, "target");
         if (targetMap != null){
             String returnCode = targetMap.get("returnCode").toString();
             if ("0".equals(returnCode)){

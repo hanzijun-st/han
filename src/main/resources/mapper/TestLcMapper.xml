@@ -3,7 +3,7 @@
 <mapper namespace="com.qianlima.offline.mapper.TestLcMapper">
 
   <select id="getLcList" resultType="com.qianlima.offline.bean.LcVo">
-      SELECT id,approval_id AS approvalId,approval_name AS approvalName,approval_type AS approvalType,project_id AS projectId, status FROM t_table
+      SELECT * FROM t_table
   </select>
 
   <update id="uptestLc">

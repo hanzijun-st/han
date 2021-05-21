@@ -148,5 +148,43 @@ public class HanFourController {
         return "---临时数据2-接口运行结束---";
     }
 
+    @ApiOperation("杭州宏旭建设有限公司")
+    @PostMapping(value = "/getHangzhouHongXu",produces = "text/plain;charset=utf-8")
+    public String getHangzhouHongXu(Integer type,String date,String str) {
+        testFourService.getHangzhouHongXu(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---杭州宏旭建设有限公司 接口运行结束---";
+    }
 
+    @ApiOperation("中信产业基金")
+    @PostMapping(value = "/getZhongXinChanYe",produces = "text/plain;charset=utf-8")
+    public String getZhongXinChanYe(Integer type,String date,String str) {
+        testFourService.getZhongXinChanYe(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---中信产业基金 接口运行结束---";
+    }
+
+    @ApiOperation("河南茂乾电子科技有限公司")
+    @PostMapping(value = "/getHeNanMaoQian",produces = "text/plain;charset=utf-8")
+    public String getHeNanMaoQian(Integer type,String date,String str) {
+        testFourService.getHeNanMaoQian(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---河南茂乾电子科技有限公司 接口运行结束---";
+    }
+
+    @ApiOperation("中国光大银行股份有限公司")
+    @PostMapping(value = "/getGuangDaYinHang",produces = "text/plain;charset=utf-8")
+    public String getGuangDaYinHang(Integer type,String date,String str) {
+        testFourService.getGuangDaYinHang(type, date,str);
+        log.info("===============================数据运行结束===================================");
+        return "---中国光大银行股份有限公司 接口运行结束---";
+    }
+
+    @ApiOperation("广州欧科信息技术股份有限公司-第二回合")
+    @PostMapping(value = "/getGuangZhouOuKe2",produces = "text/plain;charset=utf-8")
+    public String getGuangZhouOuKe2(Integer type,String date,String s) {
+        testFourService.getGuangZhouOuKe2(type,date,s);
+        log.info("===============================数据运行结束===================================");
+        return "---广州欧科信息技术股份有限公司-第二回合 接口运行结束---";
+    }
 }

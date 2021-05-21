@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 
 public class TestOptionalBean {
     public static void main(String[] args) {
-        Student p = new Student(1,"哈哈哈",29);
-        Student p1 = new Student(2,"嘎嘎嘎",29);
+        Student p = new Student();
+        Student p1 = new Student();
 
         List<Student> list1 = new ArrayList<>();
         List<Student> list2 = new ArrayList<>();
