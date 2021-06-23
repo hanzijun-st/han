@@ -13,4 +13,6 @@ public interface TestMyBatisService {
    List testLc(LcDto lcDto);
 
    Map<String,Object> getMapForOne(LcDto lcDto);
+
+    void saveToDef(LcDto lcDto);
 }

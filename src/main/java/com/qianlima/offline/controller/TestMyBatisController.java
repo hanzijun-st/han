@@ -41,4 +41,13 @@ public class TestMyBatisController {
         List list = testMyBatisService.testLc(lcDto);
         return list;
     }
+
+    @ApiOperation("测试-避免重复插入")
+    @PostMapping(value = "/saveToDef")
+    @ResponseBody
+    public Boolean saveToDef(@RequestBody LcDto lcDto) {
+        testMyBatisService.saveToDef(lcDto);
+        return true;
+    }
+
 }

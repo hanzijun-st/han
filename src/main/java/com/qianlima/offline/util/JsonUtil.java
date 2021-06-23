@@ -55,6 +55,12 @@ public class JsonUtil {
         return null;
     }
 
+    /**
+     * 读取json文件，获取json数据后解析
+     * @param jsonFileName
+     * @return
+     * @throws Exception
+     */
     public static JSONObject readJsonFile(String jsonFileName) throws Exception{
         jsonFileName = "/file/"+jsonFileName +".json";
         ClassPathResource resource = new ClassPathResource(jsonFileName);

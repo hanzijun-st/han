@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -20,10 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -50,5 +49,23 @@ public class TestSolr {
         long endTime = System.currentTimeMillis();
         log.debug("提交索引耗时：{}毫秒！数量{}", (endTime - start), docs.size());
         docs.clear();
+    }
+
+    public void insertToCore() throws SolrServerException, IOException{
+        HttpSolrClient client = new HttpSolrClient("http://localhost:8099/solr/"+"solr");//solr部署的地址+core
+        SolrInputDocument input = new SolrInputDocument();
+
+        //各个属性值
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        String time = format.format(new Date());
+        input.addField("id", "3");
+        input.addField("title", "战狼4");
+        input.addField("subject", "动作、军事");
+        input.addField("url", uuid);
+        input.addField("content_type", "战狼3就是好看");
+        client.add(input);
+        client.commit();
+        client.close();
     }
 }

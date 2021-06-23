@@ -15,4 +15,6 @@ public interface TestLcMapper {
     void uptestLc(Long id);
 
     Map<String,Object> getMapForOne(LcDto lcDto);
+
+    void saveToDef(LcDto lcDto);
 }

@@ -20,14 +20,16 @@ public class CurrencyController {
 
     @Autowired
     private CurrencyService currencyService;
+
     /**
      * 一个关键词
+     *
      * @param params
      * @return
      */
     @ApiOperation("一个关键词的通用 poc")
     @PostMapping("/start/getOne")
-    public String getJdglOne(@RequestBody Params params){
+    public String getJdglOne(@RequestBody Params params) {
 
         currencyService.getOnePoc(params);
         return "---=========---";
@@ -35,38 +37,38 @@ public class CurrencyController {
 
     @GetMapping("/start/getBdw")
     @ApiOperation("获取标的物的数据-type(1:迈瑞；2:ICT；3:医疗；4:没有侧重点)")
-    public String getBdw(Integer type){
+    public String getBdw(Integer type) {
         currencyService.getBdw(type);
 
         return "请求成功---成功获取标的物";
     }
 
     /**
-     *  获取标的物
-     * @param type
-    1、迈瑞接口地址：http://47.104.4.12:5001/to_json_v3/
-    2、[模型识别侧重“ICT行业”]：http://47.104.4.12:2022/inspect
-    3、[模型识别侧重“医疗行业”]：http://47.104.4.12:2023/inspect
-    4、[模型识别没有侧重点]：http://47.104.4.12:2024/inspect
+     * 获取标的物
+     *
+     * @param type 1、迈瑞接口地址：http://47.104.4.12:5001/to_json_v3/
+     *             2、[模型识别侧重“ICT行业”]：http://47.104.4.12:2022/inspect
+     *             3、[模型识别侧重“医疗行业”]：http://47.104.4.12:2023/inspect
+     *             4、[模型识别没有侧重点]：http://47.104.4.12:2024/inspect
      * @return
      */
     @GetMapping("/getNewBdw3")
     @ApiOperation("1.3的标的物方式-获取标的物的数据（1:迈瑞；2:ICT；3:医疗；4:没有侧重点；）")
-    public String getNewBdw(Integer type){
+    public String getNewBdw(Integer type) {
         currencyService.getNewBdw3(type);
         return "getNewBdw3请求成功---最新方式-获取标的物的数据";
     }
 
     @GetMapping("/getPiPeiHangYeBiaoQian")
     @ApiOperation("匹配行业标签--- 一级/二级")
-    public String getPiPeiHangYeBiaoQian(){
+    public String getPiPeiHangYeBiaoQian() {
         currencyService.getPiPeiHangYeBiaoQian();
         return "getNewBdw3请求成功---最新方式-获取标的物的数据";
     }
 
     @GetMapping("/getCrmByUserId")
     @ApiOperation("获取用户的指定字段-用户所有数据")
-    public String getCrmByUserId() throws Exception{
+    public String getCrmByUserId() throws Exception {
         currencyService.getCrmByUserId();
         return "getCrmByUserId---获取用户的指定字段";
     }
@@ -74,15 +76,44 @@ public class CurrencyController {
 
     @GetMapping("/getCrmByUserIdToMonth")
     @ApiOperation("获取用户的指定字段-某个月")
-    public String getCrmByUserIdToMonth() throws Exception{
+    public String getCrmByUserIdToMonth() throws Exception {
         currencyService.getCrmByUserIdToMonth();
         return "getCrmByUserId---获取用户的指定字段-某个月";
     }
 
     @GetMapping("/getProName")
     @ApiOperation("通过id获取项目名称")
-    public String getProName() throws Exception{
+    public String getProName() throws Exception {
         currencyService.getProName();
         return "通过id获取项目名称 is ok";
+    }
+
+    @GetMapping("/testBdw")
+    @ApiOperation("测试标的物")
+    public String testBdw() throws Exception {
+        currencyService.testBdw();
+        return "测试标的物 is ok";
+    }
+
+    @GetMapping("/testBj")
+    @ApiOperation("比较两组数据不同")
+    public String testBj() throws Exception {
+        currencyService.testBj();
+        return "比较数据结束 is ok";
+    }
+
+    @GetMapping("/getAreaByUnit")
+    @ApiOperation("通过招标单位获取地区")
+    public String getAreaByUnit() throws Exception {
+        currencyService.getAreaByUnit();
+        return "通过招标单位获取地区 is ok";
+    }
+
+    @ApiOperation("查询单位的工商信息-天眼查")
+    @PostMapping(value = "/getZhongXin", produces = "text/plain;charset=utf-8")
+    public String getZhongXin() throws Exception{
+        currencyService.getZhongXin();
+        log.info("===============================数据运行结束===================================");
+        return "---查询单位的工商信息 is ok---";
     }
 }

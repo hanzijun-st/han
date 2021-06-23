@@ -47,15 +47,30 @@ public class PocDataFieldService {
     private JdbcTemplate bdJdbcTemplate;
 
     @Autowired
+    @Qualifier("zjJdbcTemplate")
+    private JdbcTemplate zjJdbcTemplate;
+
+    @Autowired
     @Qualifier("djeJdbcTemplate")
     private JdbcTemplate djeJdbcTemplate;
 
     // 数据入库操作
+    private static final String INSERT_ZT_RESULT_HXR2 = "INSERT INTO han_data_poc_1 (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
+            "is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl, extract_proj_name, black_word) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     private static final String INSERT_ZT_RESULT_HXR = "INSERT INTO han_data_poc (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
             "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
             " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
-            "is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl, extract_proj_name, black_word,allForThreeCode,allForFourCode,allForFiveCode) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            "is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl, extract_proj_name, black_word) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    // 数据入库操作
+    private static final String INSERT_ZT_RESULT_HXR_17 = "INSERT INTO han_data_poc_17 (task_id,keyword,content_id,title,content, province, city, country, url, baiLian_budget, baiLian_amount_unit," +
+            "xmNumber, bidding_type, progid, zhao_biao_unit, relation_name, relation_way, agent_unit, agent_relation_ame, agent_relation_way, zhong_biao_unit, link_man, link_phone," +
+            " registration_begin_time, registration_end_time, biding_acquire_time, biding_end_time, tender_begin_time, tender_end_time,update_time,type,bidder,notice_types,open_biding_time," +
+            "is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl, extract_proj_name, black_word) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     //获取数据的status,判断是否为99,
     private static final String SELECT_PHPCMS_CONTENT_BY_CONTENTID = "SELECT status FROM phpcms_content where contentid = ? ";
@@ -64,9 +79,46 @@ public class PocDataFieldService {
     private final static List<String> kaAreaList = new ArrayList<>();
 
     /**
+     * 通用接口-调用字段库的-自提接口
+     * @param noticeMQ
+     */
+    public void getZiDuanKu_ziTi(NoticeMQ noticeMQ) {
+        boolean bl = checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
+        if (!bl) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        //调用中台接口，全部自提
+        Map<String, Object> resultMap = getFieldsWithZiTi(noticeMQ, String.valueOf(noticeMQ.getContentid()));
+        if (resultMap != null) {
+            saveIntoMysql(resultMap, String.valueOf(resultMap.get("content_id")));
+            log.info("进行入库操作，contentId:{}", resultMap.get("content_id").toString());
+        }
+    }
+    /**
+     * 通用接口-调用字段库的-混合百炼
+     * @param noticeMQ
+     */
+    public void getZiDuanKu_hunHeBaiLian(NoticeMQ noticeMQ) {
+        boolean bl = checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
+        if (!bl) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        //调用中台接口，混合百炼
+        Map<String, Object> resultMap = getFieldsWithHunHe(noticeMQ, String.valueOf(noticeMQ.getContentid()));//混合百炼
+        if (resultMap != null) {
+            saveIntoMysql(resultMap, String.valueOf(resultMap.get("content_id")));
+            log.info("进行入库操作，contentId:{}", resultMap.get("content_id").toString());
+        }
+
+    }
+
+
+    /**
      * 判断当前数据的数据状态
      */
-    public boolean checkStatus(String contentid){
+    public boolean checkStatus(String contentid) {
         boolean result = false;
         Map<String, Object> map = gwJdbcTemplate.queryForMap(SELECT_PHPCMS_CONTENT_BY_CONTENTID, contentid);
         if (map != null && map.get("status") != null) {
@@ -81,22 +133,103 @@ public class PocDataFieldService {
 
     /**
      * 保存数据入库
+     * type:    1是 12库； 2是本地库
      */
-    public void saveIntoMysql(Map<String, Object> map, String contentId){
+    public void saveIntoMysql(Map<String, Object> map, String contentId) {
         // 进行大金额替换操作
         List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
-        if (maps != null && maps.size() > 0){
+        if (maps != null && maps.size() > 0) {
             // 由于大金额处理的特殊性，只能用null进行判断
             String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
-            if (winnerAmount != null){
+            if (winnerAmount != null) {
                 map.put("baiLian_amount_unit", winnerAmount);
             }
             String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
-            if (budget != null){
+            if (budget != null) {
                 map.put("baiLian_budget", budget);
             }
         }
-        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR,map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+        Integer type = 1;
+        if (type == 1) {
+            bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR, map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                    map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                    map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                    map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                    map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                    map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                    map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                    map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                    map.get("code"), map.get("isfile"), map.get("keyword_term"), map.get("keywords"), map.get("infoTypeSegment"),
+                    map.get("monitorUrl"), map.get("pocDetailUrl"), map.get("extract_proj_name"), map.get("black_word"));
+        } else {
+            zjJdbcTemplate.update(INSERT_ZT_RESULT_HXR, map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                    map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                    map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                    map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                    map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                    map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                    map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                    map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                    map.get("code"), map.get("isfile"), map.get("keyword_term"), map.get("keywords"), map.get("infoTypeSegment"),
+                    map.get("monitorUrl"), map.get("pocDetailUrl"), map.get("extract_proj_name"), map.get("black_word"));
+        }
+
+    }
+    public void saveIntoMysql2(Map<String, Object> map, String contentId) {
+        // 进行大金额替换操作
+        List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+        if (maps != null && maps.size() > 0) {
+            // 由于大金额处理的特殊性，只能用null进行判断
+            String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+            if (winnerAmount != null) {
+                map.put("baiLian_amount_unit", winnerAmount);
+            }
+            String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+            if (budget != null) {
+                map.put("baiLian_budget", budget);
+            }
+        }
+        Integer type = 1;
+        if (type == 1) {
+            bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR2, map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                    map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                    map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                    map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                    map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                    map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                    map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                    map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                    map.get("code"), map.get("isfile"), map.get("keyword_term"), map.get("keywords"), map.get("infoTypeSegment"),
+                    map.get("monitorUrl"), map.get("pocDetailUrl"), map.get("extract_proj_name"), map.get("black_word"));
+        } else {
+            zjJdbcTemplate.update(INSERT_ZT_RESULT_HXR, map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
+                    map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
+                    map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
+                    map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
+                    map.get("agent_relation_way"), map.get("zhong_biao_unit"), map.get("link_man"), map.get("link_phone"),
+                    map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
+                    map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
+                    map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
+                    map.get("code"), map.get("isfile"), map.get("keyword_term"), map.get("keywords"), map.get("infoTypeSegment"),
+                    map.get("monitorUrl"), map.get("pocDetailUrl"), map.get("extract_proj_name"), map.get("black_word"));
+        }
+
+    }
+    public void saveIntoMysql_17(Map<String, Object> map, String contentId) {
+        // 进行大金额替换操作
+        List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
+        if (maps != null && maps.size() > 0) {
+            // 由于大金额处理的特殊性，只能用null进行判断
+            String winnerAmount = maps.get(0).get("winner_amount") != null ? maps.get(0).get("winner_amount").toString() : null;
+            if (winnerAmount != null) {
+                map.put("baiLian_amount_unit", winnerAmount);
+            }
+            String budget = maps.get(0).get("budget") != null ? maps.get(0).get("budget").toString() : null;
+            if (budget != null) {
+                map.put("baiLian_budget", budget);
+            }
+        }
+        bdJdbcTemplate.update(INSERT_ZT_RESULT_HXR_17, map.get("task_id"), map.get("keyword"), map.get("content_id"), map.get("title"),
                 map.get("content"), map.get("province"), map.get("city"), map.get("country"), map.get("url"), map.get("baiLian_budget"),
                 map.get("baiLian_amount_unit"), map.get("xmNumber"), map.get("bidding_type"), map.get("progid"), map.get("zhao_biao_unit"),
                 map.get("relation_name"), map.get("relation_way"), map.get("agent_unit"), map.get("agent_relation_ame"),
@@ -104,24 +237,26 @@ public class PocDataFieldService {
                 map.get("registration_begin_time"), map.get("registration_end_time"), map.get("biding_acquire_time"),
                 map.get("biding_end_time"), map.get("tender_begin_time"), map.get("tender_end_time"), map.get("update_time"),
                 map.get("type"), map.get("bidder"), map.get("notice_types"), map.get("open_biding_time"), map.get("is_electronic"),
-                map.get("code"), map.get("isfile"), map.get("keyword_term"),map.get("keywords"),map.get("infoTypeSegment"),
-                map.get("monitorUrl"), map.get("pocDetailUrl"), map.get("extract_proj_name"), map.get("black_word"),
-                map.get("allForThreeCode"),map.get("allForFourCode"),map.get("allForFiveCode"));
+                map.get("code"), map.get("isfile"), map.get("keyword_term"), map.get("keywords"), map.get("infoTypeSegment"),
+                map.get("monitorUrl"), map.get("pocDetailUrl"), map.get("extract_proj_name"), map.get("black_word"));
+
+
     }
 
     /**
      * 获取poc标准字段接口-自提字段
+     *
      * @param noticeMQ
      * @return
      */
-    public Map<String, Object> getFieldsWithZiTi(NoticeMQ noticeMQ, String contentId){
+    public Map<String, Object> getFieldsWithZiTi(NoticeMQ noticeMQ, String contentId) {
         JSONObject fieldObject = getJsonObjectWithFields(contentId);
-        if (fieldObject == null){
+        if (fieldObject == null) {
             log.error("contentId:{} 调用数据详情接口异常", contentId);
             return null;
         }
         Map<String, Object> hashMap = getResultMapWithGenPart(fieldObject);
-        if (hashMap.isEmpty()){
+        if (hashMap.isEmpty()) {
             log.error("contentId:{} 调用数据详情接口, 获取常用字段异常", contentId);
             return null;
         }
@@ -131,7 +266,7 @@ public class PocDataFieldService {
         hashMap.put("keyword", noticeMQ.getKeyword());
         hashMap.put("content_id", noticeMQ.getContentid().toString());
         hashMap.put("code", noticeMQ.getF()); //F词
-        hashMap.put("black_word", noticeMQ.getBlackWord());//黑词
+        hashMap.put("black_word", noticeMQ.getBlackWord()); //黑词词
         hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
         hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         return hashMap;
@@ -139,18 +274,19 @@ public class PocDataFieldService {
 
     /**
      * 获取poc标准字段接口-混合字段
+     *
      * @param noticeMQ
      * @return
      */
-    public Map<String, Object> getFieldsWithHunHe(NoticeMQ noticeMQ, String contentId){
+    public Map<String, Object> getFieldsWithHunHe(NoticeMQ noticeMQ, String contentId) {
         JSONObject fieldObject = getJsonObjectWithFields(contentId);
-        if (fieldObject == null){
+        if (fieldObject == null) {
             log.error("contentId:{} 调用数据详情接口异常", contentId);
             return null;
         }
         // 非招标单位、中标单位、金额字段
         Map<String, Object> hashMap = getResultMapWithGenPart(fieldObject);
-        if (hashMap.isEmpty()){
+        if (hashMap.isEmpty()) {
             log.error("contentId:{} 调用数据详情接口, 获取常用字段异常", contentId);
             return null;
         }
@@ -159,23 +295,23 @@ public class PocDataFieldService {
         hashMap.put("keyword", noticeMQ.getKeyword());
         hashMap.put("content_id", noticeMQ.getContentid().toString());
         hashMap.put("code", noticeMQ.getF()); //F词
-        hashMap.put("black_word", noticeMQ.getBlackWord());//黑词
+        hashMap.put("black_word", noticeMQ.getBlackWord()); //黑词
         hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
         hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
         return hashMap;
     }
 
     private Map<String, Object> getResultMapWithHunHe(JSONObject fieldObject, Map<String, Object> hashMap) {
-        if (hashMap.isEmpty()){
+        if (hashMap.isEmpty()) {
             return null;
         }
         // 获取自提招标单位、中标单位
         String zhaoBiaoUnit = fieldObject.getString("extract_zhaoBiaoUnit");
-        if (StringUtils.isBlank(zhaoBiaoUnit)){
+        if (StringUtils.isBlank(zhaoBiaoUnit)) {
             JSONObject expandField = fieldObject.getJSONObject("expandField");
             if (expandField != null && expandField.get("tenderees") != null) {
                 JSONArray tenderees = expandField.getJSONArray("tenderees");
-                if (tenderees != null && tenderees.size() > 0){
+                if (tenderees != null && tenderees.size() > 0) {
                     // 获取第一家百炼招标单位
                     zhaoBiaoUnit = tenderees.getString(0);
                 }
@@ -183,7 +319,7 @@ public class PocDataFieldService {
         }
 
         String zhongBiaoUnit = fieldObject.getString("extract_zhongBiaoUnit");
-        if (StringUtils.isBlank(zhongBiaoUnit)){
+        if (StringUtils.isBlank(zhongBiaoUnit)) {
             JSONObject expandField = fieldObject.getJSONObject("expandField");
             if (expandField != null && expandField.get("winners") != null) {
                 JSONArray winners = expandField.getJSONArray("winners");
@@ -195,14 +331,18 @@ public class PocDataFieldService {
                             for (int j = 0; j < bidderDetails.size(); j++) {
                                 String bidder = bidderDetails.getJSONObject(j).getString("bidder");
                                 if (StringUtils.isNotBlank(bidder)) {
-                                    zhongBiaoUnit += bidder + ",";
+                                    if (StringUtils.isBlank(zhongBiaoUnit)) {
+                                        zhongBiaoUnit = bidder + ",";
+                                    } else {
+                                        zhongBiaoUnit += bidder + ",";
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            if (StringUtils.isNotBlank(zhongBiaoUnit)){
+            if (StringUtils.isNotBlank(zhongBiaoUnit)) {
                 zhongBiaoUnit = zhongBiaoUnit.substring(0, zhongBiaoUnit.length() - 1);
             }
         }
@@ -231,22 +371,41 @@ public class PocDataFieldService {
                 for (JSONObject winner : winners) {
                     if (winner.get("bidderDetails") != null) {
                         List<JSONObject> bidderDetails = (List<JSONObject>) winner.get("bidderDetails");
-                        if (bidderDetails != null && bidderDetails.size() > 0){
+                        if (bidderDetails != null && bidderDetails.size() > 0) {
                             for (int i = 0; i < bidderDetails.size(); i++) {
                                 String amount = bidderDetails.get(i).getString("amount");
-                                if (StringUtils.isNotBlank(amount)){
-                                    winnerAmount += amount + ",";
+                                if (StringUtils.isNotBlank(amount)) {
+                                    if (StringUtils.isBlank(winnerAmount)) {
+                                        winnerAmount = amount + ",";
+                                    } else {
+                                        winnerAmount += amount + ",";
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            if (StringUtils.isNotBlank(winnerAmount)){
+            if (StringUtils.isNotBlank(winnerAmount)) {
                 winnerAmount = winnerAmount.substring(0, winnerAmount.length() - 1);
             }
         }
 
+        String blAgents = "";
+        if (null != fieldObject.getString("extract_agentUnit")) {
+            blAgents = fieldObject.getString("extract_agentUnit");
+        }
+        if (StringUtils.isBlank(blAgents)) {
+            JSONObject expandField = fieldObject.getJSONObject("expandField");
+            if (expandField != null && expandField.get("agents") != null) {
+                JSONArray fieldJSONArray = expandField.getJSONArray("agents");
+                if (fieldJSONArray != null && fieldJSONArray.size() > 0) {
+                    blAgents = fieldJSONArray.getString(0);
+                }
+            }
+        }
+
+        hashMap.put("agent_unit", blAgents);  //代理机构
         hashMap.put("baiLian_budget", budget);
         hashMap.put("baiLian_amount_unit", winnerAmount);
         hashMap.put("zhong_biao_unit", zhongBiaoUnit);
@@ -255,7 +414,7 @@ public class PocDataFieldService {
     }
 
     private Map<String, Object> getResultMapWithZiTi(JSONObject fieldObject, Map<String, Object> hashMap) {
-        if (hashMap.isEmpty()){
+        if (hashMap.isEmpty()) {
             return null;
         }
         // 获取自提招标单位、中标单位
@@ -264,13 +423,18 @@ public class PocDataFieldService {
         // 招标预算、中标金额
         String budget = fieldObject.getString("extract_budget");
         String winnerAmount = fieldObject.getString("extract_amountUnit");
+
+        String blAgents = "";
+        if (null != fieldObject.getString("extract_agentUnit")) {
+            blAgents = fieldObject.getString("extract_agentUnit");
+        }
+        hashMap.put("agent_unit", blAgents);  //代理机构
         hashMap.put("baiLian_budget", budget);
         hashMap.put("baiLian_amount_unit", winnerAmount);
         hashMap.put("zhong_biao_unit", zhongBiaoUnit);
         hashMap.put("zhao_biao_unit", zhaoBiaoUnit);
         return hashMap;
     }
-
 
 
     private HashMap<String, Object> getResultMapWithGenPart(JSONObject fieldObject) {
@@ -300,7 +464,7 @@ public class PocDataFieldService {
         // 判断是否包含附件
         String isHasAddition = "0";
         JSONArray attachmentDetail = fieldObject.getJSONArray("attachment_detail");
-        if (attachmentDetail != null && attachmentDetail.size() > 0){
+        if (attachmentDetail != null && attachmentDetail.size() > 0) {
             isHasAddition = "1";
         }
         // 招标单位联系人 、招标单位联系方式
@@ -329,6 +493,8 @@ public class PocDataFieldService {
         if (null != fieldObject.getLong("updatetime")) {
             updatetime = DateFormatUtils.format(fieldObject.getLong("updatetime") * 1000L, "yyyy-MM-dd HH:mm:ss");
         }
+
+
         // 获取其他时间
         String registrationBeginTime = "";
         String registrationEndTime = "";
@@ -358,6 +524,7 @@ public class PocDataFieldService {
                 registrationEndTime = DateFormatUtils.format(Long.valueOf(extractDateDetail.getString("registration_end_time")) * 1000L, "yyyy-MM-dd HH:mm:ss");
             }
         }
+
 
         HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("catid", fieldObject.getString("catid")); // catId
@@ -393,36 +560,43 @@ public class PocDataFieldService {
         resultMap.put("biding_end_time", bidingEndTime); //标书截止时间
         resultMap.put("content", ""); //正文
         resultMap.put("type", "");  // 预留字段1
-        resultMap.put("keyword_term", areaAreaId); // 预留字段2-地区id
+        resultMap.put("keyword_term", ""); // 预留字段2
         return resultMap;
     }
 
 
-
-    private JSONObject getJsonObjectWithFields(String infoId){
+    private JSONObject getJsonObjectWithFields(String infoId) {
         JSONObject jsonObject = null;
+        CloseableHttpClient client = null;
         try {
-            CloseableHttpClient client = HttpClients.createDefault();
+            client = HttpClients.createDefault();
             RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
                     .setSocketTimeout(60000).setConnectTimeout(60000).build();
             //4、创建HttpGet请求
-            HttpGet httpGet = new HttpGet("http://monitor.ka.qianlima.com//zt/api/"+infoId);
+            //HttpGet httpGet = new HttpGet("http://118.190.158.164:9395/zt/api/" + infoId);
+            HttpGet httpGet = new HttpGet("http://monitor.ka.qianlima.com/zt/api/" + infoId);
             httpGet.setConfig(requestConfig);
             CloseableHttpResponse response = client.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                log.info("=====调用分支机构接口====");
+                log.info("=====调用字段库接口====");
                 String result = EntityUtils.toString(response.getEntity(), "UTF-8");
-                if (StringUtils.isNotBlank(result)){
+                if (StringUtils.isNotBlank(result)) {
                     jsonObject = JSON.parseObject(result);
                 }
             } else {
                 log.info("infoId:{} 调用数据详情接口异常, 返回状态不是 200 ", infoId);
                 throw new RuntimeException("调用数据详情接口异常，请联系管理员， 返回状态不是 200 ");
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("调用数据详情接口异常:{}, 获取不到详情数据", e);
+        } finally {
+            try {
+                closeHttpClient(client);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        if (jsonObject == null){
+        if (jsonObject == null) {
             log.error("调用数据详情接口异常", infoId);
             throw new RuntimeException("调用数据详情接口异常， 获取到的数据为 空 ");
         }
@@ -434,6 +608,11 @@ public class PocDataFieldService {
         return jsonObject.getJSONObject("data");
     }
 
+    private static void closeHttpClient(CloseableHttpClient client) throws Exception {
+        if (client != null) {
+            client.close();
+        }
+    }
 
     // 获取地区映射
     private synchronized Map<String, String> getAreaMap(String areaId) {
@@ -465,3 +644,4 @@ public class PocDataFieldService {
         return resultMap;
     }
 }
+

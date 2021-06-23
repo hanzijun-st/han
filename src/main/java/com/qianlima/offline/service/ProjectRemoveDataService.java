@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ProjectRemoveDataService {
 
     @Autowired
-    @Qualifier("crmJdbcTemplate")
+    @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
 
 
@@ -47,7 +47,7 @@ public class ProjectRemoveDataService {
         try {
             Date parseDate = DateUtils.parseDate(updateTime, DATE_SDF);
             calendar.setTime(parseDate);
-            calendar.add(Calendar.DATE, -60);
+            calendar.add(Calendar.DATE, -90);
         } catch (Exception e) {
             log.info("日期格式不正确, 日期转换异常");
         }
@@ -72,6 +72,7 @@ public class ProjectRemoveDataService {
                 handleForDate(map);
             }
         }
+        log.info("- - - - -去重规则运行结束- - - - -");
     }
 
 

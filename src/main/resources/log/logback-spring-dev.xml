@@ -12,10 +12,10 @@
     </appender>
     <appender name="error"  class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 日志日常打印文件 -->
-        <file>/usr/local/ka/logs/offline/error.log</file>
+        <file>E:/work/hanLogs/log/error.log</file>
         <!-- 配置日志所生成的目录以及生成文件名的规则 在logs/mylog-2017-06-31.0.log.zip -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/usr/local/ka/logs/offline/error-%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <fileNamePattern>E:/work/hanLogs/log/error-%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
             <!-- 如果按天来回滚，则最大保存时间为365天，365天之前的都将被清理掉 -->
             <maxHistory>30</maxHistory>
             <timeBasedFileNamingAndTriggeringPolicy
@@ -40,10 +40,10 @@
 
     <appender name="info"  class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 日志日常打印文件 -->
-        <file>/usr/local/ka/logs/offline/info.log</file>
+        <file>E:/work/hanLogs/log/info.log</file>
         <!-- 配置日志所生成的目录以及生成文件名的规则 在logs/mylog-2017-06-31.0.log.zip -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/usr/local/ka/logs/offline/info-%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <fileNamePattern>E:/work/hanLogs/log/info-%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
             <!-- 如果按天来回滚，则最大保存时间为365天，365天之前的都将被清理掉 -->
             <maxHistory>30</maxHistory>
             <timeBasedFileNamingAndTriggeringPolicy

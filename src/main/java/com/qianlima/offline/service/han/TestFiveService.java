@@ -83,4 +83,119 @@ public interface TestFiveService {
      * 浙江银行
      */
     void getZheJiangYingHang() throws Exception;
+
+    /**
+     * 人民卫生出版社-院校-第二回合
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getRenMingWeiSheng2(Integer type, String date, String s);
+
+    /**
+     * 人民卫生出版社-经销商-第二回合
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getRenMingWeiShengJxs2(Integer type, String date, String s);
+
+    /**
+     * 广西省产业经济与城乡发展研究会
+     * @param type
+     * @param date
+     * @param s
+     */
+    void getGuangXiChanYe(Integer type, String date, String s,String name);
+
+    /**
+     * 上海磐合科学仪器股份有限公司
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getShangHaiQingHe(Integer type, String date, String s, String name);
+
+    /**
+     * 网筑投资管理有限公司
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getWangZhuTouZi(Integer type, String date, String s, String name);
+
+    /**
+     * 中铁建物业
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getZhongTieJian(Integer type, String date, String s, String name);
+
+    /**
+     * 中铁建物业-规则二
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getZhongTieJian2(Integer type, String date, String s, String name);
+
+    /**
+     * 防火墙-通知
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getFangHuoQiang(Integer type, String date, String s, String name);
+
+    /**
+     * 存contentId
+     */
+    void getFangHuoQiangToId(String date);
+
+    /**
+     * 天融信
+     */
+    void getTianRongXin(Integer type,String date,String s,String name);
+
+    /**
+     * 通过id获取标准字段
+     */
+    void getDataById() throws Exception;
+
+    /**
+     * 苏州嗨森无人机科技有限公司
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getSuZhouHaiSeng(Integer type, String date, String s, String name);
+
+    /**
+     * 浙江大华-poc
+     */
+    void getZheJiangDaHua() throws Exception;
+
+
+    void getTongJiZhaoBiao() throws Exception;
+
+    /**
+     * 碧桂园
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getBiGuiYuan(Integer type, String date, String s, String name);
+
+    /**
+     * 统计中标
+     */
+    void getTongJiZhongBiao() throws Exception;
 }

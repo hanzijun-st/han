@@ -103,6 +103,8 @@ public interface CurrencyService {
      */
     void readFileByMap(String name,Map<String,Long> map,String date);
 
+    void readFileByMapObj(String name,Map<String,Object> map,String date);
+
 
     /**
      *  将关键词统计-写成文件
@@ -144,4 +146,26 @@ public interface CurrencyService {
      * 通过id 获取项目名称
      */
     void getProName() throws Exception;
+
+    void testBdw();
+
+    /**
+     * 比较两组数据
+     */
+    void testBj();
+
+    /**
+     * 通过招标单位获取地区
+     */
+    void getAreaByUnit();
+
+    /**
+     * 中信产业基金
+     */
+    void getZhongXin() throws Exception;
+
+    void getZhongXinZiDong1(List<String> list) throws Exception;
+    void getZhongXinZiDong2(List<String> list) throws Exception;
+
+
 }

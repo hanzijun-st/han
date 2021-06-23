@@ -8,10 +8,11 @@ logging:
 #数据源1
 spring:
   rabbitmq:
-    host: 192.168.119.56
+    host: localhost
     port: 5672
+    virtual-host: /
     username: admin
-    password: admin
+    password: 123
   data:
     mongodb:
       test: mongodb://172.18.30.12:27017/move
@@ -21,7 +22,7 @@ spring:
   datasource:
     bd:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://172.18.30.13:3309/qlm_ka?useUnicode=true&characterEncoding=utf8
+      url: jdbc:mysql://172.18.30.13:3309/qlm_ka?useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false
       username: root
       password: qF2Z3cpMR6VVJBRt
       type: com.alibaba.druid.pool.DruidDataSource
@@ -56,7 +57,7 @@ spring:
       logAbandoned: false
     gw:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://117.79.92.68:30709/qianlima?useUnicode=true&characterEncoding=gbk
+      url: jdbc:mysql://117.79.92.68:30709/qianlima?useUnicode=true&characterEncoding=gbk&autoReconnect=true&failOverReadOnly=false
       username: allReaderH
       password: 3ooU17twtngV
       type: com.alibaba.druid.pool.DruidDataSource
@@ -172,7 +173,7 @@ spring:
       logAbandoned: false
     zj:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf8
+      url: jdbc:mysql://127.0.0.1:3306/poc?useUnicode=true&characterEncoding=utf8
       username: root
       password: 123456
       type: com.alibaba.druid.pool.DruidDataSource
@@ -260,6 +261,7 @@ qlm:
     onlineSolr: http://47.104.20.30:8984/solr/ka_info_shard1_replica1
 
     ictsolr: http://172.18.30.12:8984/solr/qianlima_ict_shard2_replica1
+
     QYHYsolr: http://120.27.23.156:8984/solr/qlm_qy_info
     normalsolr: http://172.18.30.12:8984/solr/search_normal_shard3_replica1
     solr:

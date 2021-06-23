@@ -59,7 +59,8 @@ public class OnlineContentSolr {
                             toMQEntity.setTitle(doc.get("title") != null ? doc.get("title").toString() : null);//标题
                             toMQEntity.setZhaoBiaoUnit(doc.get("zhaoBiaoUnit") != null ? doc.get("zhaoBiaoUnit").toString() : null);//招标单位
                             toMQEntity.setZhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);//中标单位
-
+                            toMQEntity.setBlzhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);//百炼中标单位
+                            toMQEntity.setTaskId(taskId);
                           /*   toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);//百炼招标单位
                             toMQEntity.setUpdatetime(doc.get("updatetime") != null ? doc.get("updatetime").toString() : null);//发布时间
                             //toMQEntity.setTags(doc.get("tags") != null ? doc.get("tags").toString() : null);//
@@ -139,5 +140,14 @@ public class OnlineContentSolr {
             log.error("跑数据异常,{}", e);
         }
         return map;
+    }
+
+
+    public Long companyResultsCount(String tiaojian) throws Exception {
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setQuery(tiaojian);
+        QueryResponse response = solrClient.query(solrQuery, SolrRequest.METHOD.POST);
+        SolrDocumentList results = response.getResults();
+        return results.getNumFound();
     }
 }

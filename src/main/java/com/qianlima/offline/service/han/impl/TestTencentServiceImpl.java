@@ -6,6 +6,7 @@ import com.qianlima.offline.bean.ConstantBean;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.mapper.TestUserMapper;
 import com.qianlima.offline.service.CusDataFieldService;
+import com.qianlima.offline.service.PocDataFieldService;
 import com.qianlima.offline.service.han.CusDataNewService;
 import com.qianlima.offline.service.han.TestMyBatisService;
 import com.qianlima.offline.service.han.TestTencentService;
@@ -71,7 +72,8 @@ public class TestTencentServiceImpl implements TestTencentService {
     @Qualifier("djeJdbcTemplate")
     private JdbcTemplate djeJdbcTemplate;
 
-
+    @Autowired
+    private PocDataFieldService pocDataFieldService;
 
     @Autowired
     private TestUserMapper testUserMapper;
@@ -232,12 +234,12 @@ public class TestTencentServiceImpl implements TestTencentService {
                 noticeMQ.setContentid(Long.valueOf(s));
                 //全部自提，不需要正文
                 try {
-                    Map<String, Object> resultMap = cusDataFieldService.getAllFieldsWithZiTi(noticeMQ, false);
+                    Map<String, Object> resultMap =pocDataFieldService .getFieldsWithZiTi(noticeMQ, s);
                     if (resultMap != null) {
                         //String content = cusDataNewService.getContent(noticeMQ);//获取正文字段
                         //resultMap.put("content",content);
                         //saveIntoMysqlDje(resultMap);
-                        cusDataNewService.saveIntoMysql(resultMap);
+                        pocDataFieldService.saveIntoMysql(resultMap,s);
                     }
                 }catch (Exception e) {
                     e.printStackTrace();

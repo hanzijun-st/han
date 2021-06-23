@@ -48,11 +48,7 @@ public class HyService {
     @Autowired
     private BaiLianZhongTaiService baiLianZhongTaiService;
 
-    @Autowired
-    private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
 
-    @Autowired
-    private ZhongTaiBiaoDiWuServiceForOne zhongTaiBiaoDiWuServiceForOne;
 
     @Autowired
     private MyRuleUtils myRuleUtils;

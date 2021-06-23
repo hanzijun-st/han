@@ -13,4 +13,7 @@
     <select id="getMapForOne" resultType="map">
         SELECT * FROM t_table where project_id = #{projectId} AND user_id =#{userId}
     </select>
+    <insert id="saveToDef" parameterType="com.qianlima.offline.bean.LcDto">
+        INSERT INTO t_test (name,num) VALUES (#{userName},#{userId}) ON duplicate KEY UPDATE id = id
+    </insert>
 </mapper>

@@ -42,7 +42,7 @@ public class ConstantBean {
     public static final String FILL_URL_BD ="C:/Users/Administrator/Desktop/dataCount";
 
 
-    public static final String FILL_URL ="/usr/local/ka/hzj";
+    public static final String FILL_URL ="/usr/local/ka/hzj/file";
 
 
 }

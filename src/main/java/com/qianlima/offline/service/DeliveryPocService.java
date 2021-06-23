@@ -55,8 +55,6 @@ public class DeliveryPocService {
     @Autowired
     private MyRuleUtils myRuleUtils;
 
-    @Autowired
-    private ZhongTaiBiaoDiWuService zhongTaiBiaoDiWuService;
 
 
     HashMap<Integer, Area> areaMap = new HashMap<>();
@@ -212,7 +210,7 @@ public class DeliveryPocService {
             String contentId = resultMap.get("content_id") != null ? resultMap.get("content_id").toString() : "";
             String content = resultMap.get("content") != null ? resultMap.get("content").toString() : "";
             try {
-                zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId,1);
+                //zhongTaiBiaoDiWuService.getAllZhongTaiBiaoDIWu(contentId,1);
             } catch (Exception e) {
                 e.printStackTrace();
             }

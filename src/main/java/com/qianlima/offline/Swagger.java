@@ -26,7 +26,7 @@ public class Swagger {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("DCC API接口")//文档说明
+                .title("POC相关数据操作接口")//文档说明
                 .version("1.0.0")//文档版本说明
                 .build();
     }

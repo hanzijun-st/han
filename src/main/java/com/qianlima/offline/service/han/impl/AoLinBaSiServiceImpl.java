@@ -3,7 +3,6 @@ package com.qianlima.offline.service.han.impl;
 import com.alibaba.druid.support.json.JSONUtils;
 import com.qianlima.offline.bean.NoticeMQ;
 import com.qianlima.offline.service.CusDataFieldService;
-import com.qianlima.offline.service.PocService;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.util.FbsContentSolr;
@@ -30,8 +29,6 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
     @Autowired
     private FbsContentSolr contentSolr;
 
-    @Autowired
-    private PocService pocService;
 
     @Autowired
     private CurrencyService currencyService;
@@ -114,7 +111,7 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
             ExecutorService executorService = Executors.newFixedThreadPool(80);
             List<Future> futureList = new ArrayList<>();
             for (NoticeMQ content : list) {
-                futureList.add(executorService.submit(() -> pocService.getDataFromZhongTaiAndSave(content)));
+                //futureList.add(executorService.submit(() -> pocService.getDataFromZhongTaiAndSave(content)));
             }
             for (Future future : futureList) {
                 try {
@@ -451,7 +448,7 @@ public class AoLinBaSiServiceImpl implements AoLinBaSiService {
                     ExecutorService executorService = Executors.newFixedThreadPool(80);
                     List<Future> futureList = new ArrayList<>();
                     for (NoticeMQ content : list) {
-                        futureList.add(executorService.submit(() -> pocService.getDataFromZhongTaiAndSave(content)));
+                        //futureList.add(executorService.submit(() -> pocService.getDataFromZhongTaiAndSave(content)));
                     }
                     for (Future future : futureList) {
                         try {

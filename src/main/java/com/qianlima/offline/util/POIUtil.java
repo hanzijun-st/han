@@ -1,20 +1,22 @@
 package com.qianlima.offline.util;
 
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.net.URLEncoder;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * excel读写工具类
  * @author sun.kai
@@ -143,5 +145,77 @@ public class POIUtil {
                 break;
         }
         return cellValue;
+    }
+
+
+    public static void exportExcel(String sheetName, String[] headers, Collection<?> dataSet, String resultUrl,
+                                   HttpServletResponse response) throws UnsupportedEncodingException {
+        // 声明一个工作薄、生成一个工作表
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet(sheetName);
+        sheet.setDefaultColumnWidth((short) 10);
+        XSSFCellStyle titleStyle = workbook.createCellStyle();
+        titleStyle.setFillForegroundColor(HSSFColor.LIGHT_BLUE.index);
+        XSSFFont titleFont = workbook.createFont();
+        titleFont.setColor(HSSFColor.WHITE.index);
+        titleFont.setFontHeightInPoints((short) 24);
+        titleStyle.setFont(titleFont);
+        XSSFCellStyle headersStyle = workbook.createCellStyle();
+        headersStyle.setFillForegroundColor(HSSFColor.LIGHT_ORANGE.index);
+        XSSFFont headersFont = workbook.createFont();
+        headersFont.setColor(HSSFColor.VIOLET.index);
+        headersFont.setFontHeightInPoints((short) 12);
+        headersStyle.setFont(headersFont);
+        XSSFCellStyle dataSetStyle = workbook.createCellStyle();
+        dataSetStyle.setFillForegroundColor(HSSFColor.GOLD.index);
+        XSSFFont dataSetFont = workbook.createFont();
+        dataSetFont.setColor(HSSFColor.BLUE.index);
+        dataSetStyle.setFont(dataSetFont);
+        XSSFRow row = sheet.createRow(0);
+
+        //设置响应头的类型
+        response.setContentType("application/vnd.ms-excel;charset=utf-8");
+        response.setHeader("Content-Disposition", "attachment;filename="  + URLEncoder.encode(resultUrl,"UTF-8"));
+        response.setCharacterEncoding("utf-8");
+
+        for (short i = 0; i < headers.length; i++) {
+            XSSFCell cell = row.createCell(i);
+            cell.setCellStyle(headersStyle);
+            XSSFRichTextString text = new XSSFRichTextString(headers[i]);
+            cell.setCellValue(text);
+        }
+        Iterator<?> it = dataSet.iterator();
+        int index = 0;
+        while (it.hasNext()) {
+            index++;
+            row = sheet.createRow(index);
+            Object t = it.next();
+            Map<String, Object> resultMap = (LinkedHashMap)t;
+            Set<Map.Entry<String, Object>> entries = resultMap.entrySet();
+            int num = 0;
+            for (Map.Entry<String, Object> entry : entries) {
+                Object value = entry.getValue();
+                if (value != null){
+                    row.createCell(num).setCellValue(value.toString());
+                } else {
+                    row.createCell(num).setCellValue("");
+                }
+                num ++;
+            }
+        }
+        OutputStream out=null;
+        try {
+            out = new BufferedOutputStream(response.getOutputStream());
+            workbook.write(out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            try {
+                out.close();
+                workbook.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

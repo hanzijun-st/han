@@ -63,5 +63,10 @@ public class TestMyBatisServiceImpl implements TestMyBatisService {
         return map;
     }
 
+    @Override
+    public void saveToDef(LcDto lcDto) {
+        testLcMapper.saveToDef(lcDto);
+    }
+
 
 }

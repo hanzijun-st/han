@@ -4,7 +4,7 @@ import com.qianlima.offline.util.JsonUtil;
 
 public class TestJson {
     public static void main(String[] args) {
-        /*try {
+        try {
             JSONObject jsonObject = JsonUtil.readJsonFile("test");
             String name = jsonObject.getString("name");
             String age = jsonObject.getString("age");
@@ -12,14 +12,14 @@ public class TestJson {
 
         } catch (Exception e) {
 
-        }*/
+        }
 
-        String jsonByContenId =null;
+        /*String jsonByContenId =null;
         JSONObject resultObject = JSON.parseObject(jsonByContenId);
         if (resultObject !=null){
             System.out.println(resultObject);
         }else {
             System.out.println("空");
-        }
+        }*/
     }
 }

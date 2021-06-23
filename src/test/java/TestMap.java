@@ -1,8 +1,5 @@
-package test.java;
 
-import com.qianlima.offline.util.JsonUtil;
 import com.qianlima.offline.util.MapUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +11,8 @@ public class TestMap {
 
         String s = MapUtils.toJson(map);
         System.out.println(s);
-
+        String m = map.getOrDefault("h", "");
+        System.out.println();
 
     }
 }

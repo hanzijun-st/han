@@ -7,7 +7,7 @@ import java.util.List;
 public class TestBijiao {
     public static void main(String[] args) {
         try {
-            List<String> noHave = new ArrayList<>();
+            /*List<String> noHave = new ArrayList<>();
             List<String> no = new ArrayList<>();//数据少的单独出来的数据
             List<String> bjDatasD = LogUtils.readRule("bjDatasD");//数据多的
             List<String> bjDatass =LogUtils.readRule("bjDatasS");//数据少的
@@ -17,6 +17,16 @@ public class TestBijiao {
                 }
                 noHave.add(datadd);
             }
+            readFile(noHave);*/
+
+            List<String> bjDatasD = LogUtils.readRule("bjDatasD");//数据多的
+            List<String> bjDatass =LogUtils.readRule("bjDatasS");//数据少的
+            List<String> noHave = new ArrayList<>();
+            for (String datass : bjDatasD) {
+                if (!bjDatass.contains(datass)) {
+                    noHave.add(datass);
+                }
+            }
             readFile(noHave);
         } catch (IOException e) {
 
@@ -24,7 +34,7 @@ public class TestBijiao {
     }
 
     public static void readFile(List<String> strList) {
-        File file = new File("C:/Users/Administrator/Desktop/wenjian/noIds.txt");
+        File file = new File("C:/Users/Administrator/Desktop/wenjian/datas-18.txt");
 
         if(file.exists()) {
             System.err.println("如果已存在test.txt的文件，将更新文件内容");

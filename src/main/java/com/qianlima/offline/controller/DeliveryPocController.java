@@ -1,11 +1,6 @@
 package com.qianlima.offline.controller;
 
-import com.qianlima.offline.replenish.ZhaoBiaoPhoneService;
-import com.qianlima.offline.replenish.ZhongBiaoPhoneService;
-import com.qianlima.offline.service.BiaoDiWuService;
 import com.qianlima.offline.service.DeliveryPocService;
-import com.qianlima.offline.service.PocTestService;
-import com.qianlima.offline.service.offline.DaHuaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,17 +15,6 @@ public class DeliveryPocController {
     @Autowired
     private DeliveryPocService deliveryPocService;
 
-    @Autowired
-    private BiaoDiWuService biaoDiWuService;
-
-    @Autowired
-    private DaHuaService daHuaService;
-
-    @Autowired
-    private ZhaoBiaoPhoneService zhaoBiaoPhoneService;
-
-    @Autowired
-    private ZhongBiaoPhoneService zhongBiaoPhoneService;
 
     //中节能 线下交付
     @RequestMapping(value = "/start/zhongjieneng", method = RequestMethod.GET)

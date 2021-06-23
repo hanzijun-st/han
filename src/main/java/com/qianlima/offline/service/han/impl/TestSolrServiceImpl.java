@@ -19,7 +19,7 @@ public class TestSolrServiceImpl implements TestSolrService {
     @Override
     public void testSolr() {
         try {
-            testSolr.getAuthorizeContent();
+            testSolr.insertToCore();
         } catch (Exception e) {
             log.info("异常:{}",e);
             e.getMessage();

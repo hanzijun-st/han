@@ -4,15 +4,11 @@ import com.qianlima.offline.bean.Params;
 import com.qianlima.offline.service.han.AoLinBaSiService;
 import com.qianlima.offline.service.han.CurrencyService;
 import com.qianlima.offline.service.han.TestService;
-import com.qianlima.offline.util.LogUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * hanzijun 接口
@@ -23,25 +19,27 @@ import java.util.List;
 @Api("hanpoc")
 public class HanTestController {
 
-    @Autowired
-    private AoLinBaSiService aoLinBaSiService;
+
     @Autowired
     private TestService testService;
     @Autowired
     private CurrencyService currencyService;
 
+    @Autowired
+    private AoLinBaSiService aoLinBaSiService;
+
     @GetMapping("/start/getAolinbasiDatas")
     @ApiOperation("获取奥林巴斯的数据")
     public String getTestAllDatas(){
-        aoLinBaSiService.getAoLinBaSiAndSave();
+        //aoLinBaSiService.getAoLinBaSiAndSave();
         return "第一次测试数据---获取成功";
     }
 
     @GetMapping("/start/getUrl/{num}")
     @ApiOperation("获取原链接地址的数据")
     public String getUrl(@PathVariable("num") String num){
-        String urlOriginalLink = aoLinBaSiService.getUrlOriginalLink(num);
-        return "成功获取url原链接地址---"+urlOriginalLink;
+        //String urlOriginalLink = aoLinBaSiService.getUrlOriginalLink(num);
+        return "成功获取url原链接地址---";
     }
 
     @GetMapping("/start/getBdw")

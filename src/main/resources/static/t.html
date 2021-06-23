@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<script>
+	$(function(){
+		$("#s").click(function(){
+			var ins=$("#ins").val();
+			$.ajax({
+			    type:"GET",
+				dataType: 'text',  // 请求方式为jsonp
+  	  			url:"http://hanone.cn.utools.club/card/yzIdCard?iDCard="+ins,//要请求的服务器url
+  	  			//data:{:ins},//第一个name对应的是后端request.getParameter("name")的name、第二个name对应的是此js中的var name = $("#name").val();的name
+  	  			//async:false,//是否是异步请求
+  	  			//cache:false,//是否缓存结果
+  	  			//type:"POST",//请求方式
+  	  			//dataType:"json",//服务器返回什么类型数据 text xml javascript json(javascript对象)
+                //jsonpCallback: "handleCallback",  // 自定义回调函数名
+  	  			success:function(result){//函数会在服务器执行成功后执行，result就是服务器返回结果
+					$("#re").html(result);
+  	  			},
+  	  			error:function(jqXHR, textStatus, errorThrown) {
+  	  	   	 		
+  	  	    	}
+			});
+		});
+	});
+    
+</script>
+</head>
+<body>
+<h1>html页面</h1>
+
+<input type="text" id="ins" />
+
+<button id="s">验证</button></br>
+<span id="re"></span>
+</body>
+</html>

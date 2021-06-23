@@ -18,7 +18,6 @@ public class TestBeanQuChong {
         Student s3 = new Student();
         s3.setName("h");
         s3.setAge(30);
-
         List<Student> list = new ArrayList<>();
         list.add(s);
         list.add(s2);
