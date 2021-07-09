@@ -290,4 +290,51 @@ public interface TestSixService {
      * 上海恒生聚源-通过id
      */
     void getShangHaiHengShengById(Integer type);
+
+    /**
+     * 上海恒生聚源-第三回合
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     * @param typeName
+     */
+    void getShangHaiHengSheng3(Integer type, String date, String s, String name, Integer typeName);
+
+    void getQuChong();
+
+    void getRunnable();
+
+    /**
+     * 奥的斯机电电梯有限公司
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     * @param typeName
+     */
+    void getAoDiSiJiDian(Integer type, String date, String s, String name, Integer typeName);
+
+    /**
+     * 奥的斯机电电梯有限公司-拟在建
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     * @param typeName
+     */
+    void getAoDiSiJiDianNzj(Integer type, String date, String s, String name, Integer typeName);
+
+    /**
+     * 无人机-4
+     * @param type
+     * @param date
+     * @param s
+     * @param name
+     */
+    void getShenZhenDaJiang4(Integer type, String date, String s, String name);
+
+    void getAoDiSiJiDianNzj2(Integer type, String date, String s, String name, Integer typeName);
+
+    void getBiaozhun(Integer type);
 }

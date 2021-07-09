@@ -295,4 +295,69 @@ public class HanSixController {
         return "---上海恒生聚源-通过id is ok---";
     }
 
+    @ApiOperation("上海恒生聚源-第三回合")
+    @PostMapping(value = "/getShangHaiHengSheng3", produces = "text/plain;charset=utf-8")
+    public String getShangHaiHengSheng3(Integer type, String date, String s, String name,Integer typeName) {
+        testSixService.getShangHaiHengSheng3(type, date, s, name,typeName);
+        log.info("===============================数据运行结束===================================");
+        return "---上海恒生聚源-第三回合 is ok---";
+    }
+
+    @ApiOperation("走去重规则-数据导出")
+    @PostMapping(value = "/getQuChong", produces = "text/plain;charset=utf-8")
+    public String getQuChong() {
+        testSixService.getQuChong();
+        log.info("===============================数据运行结束===================================");
+        return "---走去重规则-数据导出 is ok---";
+    }
+    @ApiOperation("多线程-runnable")
+    @PostMapping(value = "/getRunnable", produces = "text/plain;charset=utf-8")
+    public String getRunnable() {
+        testSixService.getRunnable();
+        log.info("===============================数据运行结束===================================");
+        return "---多线程 is ok---";
+    }
+
+    @ApiOperation("奥的斯机电电梯有限公司-审批")
+    @PostMapping(value = "/getAoDiSiJiDian", produces = "text/plain;charset=utf-8")
+    public String getAoDiSiJiDian(Integer type, String date, String s, String name,Integer typeName) {
+        testSixService.getAoDiSiJiDian(type, date, s, name,typeName);
+        log.info("===============================数据运行结束===================================");
+        return "---奥的斯机电电梯有限公司 is ok---";
+    }
+
+    @ApiOperation("奥的斯机电电梯有限公司-拟在建")
+    @PostMapping(value = "/getAoDiSiJiDianNzj", produces = "text/plain;charset=utf-8")
+    public String getAoDiSiJiDianNzj(Integer type, String date, String s, String name,Integer typeName) {
+        testSixService.getAoDiSiJiDianNzj(type, date, s, name,typeName);
+        log.info("===============================数据运行结束===================================");
+        return "---奥的斯机电电梯有限公司-拟在建 is ok---";
+    }
+
+    @ApiOperation("奥的斯机电电梯有限公司-拟在建-接口调用")
+    @PostMapping(value = "/getAoDiSiJiDianNzj2", produces = "text/plain;charset=utf-8")
+    public String getAoDiSiJiDianNzj2(Integer type, String date, String s, String name,Integer typeName) {
+        testSixService.getAoDiSiJiDianNzj2(type, date, s, name,typeName);
+        log.info("===============================数据运行结束===================================");
+        return "---奥的斯机电电梯有限公司-拟在建-接口调用 is ok---";
+    }
+
+    @ApiOperation("深圳大疆-无人机-4")
+    @PostMapping(value = "/getShenZhenDaJiang4", produces = "text/plain;charset=utf-8")
+    public String getShenZhenDaJiang4(Integer type, String date, String s, String name) {
+        testSixService.getShenZhenDaJiang4(type, date, s, name);
+        log.info("===============================数据运行结束===================================");
+        return "---深圳大疆-无人机4 is ok---";
+    }
+
+    @ApiOperation("大金额获取标准字段")
+    @PostMapping(value = "/getBiaozhun", produces = "text/plain;charset=utf-8")
+    public String getBiaozhun(Integer type) {
+        testSixService.getBiaozhun(type);
+        log.info("===============================数据运行结束===================================");
+        return "---大金额获取标准字段 is ok---";
+    }
+
+
+
 }

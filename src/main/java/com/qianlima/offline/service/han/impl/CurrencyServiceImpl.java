@@ -4,16 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.qianlima.offline.bean.*;
-import com.qianlima.offline.middleground.NewZhongTaiService;
 import com.qianlima.offline.rule02.BiaoDiWuRule;
 import com.qianlima.offline.service.CusDataFieldService;
-import com.qianlima.offline.service.PocDataFieldService;
 import com.qianlima.offline.service.ZhuCeAreaService;
 import com.qianlima.offline.service.han.CurrencyService;
-import com.qianlima.offline.service.han.CusDataNewService;
 import com.qianlima.offline.service.han.TestSixService;
 import com.qianlima.offline.util.*;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -34,13 +30,16 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sun.rmi.runtime.Log;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -48,6 +47,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -65,18 +65,22 @@ public class CurrencyServiceImpl implements CurrencyService {
     private UpdateContentSolr updateSolr;
 
     @Autowired
-    private OnlineNewContentSolr onlineContentSolr;
+    private OnlineNewContentSolr onlineNewContentSolr;
+
+    @Autowired
+    private OnlineContentSolr onlineContentSolr;
 
     @Autowired
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;
 
     @Autowired
-    private NewZhongTaiService newZhongTaiService;
-
-    @Autowired
     @Qualifier("bdJdbcTemplate")
     private JdbcTemplate bdJdbcTemplate;
+
+    @Autowired
+    @Qualifier("lsJdbcTemplate")
+    private JdbcTemplate lsJdbcTemplate;
 
     @Autowired
     @Qualifier("crmJdbcTemplate")
@@ -723,9 +727,19 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public void readFileByName(String name, List<String> list, Integer type) {
+        if (type == 1) {
+            ReadFileUtil.readFile(ConstantBean.FILL_URL, name + ".txt", list);
+        } else if (type == 2) {
+            ReadFileUtil.readFile(ConstantBean.FILL_URL_BD, name + ".txt", list);
+        }
+    }
+
+    @Override
     public void readFileByMap(String name, Map<String, Long> map, String date) {
         ReadFileUtil.readFileByMap(ConstantBean.FILL_URL, name + ".txt", map, date, false);
     }
+
     @Override
     public void readFileByMapObj(String name, Map<String, Object> map, String date) {
         ReadFileUtil.readFileByMapObj(ConstantBean.FILL_URL_BD, name + ".txt", map, date, false);
@@ -1295,16 +1309,18 @@ public class CurrencyServiceImpl implements CurrencyService {
         return null;
     }
 
-    public String INSERT_HAN_DJE = "INSERT INTO han_xs_dje (info_id,old_winner_amount,old_budget,url) " +
-            "VALUES (?,?,?,?)";
+    public String INSERT_HAN_DJE = "INSERT INTO han_xs_dje (info_id,old_winner_amount,old_budget,url,user_id,new_winner_amount,new_budget) " +
+            "VALUES (?,?,?,?,?,?,?)";
 
     @Override
     public void getDaJinEdatas() {
-        List<Map<String, Object>> mapList = djeJdbcTemplate.queryForList("select info_id, old_winner_amount, old_budget from amount_for_handle where states = 0 group by info_id order by info_id asc");
+        List<Map<String, Object>> mapList = djeJdbcTemplate.queryForList("select info_id, old_winner_amount, old_budget,new_winner_amount,new_budget,user_id from amount_for_handle where  states = 0 group by info_id order by info_id asc");
         if (mapList != null && mapList.size() > 0) {
             for (Map<String, Object> map : mapList) {
-                String url = "http://monitor.ka.qianlima.com/#/checkDetails?pushId=/" + map.get("info_id");
-                bdJdbcTemplate.update(INSERT_HAN_DJE, map.get("info_id"), map.get("old_winner_amount"), map.get("old_budget"), url);
+                //String url = "http://monitor.ka.qianlima.com/#/checkDetails?pushId=/" + map.get("info_id");
+                //bdJdbcTemplate.update(INSERT_HAN_DJE, map.get("info_id"), map.get("old_winner_amount"), map.get("old_budget"), url,map.get("user_id"));
+                bdJdbcTemplate.update(INSERT_HAN_DJE, map.get("info_id"), null, null, null,map.get("user_id"));
+                log.info("- - -大金额入库成功");
             }
         }
     }
@@ -1323,7 +1339,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         List<String> keywords = LogUtils.readRule("idsFile");
         for (String str : keywords) {
             futureList1.add(executorService1.submit(() -> {
-                List<NoticeAllField> mqEntities = onlineContentSolr.companyResultsBaoXian("id:\"" + str + "\"", "", 1);
+                List<NoticeAllField> mqEntities = onlineNewContentSolr.companyResultsBaoXian("id:\"" + str + "\"", "", 1);
                 log.info("infoId:{}", str);
                 if (!mqEntities.isEmpty()) {
                     for (NoticeAllField field : mqEntities) {
@@ -1348,10 +1364,6 @@ public class CurrencyServiceImpl implements CurrencyService {
         System.out.println("--------------------------------本次任务结束---------------------------------------");
     }
 
-    @Override
-    public void testBdw() {
-        //http://172.18.30.13:8999/
-    }
 
     @Override
     public void testBj() {
@@ -1429,7 +1441,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         ExecutorService executorService = Executors.newFixedThreadPool(10);//开启线程池
         List<Future> futureList = new ArrayList<>();
         try {
-            List<String> keyWords = LogUtils.readRule("keyWords");
+            List<String> keyWords = LogUtils.readRule("areaUnit");
             for (String keyWord : keyWords) {
                 futureList.add(executorService.submit(() -> {
                     Map registerAddr = zhuCeAreaService.getRegisterAddr(keyWord);
@@ -1494,7 +1506,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             List<String> list = LogUtils.readRule("qyNames");
             for (String s : list) {
                 futureList.add(executorService.submit(() -> {
-                    getData(s,0);
+                    getData(s, 0);
                 }));
             }
             for (Future future1 : futureList) {
@@ -1513,7 +1525,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         } catch (Exception e) {
             e.getMessage();
             throw new Exception(e.getMessage());
-        } finally{
+        } finally {
             log.info("- - -中信企业接口运行结束- - - ");
         }
 
@@ -1527,7 +1539,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
             for (String s : list) {
                 futureList.add(executorService.submit(() -> {
-                    getData(s,1);
+                    getData(s, 1);
                 }));
             }
             for (Future future1 : futureList) {
@@ -1546,10 +1558,11 @@ public class CurrencyServiceImpl implements CurrencyService {
         } catch (Exception e) {
             e.getMessage();
             throw new Exception(e.getMessage());
-        } finally{
+        } finally {
             log.info("- - -中信企业接口运行结束- - - ");
         }
     }
+
     @Override
     public void getZhongXinZiDong2(List<String> list) throws Exception {
         try {
@@ -1558,7 +1571,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
             for (String s : list) {
                 futureList.add(executorService.submit(() -> {
-                    getData(s,2);
+                    getData(s, 2);
                 }));
             }
             for (Future future1 : futureList) {
@@ -1577,13 +1590,186 @@ public class CurrencyServiceImpl implements CurrencyService {
         } catch (Exception e) {
             e.getMessage();
             throw new Exception(e.getMessage());
-        } finally{
+        } finally {
             log.info("- - -中信企业接口运行结束- - - ");
+        }
+    }
+
+    @Override
+    public List<String> getKeyWordsByList(List<String> keywords, List<NoticeMQ> listAll, String date) {
+
+        List<String> readList = new ArrayList<>();
+        readList.add("- - - - -" + date + "- - - - -");
+        for (String str : keywords) {
+            int total = 0;
+            for (NoticeMQ noticeMQ : listAll) {
+                String keyword = noticeMQ.getKeyword();
+                if (StrUtil.isNotEmpty(keyword)) {
+                    if (keyword.equals(str)) {
+                        total++;
+                    }
+                }
+            }
+            if (total == 0) {
+                continue;
+            }
+            System.out.println(str + ": " + total);
+            readList.add(str + ": " + total);
+        }
+        return readList;
+    }
+
+    @Override
+    public void getNewTypeReadFile(String s, String name, List<String> sList, List<NoticeMQ> listAll, Integer listMapSize, String date) {
+        List<String> keyWordsByList = currencyService.getKeyWordsByList(sList, listAll, date);
+        keyWordsByList.add("全部数据量:" + listAll.size());
+        keyWordsByList.add("去重数据量:" + listMapSize);
+
+        if ("1".equals(s)) {
+            currencyService.readFileByName(name, keyWordsByList, 1);
+            log.info("统计数据写入linux文件成功");
+        } else if ("2".equals(s)) {
+            currencyService.readFileByName(name, keyWordsByList, 2);
+            log.info("统计数据写入本地文件成功");
+        }
+    }
+
+    @Override
+    public void getPiPeiHangYeBiaoQianById() {
+        try {
+            List<String> list = LogUtils.readRule("hybqIds");
+            ExecutorService executorService = Executors.newFixedThreadPool(32);
+            List<Future> futureList = new ArrayList<>();
+
+            AtomicInteger atomicInteger = new AtomicInteger(list.size() + 1);
+            for (String id : list) {
+                futureList.add(executorService.submit(() -> {
+                    List<NoticeMQ> listDatas = onlineContentSolr.hybqSolr("id:\"" + id + "\"", "", 1);
+                    if (listDatas != null && listDatas.size() > 0) {
+                        for (NoticeMQ listData : listDatas) {
+                            Long contentid = listData.getContentid();
+                            String zhaoFirstIndustry = listData.getZhaoFirstIndustry();
+                            String zhaoSecondIndustry = listData.getZhaoSecondIndustry();
+
+                            bdJdbcTemplate.update(HANG_YE, contentid, null, zhaoFirstIndustry, zhaoSecondIndustry);
+                            log.info("contentId:{} ,处理数据剩余数量:{} ", contentid, atomicInteger.addAndGet(-1));
+                        }
+                    }
+                }));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    executorService.shutdown();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
+            log.info("---------------追加行业标签成功，运行结束-------------");
+
+        } catch (IOException e) {
+            e.getMessage();
+        }
+    }
+
+    @Override
+    public synchronized Map<String, String> getAreaMap(String areaId) {
+        // ka_部门内部省、市、县区域联查
+        List<String> kaAreaList = new ArrayList<>();
+
+        // 获取地区映射
+        Map<String, String> resultMap = new HashMap<>();
+        if (kaAreaList == null || kaAreaList.size() == 0) {
+            try {
+                ClassPathResource classPathResource = new ClassPathResource("area/ka_area.txt");
+                InputStream inputStream = classPathResource.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                String line = bufferedReader.readLine();
+                while (StringUtils.isNotBlank(line)) {//BufferedReader有readLine()，可以实现按行读取
+                    kaAreaList.add(line);
+                    line = bufferedReader.readLine();
+                }
+            } catch (Exception e) {
+                log.error("读取ka_area 失败, 请查证原因");
+            }
+        }
+        for (String kaArea : kaAreaList) {
+            String[] areaList = kaArea.split(":", -1);
+            if (areaList != null && areaList.length == 4) {
+                if (areaList[0].equals(areaId)) {
+                    resultMap.put("areaProvince", areaList[1]);
+                    resultMap.put("areaCity", areaList[2]);
+                    resultMap.put("areaCountry", areaList[3]);
+                }
+            }
+        }
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Object> getAreaData(String contentId) {
+        //通过id 获取区域id
+        Map<String, Object> md = lsJdbcTemplate.queryForMap(ConstantBean.SELECT_TIME_ONE_NOW_02, contentId);
+        if (md != null && md.size() > 0) {
+            String areaid = String.valueOf(md.get("areaid"));
+            // 获取省、市代码
+            String provinceName = null;
+            String cityName = null;
+            String countryName = null;
+            if (StringUtils.isNotBlank(areaid)) {
+                provinceName = getAreaMap(areaid).get("areaProvince");
+                cityName = getAreaMap(areaid).get("areaCity");
+                countryName = getAreaMap(areaid).get("areaCountry");
+            }
+            Map<String, Object> map = new HashMap<>();
+            map.put("province", provinceName);
+            map.put("city", cityName);
+            map.put("country", countryName);
+            return map;
+        }
+        return null;
+    }
+
+    @Override
+    public void getAreas() {
+        ExecutorService executorService = Executors.newFixedThreadPool(6);
+        List<Future> futureList = new ArrayList<>();
+        try {
+            List<String> list = LogUtils.readRule("areaIds");
+            AtomicInteger atomicInteger = new AtomicInteger(list.size() + 1);
+            for (String id : list) {
+                futureList.add(executorService.submit(() -> {
+                    Map<String, Object> areaData = getAreaData(id);
+                    if (areaData != null) {
+                        String provinceName = String.valueOf(areaData.get("province"));
+                        String cityName = String.valueOf(areaData.get("city"));
+                        String countryName = String.valueOf(areaData.get("country"));
+                        bdJdbcTemplate.update("INSERT INTO han_area_unit (name,areaProvince,areaCity,areaCountry) VALUES (?,?,?,?)", id, provinceName, cityName, countryName);
+                        log.info("地区入库成功-id:{},剩余数据量:{}", id,atomicInteger.addAndGet(-1));
+                    }
+                }));
+            }
+            for (Future future : futureList) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+            executorService.shutdown();
+        } catch (IOException e) {
+            e.getMessage();
         }
     }
 
     /**
      * 调用天眼查接口-获取数据-存库
+     *
      * @param s
      */
     private void getData(String s, Integer type) {
@@ -1671,21 +1857,21 @@ public class CurrencyServiceImpl implements CurrencyService {
 
             //if (StringUtils.isNotBlank(legalPersonName) && StringUtils.isNotBlank(phoneNumber)) {//联系人和联系方式不为空
 
-            if (type == 0){
+            if (type == 0) {
                 bdJdbcTemplate.update("INSERT INTO han_zhongxin (name,actualCapital,regStatus,regCapital,regInstitute,companyName," +
                                 "businessScope,industry,regLocation,regNumber,phoneNumber,creditCode,approvedTime,fromTime,companyOrgType,orgNumber,toTime,legalPersonName," +
                                 "province,city,country) " +
                                 "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", s, actualCapital, regStatus, regCapital, regInstitute, companyName,
                         businessScope, industry, regLocation, regNumber, phoneNumber, creditCode, approvedTime, fromTime, companyOrgType, orgNumber, toTime, legalPersonName, province, city, country);
                 log.info("入库成功，name:{}", s);
-            } else if (type == 1){
+            } else if (type == 1) {
                 bdJdbcTemplate.update("INSERT INTO han_zhongxin_gy1 (name,actualCapital,regStatus,regCapital,regInstitute,companyName," +
                                 "businessScope,industry,regLocation,regNumber,phoneNumber,creditCode,approvedTime,fromTime,companyOrgType,orgNumber,toTime,legalPersonName," +
                                 "province,city,country) " +
                                 "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", s, actualCapital, regStatus, regCapital, regInstitute, companyName,
                         businessScope, industry, regLocation, regNumber, phoneNumber, creditCode, approvedTime, fromTime, companyOrgType, orgNumber, toTime, legalPersonName, province, city, country);
                 log.info("入库成功，name:{}", s);
-            } else if (type == 2){
+            } else if (type == 2) {
                 bdJdbcTemplate.update("INSERT INTO han_zhongxin_gy2 (name,actualCapital,regStatus,regCapital,regInstitute,companyName," +
                                 "businessScope,industry,regLocation,regNumber,phoneNumber,creditCode,approvedTime,fromTime,companyOrgType,orgNumber,toTime,legalPersonName," +
                                 "province,city,country) " +
@@ -1780,7 +1966,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             HttpResponse response = null;
             // --KA自用行业
             // http://monitor.ka.qianlima.com/api/ka/industry?unit=上海市公安局国际机场分局
-            String url = "http://monitor.ka.qianlima.com/api/ka/industry?unit=" + zhaobiaounit + "";
+            String url = "http://monitor.ka.qianlima.com/api/ka/industry?unit=" + zhaobiaounit;
             HttpPost post = new HttpPost(url);
             post.setHeader("Content-Type", "application/json");
 

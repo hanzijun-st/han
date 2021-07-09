@@ -4,7 +4,9 @@ package com.qianlima.offline.util;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -179,5 +181,21 @@ public class StrUtil {
         String strArrLast[] = strList.toArray(new String[strList.size()]);
 
         return strArrLast;
+    }
+
+    public static List<String> strListToList(String[] strs){
+        List<String> strsToList2=new ArrayList<>();
+        Collections.addAll(strsToList2,strs);
+        return strsToList2;
+    }
+
+    /**
+     * 将科学计数法的字符串 转 成正常的数值
+     * @return
+     */
+    public static String getEtoStr(String str) {
+        //String abc = "1.567840334E12";
+        BigDecimal bd = new BigDecimal(str);
+        return new BigDecimal(Double.parseDouble(bd.toPlainString())).toString();
     }
 }

@@ -3,6 +3,7 @@ package com.qianlima.offline.bean;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class NoticeMQ implements Serializable {
@@ -87,6 +88,10 @@ public class NoticeMQ implements Serializable {
 
     private String zhaoSecondIndustry;//自提招标单位二级行业标签
 
+    private String zhongFirstIndustry;//自提中标单位一级行业标签
+
+    private String zhongSecondIndustry;//自提中标单位二级行业标签
+
     private String heici;
 
     private String xmNumber;//项目编号
@@ -116,7 +121,14 @@ public class NoticeMQ implements Serializable {
 
     private String blackWord;//黑词
 
+    private String keywords;//关键词2
 
+    private String projName;//项目名称
+
+    private String userIds;
+
+    private BigDecimal budgetNumber;//招标预算
+    private BigDecimal amountNumber;//中标金额
 
 
 

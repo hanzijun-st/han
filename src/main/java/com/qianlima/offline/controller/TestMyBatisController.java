@@ -50,4 +50,12 @@ public class TestMyBatisController {
         return true;
     }
 
+    @ApiOperation("测试-判断不开启事务-是否回滚")
+    @PostMapping(value = "/saveDatas")
+    @ResponseBody
+    public Boolean saveDatas(@RequestBody LcDto lcDto)  throws Exception{
+        testMyBatisService.saveDatas(lcDto);
+        return true;
+    }
+
 }

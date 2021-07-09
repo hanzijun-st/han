@@ -57,9 +57,36 @@ spring:
       logAbandoned: false
     gw:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://117.79.92.68:30709/qianlima?useUnicode=true&characterEncoding=gbk&autoReconnect=true&failOverReadOnly=false
-      username: allReaderH
-      password: 3ooU17twtngV
+      url: jdbc:mysql://172.18.30.13:3309/qlm_ka?useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false
+      username: root
+      password: qF2Z3cpMR6VVJBRt
+      type: com.alibaba.druid.pool.DruidDataSource
+      # 初始化大小，最小，最大
+      initialSize: 3
+      minIdle: 3
+      maxActive: 8
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      #         配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filters: stat,wall
+      # 合并多个DruidDataSource的监控数据
+      useGlobalDataSourceStat: true
+    ls:
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://172.18.30.43:3309/qianlima?useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false
+      username: ka_swf_reader
+      password: EGaVEW4Y5DFQ
       type: com.alibaba.druid.pool.DruidDataSource
       # 初始化大小，最小，最大
       initialSize: 3
@@ -263,12 +290,15 @@ qlm:
     ictsolr: http://172.18.30.12:8984/solr/qianlima_ict_shard2_replica1
 
     QYHYsolr: http://120.27.23.156:8984/solr/qlm_qy_info
+
+    #审批、拟在建专用
     normalsolr: http://172.18.30.12:8984/solr/search_normal_shard3_replica1
     solr:
       host: solr1:2181,solr2:2181,solr3:2181
       defaultCollection: ka_info
 
-    testsolr: 127.0.0.1:8099/solr/collection1
+    #testsolr: 127.0.0.1:8099/solr/collection1
+    testsolr: http://47.104.20.30:8984/solr/cus_authorize_data_shard2_replica1
 data:
   contentid: C:\Users\Dell\Desktop\qianlima\ka_for_poc\src\main\resources\rule\contentid.txt
 zt:

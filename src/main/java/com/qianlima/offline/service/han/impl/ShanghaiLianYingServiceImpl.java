@@ -198,7 +198,7 @@ public class ShanghaiLianYingServiceImpl implements ShanghaiLianYingService{
                 }
                 
                 //读取医院信息
-                HashMap<String, String> simpleAreaMap = KeyUtils.getSimpleAreaMap();
+                HashMap<String, String> simpleAreaMap = null;//KeyUtils.getSimpleAreaMap();
                 Set<Map.Entry<String, String>> entries = simpleAreaMap.entrySet();//将map的key和value 进行映射成 集合
                 for (Map.Entry<String, String> entry : entries) {
                     String key = entry.getKey();

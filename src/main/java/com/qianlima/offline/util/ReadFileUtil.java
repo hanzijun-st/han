@@ -16,7 +16,7 @@ public class ReadFileUtil {
         File file = new File(url+"/"+fileName);
 
         if(file.exists()) {
-            System.err.println("如果已存在该名称的文件，将更新原文件内容");
+            log.info("- - -如果已存在该名称的文件，将更新原文件内容");
             file.delete();
         }
         if(!file.exists()) {
@@ -27,7 +27,8 @@ public class ReadFileUtil {
                 for (String s : strList) {
                     bw.write(s+"\r\n");
                 }
-                System.out.println("已完成100%，导入结束！");
+                //System.out.println("已完成100%，导入结束！");
+                log.info("- - -已完成100%，导入结束！");
                 bw.close();
             } catch (IOException e) {
                 e.printStackTrace();

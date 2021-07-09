@@ -96,6 +96,7 @@ public interface CurrencyService {
      * @param list
      */
     void readFileByName(String name,List<String> list);
+    void readFileByName(String name,List<String> list,Integer type);
     /**
      * 测试服务器
      * @param name
@@ -147,7 +148,6 @@ public interface CurrencyService {
      */
     void getProName() throws Exception;
 
-    void testBdw();
 
     /**
      * 比较两组数据
@@ -168,4 +168,41 @@ public interface CurrencyService {
     void getZhongXinZiDong2(List<String> list) throws Exception;
 
 
+    /**
+     * 调用通用接口-输出关键词
+     */
+    List<String> getKeyWordsByList(List<String> keywords,List<NoticeMQ> listAll,String date);
+
+    /**
+     * 新通用接口-写入关键词的统计量
+     * @param s
+     * @param name
+     * @param sList
+     * @param listAll
+     * @param listMapSize
+     * @param date
+     */
+    void getNewTypeReadFile(String s,String name,List<String> sList,List<NoticeMQ> listAll,Integer listMapSize,String date);
+
+    /**
+     * 匹配行业标签--- 一级/二级-通过id获取
+     */
+    void getPiPeiHangYeBiaoQianById();
+
+    /**
+     * 通过地区id-获取省、市、县
+     * @param areaId
+     * @return
+     */
+    Map<String, String> getAreaMap(String areaId);
+
+    /**
+     * 获取地区接口-通过contentId
+     */
+    Map<String,Object> getAreaData(String contentId);
+
+    /**
+     * 获取地区的接口
+     */
+    void getAreas();
 }

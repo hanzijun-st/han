@@ -34,7 +34,7 @@ public class TestBijiao {
     }
 
     public static void readFile(List<String> strList) {
-        File file = new File("C:/Users/Administrator/Desktop/wenjian/datas-18.txt");
+        File file = new File("C:/Users/Administrator/Desktop/wenjian/contentIds-08.txt");
 
         if(file.exists()) {
             System.err.println("如果已存在test.txt的文件，将更新文件内容");

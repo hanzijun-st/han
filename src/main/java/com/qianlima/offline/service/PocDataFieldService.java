@@ -41,6 +41,9 @@ public class PocDataFieldService {
     @Autowired
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;
+    @Autowired
+    @Qualifier("lsJdbcTemplate")
+    private JdbcTemplate lsJdbcTemplate;
 
     @Autowired
     @Qualifier("bdJdbcTemplate")
@@ -72,6 +75,8 @@ public class PocDataFieldService {
             "is_electronic,code,isfile,keyword_term,keywords, infoTypeSegment,monitorUrl, pocDetailUrl, extract_proj_name, black_word) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
+    private static final String INSERT_TEST = "INSERT INTO han_data_poc_test (content_id,title,updatetime,tagIds,progid,newProvince,newCity,newCountry,userIds) VALUES (?,?,?,?,?,?,?,?,?)";
+
     //获取数据的status,判断是否为99,
     private static final String SELECT_PHPCMS_CONTENT_BY_CONTENTID = "SELECT status FROM phpcms_content where contentid = ? ";
 
@@ -79,9 +84,40 @@ public class PocDataFieldService {
     private final static List<String> kaAreaList = new ArrayList<>();
 
     /**
-     * 通用接口-调用字段库的-自提接口
+     * 通用接口-调用字段库的-自提接口-大金额
+     *
      * @param noticeMQ
      */
+    public String INSERT_HAN_DJE = "INSERT INTO han_xs_dje (info_id,old_winner_amount,old_budget,url,user_id,new_winner_amount,new_budget,title,update_time,type) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?)";
+    public void getZiDuanKu_ziTi_dje(NoticeMQ noticeMQ) {
+        boolean bl = checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
+        if (!bl) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        //调用中台接口，全部自提
+        Map<String, Object> resultMap = getFieldsWithZiTi(noticeMQ, String.valueOf(noticeMQ.getContentid()));
+        if (resultMap != null) {
+            List<Map<String, Object>> mapList = djeJdbcTemplate.queryForList("select info_id, old_winner_amount, old_budget,new_winner_amount,new_budget,user_id from amount_for_handle where  states = 1 AND update_time > 1622476800000   AND update_time < 1625068800000  AND  info_id=?", noticeMQ.getContentid());
+            //List<Map<String, Object>> mapList = djeJdbcTemplate.queryForList("select info_id, old_winner_amount, old_budget,new_winner_amount,new_budget,user_id from amount_for_handle where  states = 1 AND update_time > 1622476800000   AND update_time < 1625068800000 AND (old_winner_amount > 100000000 or old_budget > 100000000 ) AND  info_id=?", noticeMQ.getContentid());
+            if (mapList != null && mapList.size() > 0) {
+                for (Map<String, Object> map : mapList) {
+                    bdJdbcTemplate.update(INSERT_HAN_DJE, resultMap.get("content_id"), map.get("old_winner_amount"), map.get("old_budget"),
+                            resultMap.get("url"), map.get("user_id"),map.get("new_winner_amount"),map.get("new_budget"),resultMap.get("title"),resultMap.get("update_time"),2);
+                    log.info("- - -大金额入库成功");
+                }
+            }else {
+                bdJdbcTemplate.update(INSERT_HAN_DJE, resultMap.get("content_id"), noticeMQ.getAmountNumber(), noticeMQ.getBudgetNumber(),
+                        resultMap.get("url"), null,null,null,resultMap.get("title"),resultMap.get("update_time"),1);
+                log.info("- - -大金额入库成功");
+            }
+
+            //saveIntoMysql(resultMap, String.valueOf(resultMap.get("content_id")));
+            //log.info("进行入库操作，contentId:{}", resultMap.get("content_id").toString());
+        }
+    }
+
     public void getZiDuanKu_ziTi(NoticeMQ noticeMQ) {
         boolean bl = checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
         if (!bl) {
@@ -95,8 +131,29 @@ public class PocDataFieldService {
             log.info("进行入库操作，contentId:{}", resultMap.get("content_id").toString());
         }
     }
+
+    /**
+     * 通用接口-调用字段库的-自提接口(带全文的)
+     *
+     * @param noticeMQ
+     */
+    public void getZiDuanKu_ziTi_quanwen(NoticeMQ noticeMQ) {
+        boolean bl = checkStatus(noticeMQ.getContentid().toString());//范围 例如:全国
+        if (!bl) {
+            log.info("contentid:{} 对应的数据状态不是99, 丢弃", noticeMQ.getContentid().toString());
+            return;
+        }
+        //调用中台接口，全部自提
+        Map<String, Object> resultMap = getFieldsWithZiTiAndQuan(noticeMQ, String.valueOf(noticeMQ.getContentid()));
+        if (resultMap != null) {
+            saveIntoMysql(resultMap, String.valueOf(resultMap.get("content_id")));
+            log.info("进行入库操作，contentId:{}", resultMap.get("content_id").toString());
+        }
+    }
+
     /**
      * 通用接口-调用字段库的-混合百炼
+     *
      * @param noticeMQ
      */
     public void getZiDuanKu_hunHeBaiLian(NoticeMQ noticeMQ) {
@@ -108,6 +165,8 @@ public class PocDataFieldService {
         //调用中台接口，混合百炼
         Map<String, Object> resultMap = getFieldsWithHunHe(noticeMQ, String.valueOf(noticeMQ.getContentid()));//混合百炼
         if (resultMap != null) {
+            resultMap.put("keyword_term", noticeMQ.getKeywordTerm());
+            resultMap.put("keywords", noticeMQ.getKeywords());
             saveIntoMysql(resultMap, String.valueOf(resultMap.get("content_id")));
             log.info("进行入库操作，contentId:{}", resultMap.get("content_id").toString());
         }
@@ -120,7 +179,7 @@ public class PocDataFieldService {
      */
     public boolean checkStatus(String contentid) {
         boolean result = false;
-        Map<String, Object> map = gwJdbcTemplate.queryForMap(SELECT_PHPCMS_CONTENT_BY_CONTENTID, contentid);
+        Map<String, Object> map = lsJdbcTemplate.queryForMap(SELECT_PHPCMS_CONTENT_BY_CONTENTID, contentid);
         if (map != null && map.get("status") != null) {
             int status = Integer.parseInt(map.get("status").toString());
             if (status == 99) {
@@ -175,6 +234,7 @@ public class PocDataFieldService {
         }
 
     }
+
     public void saveIntoMysql2(Map<String, Object> map, String contentId) {
         // 进行大金额替换操作
         List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
@@ -215,6 +275,7 @@ public class PocDataFieldService {
         }
 
     }
+
     public void saveIntoMysql_17(Map<String, Object> map, String contentId) {
         // 进行大金额替换操作
         List<Map<String, Object>> maps = djeJdbcTemplate.queryForList("select info_id, winner_amount, budget from amount_code where info_id = ?", contentId);
@@ -251,6 +312,35 @@ public class PocDataFieldService {
      */
     public Map<String, Object> getFieldsWithZiTi(NoticeMQ noticeMQ, String contentId) {
         JSONObject fieldObject = getJsonObjectWithFields(contentId);
+        if (fieldObject == null) {
+            log.error("contentId:{} 调用数据详情接口异常", contentId);
+            return null;
+        }
+        Map<String, Object> hashMap = getResultMapWithGenPart(fieldObject);
+        if (hashMap.isEmpty()) {
+            log.error("contentId:{} 调用数据详情接口, 获取常用字段异常", contentId);
+            return null;
+        }
+        // 非招标单位、中标单位、金额字段
+        hashMap = getResultMapWithZiTi(fieldObject, hashMap);
+        hashMap.put("task_id", noticeMQ.getTaskId());
+        hashMap.put("keyword", noticeMQ.getKeyword());
+        hashMap.put("content_id", noticeMQ.getContentid().toString());
+        hashMap.put("code", noticeMQ.getF()); //F词
+        hashMap.put("black_word", noticeMQ.getBlackWord()); //黑词词
+        hashMap.put("monitorUrl", "http://monitor.ka.qianlima.com/#/checkDetails?pushId=" + noticeMQ.getContentid());
+        hashMap.put("pocDetailUrl", "http://cusdata.qianlima.com/detail/" + noticeMQ.getContentid() + ".html");
+        return hashMap;
+    }
+
+    /**
+     * 获取poc标准字段接口-自提字段-带全文
+     *
+     * @param noticeMQ
+     * @return
+     */
+    public Map<String, Object> getFieldsWithZiTiAndQuan(NoticeMQ noticeMQ, String contentId) {
+        JSONObject fieldObject = getJsonObjectWithFieldAndQuan(contentId);
         if (fieldObject == null) {
             log.error("contentId:{} 调用数据详情接口异常", contentId);
             return null;
@@ -523,6 +613,9 @@ public class PocDataFieldService {
             if (StringUtils.isNotBlank(extractDateDetail.getString("registration_end_time"))) {
                 registrationEndTime = DateFormatUtils.format(Long.valueOf(extractDateDetail.getString("registration_end_time")) * 1000L, "yyyy-MM-dd HH:mm:ss");
             }
+            if (StringUtils.isNotBlank(extractDateDetail.getString("registration_begin_time"))) {
+                registrationBeginTime = DateFormatUtils.format(Long.valueOf(extractDateDetail.getString("registration_begin_time")) * 1000L, "yyyy-MM-dd HH:mm:ss");
+            }
         }
 
 
@@ -550,7 +643,7 @@ public class PocDataFieldService {
         resultMap.put("link_man", linkMan); // 代理机构单位联系人
         resultMap.put("link_phone", linkPhone); // 代理机构单位联系电话
         resultMap.put("infoTypeSegment", fieldObject.getString("notice_segment_type"));
-        resultMap.put("extract_proj_name", fieldObject.getString("extract_proj_name")); // 预留字段2
+        resultMap.put("extract_proj_name", fieldObject.getString("extract_proj_name")); //项目名称
         resultMap.put("registration_begin_time", registrationBeginTime);  //报名开始时间
         resultMap.put("registration_end_time", registrationEndTime); //报名截止时间
         resultMap.put("biding_acquire_time", bidingAcquireTime);  //标书获取时间
@@ -565,7 +658,7 @@ public class PocDataFieldService {
     }
 
 
-    private JSONObject getJsonObjectWithFields(String infoId) {
+    public JSONObject getJsonObjectWithFields(String infoId) {
         JSONObject jsonObject = null;
         CloseableHttpClient client = null;
         try {
@@ -575,6 +668,7 @@ public class PocDataFieldService {
             //4、创建HttpGet请求
             //HttpGet httpGet = new HttpGet("http://118.190.158.164:9395/zt/api/" + infoId);
             HttpGet httpGet = new HttpGet("http://monitor.ka.qianlima.com/zt/api/" + infoId);
+            //HttpGet httpGet = new HttpGet("http://monitor.ka.qianlima.com/zt/api/bidding/content?contentid=" + infoId+"&hasContent=1");//正文接口  1是需要正文
             httpGet.setConfig(requestConfig);
             CloseableHttpResponse response = client.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -601,7 +695,65 @@ public class PocDataFieldService {
             throw new RuntimeException("调用数据详情接口异常， 获取到的数据为 空 ");
         }
         String code = jsonObject.getString("code");
-        if ("-1".equals(code) || "1".equals(code) || "2".equals(code)) {
+        /*if ("-1".equals(code) || "1".equals(code) || "2".equals(code)) {
+            log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
+            throw new RuntimeException("调用数据详情接口异常");
+        }*/
+        if (!"0".equals(code)) {
+            log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
+            throw new RuntimeException("调用数据详情接口异常");
+        }
+        return jsonObject.getJSONObject("data");
+    }
+
+    /**
+     * 带全文字段的
+     *
+     * @param infoId
+     * @return
+     */
+    public JSONObject getJsonObjectWithFieldAndQuan(String infoId) {
+        JSONObject jsonObject = null;
+        CloseableHttpClient client = null;
+        try {
+            client = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000)
+                    .setSocketTimeout(60000).setConnectTimeout(60000).build();
+            //4、创建HttpGet请求
+            //HttpGet httpGet = new HttpGet("http://118.190.158.164:9395/zt/api/" + infoId);
+            HttpGet httpGet = new HttpGet("http://monitor.ka.qianlima.com/zt/api/" + infoId);
+            //HttpGet httpGet = new HttpGet("http://monitor.ka.qianlima.com/zt/api/bidding/content?contentid=" + infoId+"&hasContent=1");//正文接口  1是需要正文
+            httpGet.setConfig(requestConfig);
+            CloseableHttpResponse response = client.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                log.info("=====调用字段库接口====");
+                String result = EntityUtils.toString(response.getEntity(), "UTF-8");
+                if (StringUtils.isNotBlank(result)) {
+                    jsonObject = JSON.parseObject(result);
+                }
+            } else {
+                log.info("infoId:{} 调用数据详情接口异常, 返回状态不是 200 ", infoId);
+                throw new RuntimeException("调用数据详情接口异常，请联系管理员， 返回状态不是 200 ");
+            }
+        } catch (Exception e) {
+            log.error("调用数据详情接口异常:{}, 获取不到详情数据", e);
+        } finally {
+            try {
+                closeHttpClient(client);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (jsonObject == null) {
+            log.error("调用数据详情接口异常", infoId);
+            throw new RuntimeException("调用数据详情接口异常， 获取到的数据为 空 ");
+        }
+        String code = jsonObject.getString("code");
+        /*if ("-1".equals(code) || "1".equals(code) || "2".equals(code)) {
+            log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
+            throw new RuntimeException("调用数据详情接口异常");
+        }*/
+        if (!"0".equals(code)) {
             log.error("infoId:{} 调用数据详情接口异常, 对应的状态码 code ：{} ", infoId, code);
             throw new RuntimeException("调用数据详情接口异常");
         }
@@ -643,5 +795,19 @@ public class PocDataFieldService {
         }
         return resultMap;
     }
+
+    /**
+     * 临时存数据
+     *
+     * @param content
+     */
+    // (content_id,title,updatetime,tagIds,progid,newProvince,newCity,newCountry,userIds) VALUES (?,?,?,?,?,?,?,?,?)";
+    public void saveTest(NoticeMQ content) {
+        bdJdbcTemplate.update(INSERT_TEST, content.getContentid(), content.getTitle(), content.getUpdatetime(), content.getTags(), content.getProgid(),
+                content.getNewProvince(), content.getNewCity(), content.getNewCountry(), content.getUserIds());
+        log.info("solr数据入库成功：{}", content.getContentid());
+    }
+
+
 }
 

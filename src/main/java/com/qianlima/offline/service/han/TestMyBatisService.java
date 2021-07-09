@@ -15,4 +15,6 @@ public interface TestMyBatisService {
    Map<String,Object> getMapForOne(LcDto lcDto);
 
     void saveToDef(LcDto lcDto);
+
+    void saveDatas(LcDto lcDto) throws Exception;
 }

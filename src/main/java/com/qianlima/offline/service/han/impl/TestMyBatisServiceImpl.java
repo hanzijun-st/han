@@ -9,6 +9,7 @@ import com.qianlima.offline.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -66,6 +67,32 @@ public class TestMyBatisServiceImpl implements TestMyBatisService {
     @Override
     public void saveToDef(LcDto lcDto) {
         testLcMapper.saveToDef(lcDto);
+    }
+
+    @Override
+    @Transactional(value = "myTransactionManager")
+    public void saveDatas(LcDto lcDto) throws Exception{
+        List<LcDto> list = new ArrayList<>();
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+        list.add(lcDto);
+
+        int i =1;
+        for (LcDto dto : list) {
+            if (i == 5){
+                throw new Exception("报错了");
+            }
+            testLcMapper.saveToDef(dto);
+            i ++;
+        }
+
     }
 
 

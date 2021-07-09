@@ -191,7 +191,7 @@ public class LianYing01Service {
                     keyword = noticeMQ.getKeyword();
                 }
 
-                HashMap<String, String> simpleAreaMap = KeyUtils.getSimpleAreaMap();//读取医院信息
+                HashMap<String, String> simpleAreaMap = null;//KeyUtils.getSimpleAreaMap();//读取医院信息
                 Set<Map.Entry<String, String>> entries = simpleAreaMap.entrySet();
                 for (Map.Entry<String, String> entry : entries) {
                     String key = entry.getKey();

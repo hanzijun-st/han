@@ -34,6 +34,9 @@ public class CusDataFieldService {
     @Autowired
     @Qualifier("gwJdbcTemplate")
     private JdbcTemplate gwJdbcTemplate;
+    @Autowired
+    @Qualifier("lsJdbcTemplate")
+    private JdbcTemplate lsJdbcTemplate;
 
     @Autowired
     @Qualifier("bdJdbcTemplate")
@@ -60,7 +63,7 @@ public class CusDataFieldService {
      */
     public boolean checkStatus(String contentid){
         boolean result = false;
-        Map<String, Object> map = gwJdbcTemplate.queryForMap(SELECT_PHPCMS_CONTENT_BY_CONTENTID, contentid);
+        Map<String, Object> map = lsJdbcTemplate.queryForMap(SELECT_PHPCMS_CONTENT_BY_CONTENTID, contentid);
         if (map != null && map.get("status") != null) {
             int status = Integer.parseInt(map.get("status").toString());
             if (status == 99) {

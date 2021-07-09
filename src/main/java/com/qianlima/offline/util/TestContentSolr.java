@@ -12,10 +12,10 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +26,10 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-public class OnlineContentSolr {
+public class TestContentSolr {
 
     @Autowired
-    //@Qualifier("onlineSolr")
+    //@Qualifier("testsolr")
     private SolrClient solrClient;
 
     public List<NoticeMQ> companyResultsBaoXian(String tiaojian, String key, Integer taskId) {
@@ -55,51 +55,15 @@ public class OnlineContentSolr {
                     for (SolrDocument doc : results) {
                         if (doc.containsKey("id") && null != doc.get("id")) {
                             NoticeMQ toMQEntity = new NoticeMQ();
-                            toMQEntity.setContentid(Long.valueOf(doc.get("id").toString()));
+                            toMQEntity.setContentid(Long.valueOf(doc.get("contentid").toString()));
                             toMQEntity.setTitle(doc.get("title") != null ? doc.get("title").toString() : null);//标题
-                            toMQEntity.setZhaoBiaoUnit(doc.get("zhaoBiaoUnit") != null ? doc.get("zhaoBiaoUnit").toString() : null);//招标单位
-                            toMQEntity.setZhongBiaoUnit(doc.get("zhongBiaoUnit") != null ? doc.get("zhongBiaoUnit").toString() : null);//中标单位
-                            toMQEntity.setProjName(doc.get("projName") != null ? doc.get("projName").toString() : null);//项目名称
-                            String amountNumber = doc.get("amountNumber") != null ? doc.get("amountNumber").toString() : null;
-                            String budgetNumber = doc.get("budgetNumber") != null ? doc.get("budgetNumber").toString() : null;
-                            if (StringUtils.isNotBlank(amountNumber)) {
-                                BigDecimal a = new BigDecimal(amountNumber);
-                                toMQEntity.setAmountNumber(a);//中标金额
-                            }
-
-                            if (StringUtils.isNotBlank(budgetNumber)) {
-                                BigDecimal b = new BigDecimal(budgetNumber);
-                                toMQEntity.setBudgetNumber(b);//招标预算
-                            }
-
-                            //toMQEntity.setBlzhongBiaoUnit(doc.get("blZhongBiaoUnit") != null ? doc.get("blZhongBiaoUnit").toString() : null);//百炼中标单位
-                            toMQEntity.setTaskId(taskId);
-                          /*   toMQEntity.setBlzhaoBiaoUnit(doc.get("blZhaoBiaoUnit") != null ? doc.get("blZhaoBiaoUnit").toString() : null);//百炼招标单位
-                            toMQEntity.setUpdatetime(doc.get("updatetime") != null ? doc.get("updatetime").toString() : null);//发布时间
-                            //toMQEntity.setTags(doc.get("tags") != null ? doc.get("tags").toString() : null);//
-                            //toMQEntity.setTags(doc.get("tagids") != null ? doc.get("tagids").toString() : null);//
-                            toMQEntity.setKey(key);
-                            toMQEntity.setTaskId(taskId);//
-                            toMQEntity.setAmount(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);//中标金额
-                            toMQEntity.setAmountUnit(doc.get("amountUnit") != null ? doc.get("amountUnit").toString() : null);//中标金额
-                            toMQEntity.setNewAmountUnit(doc.get("newAmountUnit") != null ? doc.get("newAmountUnit").toString() : null);//混合中标金额
-                            toMQEntity.setBudget(doc.get("budget") != null ? doc.get("budget").toString() : null);//招标预算金额
-                            toMQEntity.setNewZhongBiaoUnit(doc.get("newZhongBiaoUnit") != null ? doc.get("newZhongBiaoUnit").toString() : null);//混合中标单位
-                            toMQEntity.setXmNumber(doc.get("xmNumber") != null ? doc.get("xmNumber").toString() : null);//项目编号
-                            //toMQEntity.setNewProvince(doc.get("newProvince") != null ? doc.get("newProvince").toString() : null);//省
-                            //toMQEntity.setNewCity(doc.get("newCity") != null ? doc.get("newCity").toString() : null);//市
-                            //toMQEntity.setNewCountry(doc.get("newCountry") != null ? doc.get("newCountry").toString() : null);//县
-                            toMQEntity.setBiddingType(doc.get("biddingType") != null ? doc.get("biddingType").toString() : null);//招标方式
-                            toMQEntity.setUrl(doc.get("url") != null ? doc.get("url").toString() : null);//url
-
-                            toMQEntity.setProgid(doc.get("progid") != null ? doc.get("progid").toString() : null);//信息类型
-                            toMQEntity.setZhaoRelationName(doc.get("zhaoRelationName") != null ? doc.get("zhaoRelationName").toString() : null);//自提招标单位联系人
-                            toMQEntity.setZhaoRelationWay(doc.get("zhaoRelationWay") != null ? doc.get("zhaoRelationWay").toString() : null);//自提招标单位联系方式
-                            toMQEntity.setAgentUnit(doc.get("agentUnit") != null ? doc.get("agentUnit").toString() : null);//代理机构
-                            toMQEntity.setAgentRelationName(doc.get("agentRelationName") != null ? doc.get("agentRelationName").toString() : null);//代理机构联系人
-                            toMQEntity.setAgentRelationWay(doc.get("agentRelationWay") != null ? doc.get("agentRelationWay").toString() : null);//代理机构联系方式
-                            toMQEntity.setZhongRelationName(doc.get("zhongRelationName") != null ? doc.get("zhongRelationName").toString() : null);//自提中标单位联系人
-                            toMQEntity.setZhongRelationWay(doc.get("zhongRelationWay") != null ? doc.get("zhongRelationWay").toString() : null);//自提中标单位联系方式*/
+                            toMQEntity.setUpdatetime(doc.get("updatetime") != null ? doc.get("updatetime").toString() : null);
+                            toMQEntity.setTags(doc.get("tagIds") != null ? doc.get("tagIds").toString() : null);
+                            toMQEntity.setProgid(doc.get("progid") != null ? doc.get("progid").toString() : null);
+                            toMQEntity.setNewProvince(doc.get("newProvince") != null ? doc.get("newProvince").toString() : null);
+                            toMQEntity.setNewCity(doc.get("newCity") != null ? doc.get("newCity").toString() : null);
+                            toMQEntity.setNewCountry(doc.get("newCountry") != null ? doc.get("newCountry").toString() : null);
+                            toMQEntity.setUserIds(doc.get("userIds") != null ? doc.get("userIds").toString() : null);
                             resultMap.add(toMQEntity);
                         }
                     }
@@ -121,7 +85,6 @@ public class OnlineContentSolr {
 
     /**
      * 行业标签-专业solr
-     *
      * @param tiaojian
      * @param key
      * @param taskId
@@ -176,21 +139,20 @@ public class OnlineContentSolr {
 
     /**
      * 查询solr中的数据  通过输入的年份
-     *
-     * @param tiaojian 查询条件
-     * @param time     输入的时间
+     * @param tiaojian  查询条件
+     * @param time 输入的时间
      * @return
      */
-    public Map<String, Object> getSolr(String tiaojian, String time) {
-        Map<String, Object> map = new HashMap<>();
+    public Map<String,Object> getSolr(String tiaojian,String time){
+        Map<String,Object> map = new HashMap<>();
 
-        tiaojian = "yyyymm:" + time + " AND " + tiaojian;
+        tiaojian = "yyyymm:"+time+" AND "+tiaojian;
         String cursormark = "";
 
         SolrQuery solrQuery = new SolrQuery();
         solrQuery.setQuery(tiaojian);
         solrQuery.setRows(5000);
-        solrQuery.setFields("fl", "id", "zhaoBiaoUnit", "title");
+        solrQuery.setFields("fl","id","zhaoBiaoUnit","title");
         if (StringUtils.isEmpty(cursormark)) {
             solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
         } else {
@@ -201,9 +163,9 @@ public class OnlineContentSolr {
             QueryResponse response = solrClient.query(solrQuery, SolrRequest.METHOD.POST);
             SolrDocumentList results = response.getResults();
             if (results != null && results.size() > 0) {
-                map.put(time, results.getNumFound());
+                map.put(time,results.getNumFound());
             } else {
-                map.put(time, 0);
+                map.put(time,0);
             }
         } catch (SolrServerException | IOException e) {
             log.error("跑数据异常,{}", e);

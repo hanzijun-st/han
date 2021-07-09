@@ -66,6 +66,13 @@ public class CurrencyController {
         return "getNewBdw3请求成功---最新方式-获取标的物的数据";
     }
 
+    @GetMapping("/getPiPeiHangYeBiaoQianById")
+    @ApiOperation("匹配行业标签--- 一级/二级-通过id获取")
+    public String getPiPeiHangYeBiaoQianById() {
+        currencyService.getPiPeiHangYeBiaoQianById();
+        return "---最新方式-获取标的物的数据-通过id获取";
+    }
+
     @GetMapping("/getCrmByUserId")
     @ApiOperation("获取用户的指定字段-用户所有数据")
     public String getCrmByUserId() throws Exception {
@@ -88,12 +95,6 @@ public class CurrencyController {
         return "通过id获取项目名称 is ok";
     }
 
-    @GetMapping("/testBdw")
-    @ApiOperation("测试标的物")
-    public String testBdw() throws Exception {
-        currencyService.testBdw();
-        return "测试标的物 is ok";
-    }
 
     @GetMapping("/testBj")
     @ApiOperation("比较两组数据不同")
@@ -107,6 +108,13 @@ public class CurrencyController {
     public String getAreaByUnit() throws Exception {
         currencyService.getAreaByUnit();
         return "通过招标单位获取地区 is ok";
+    }
+
+    @GetMapping("/getAreaById")
+    @ApiOperation("通过contentId获取地区")
+    public String getAreaById() throws Exception {
+        currencyService.getAreas();
+        return "通过contentId获取地区 is ok";
     }
 
     @ApiOperation("查询单位的工商信息-天眼查")

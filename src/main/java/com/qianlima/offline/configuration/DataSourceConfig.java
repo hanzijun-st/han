@@ -69,6 +69,19 @@ public class DataSourceConfig implements EnvironmentAware {
     public JdbcTemplate bdPrimaryJdbcTemplate(@Qualifier("bdDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
+
+
+    @Bean(name = "lsDataSource")
+    @Qualifier("lsDataSource")
+    @ConfigurationProperties(prefix="spring.datasource.ls")
+    public DataSource lsPrimaryDataSource() {
+        return DruidDataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "lsJdbcTemplate")
+    public JdbcTemplate lsPrimaryJdbcTemplate(@Qualifier("lsDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
     /**
      * crm数据源
      */
